@@ -1,4 +1,4 @@
-# Anwendungsbeschreibung "Lymphknoten T2 - Avocado Sign Analyse" (v2.1.0 - Aktualisiert)
+# Anwendungsbeschreibung "Lymphknoten T2 - Avocado Sign Analyse" (v2.1.0)
 
 ## 1. Zweck und Kontext
 
