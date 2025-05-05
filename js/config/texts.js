@@ -175,12 +175,12 @@ const TOOLTIP_CONTENT = {
     criteriaComparisonTable: {
         cardTitle: "Tabellarischer Vergleich der diagnostischen Güte verschiedener Methoden/Kriteriensätze (AS, aktuell angewandte T2, Studien) für das ausgewählte Kollektiv [KOLLEKTIV].",
         tableHeaderSet: "Methode / Kriteriensatz",
-        tableHeaderSens: "Sens.",
-        tableHeaderSpez: "Spez.",
-        tableHeaderPPV: "PPV",
-        tableHeaderNPV: "NPV",
-        tableHeaderAcc: "Acc.",
-        tableHeaderAUC: "AUC/BalAcc"
+        tableHeaderSens: "Sensitivität: Anteil der korrekt als positiv erkannten N+ Fälle.",
+        tableHeaderSpez: "Spezifität: Anteil der korrekt als negativ erkannten N- Fälle.",
+        tableHeaderPPV: "Positiver Prädiktiver Wert: Wahrscheinlichkeit für N+, wenn Testergebnis positiv.",
+        tableHeaderNPV: "Negativer Prädiktiver Wert: Wahrscheinlichkeit für N-, wenn Testergebnis negativ.",
+        tableHeaderAcc: "Accuracy: Gesamtanteil korrekt klassifizierter Fälle.",
+        tableHeaderAUC: "Area Under Curve / Balanced Accuracy: Maß für die Gesamt-Trennschärfe (0.5=Zufall, 1=perfekt)."
     },
     logisticRegressionCard: { cardTitle: "Ergebnisse der logistischen Regression zur Modellierung der N+ Wahrscheinlichkeit basierend auf ausgewählten Prädiktoren (z.B. T2-Merkmale, Alter) für das Kollektiv [KOLLEKTIV]. (Experimentell)" },
     rocCurveCard: { cardTitle: "Receiver Operating Characteristic (ROC) Kurve für die Unterscheidung zwischen N+ und N- basierend auf {Variable} für das Kollektiv [KOLLEKTIV]. Zeigt Sensitivität vs. 1-Spezifität über verschiedene Schwellenwerte." },
@@ -204,7 +204,27 @@ const TOOLTIP_CONTENT = {
         downloadCompChartPNG: { description: "Lädt das Vergleichs-Balkendiagramm (AS vs. ausgewählte T2-Basis) als PNG-Datei herunter." },
         downloadCompChartSVG: { description: "Lädt das Vergleichs-Balkendiagramm (AS vs. ausgewählte T2-Basis) als Vektor-SVG-Datei herunter." },
         downloadTablePNG: { description: "Lädt die angezeigte Tabelle als PNG-Bilddatei herunter." },
-        downloadCompTablePNG: { description: "Lädt die Vergleichs-Metrik-Tabelle (AS vs. T2) als PNG-Datei herunter." }
+        downloadCompTablePNG: { description: "Lädt die Vergleichs-Metrik-Tabelle (AS vs. T2) als PNG-Datei herunter." },
+        asPurPerfTable: {
+            kollektiv: "Patientenkollektiv (Gesamt, Direkt OP, nRCT). N = Anzahl Patienten in der Gruppe.",
+            sens: "Sensitivität für AS (vs. N) in diesem Kollektiv.",
+            spez: "Spezifität für AS (vs. N) in diesem Kollektiv.",
+            ppv: "Positiver Prädiktiver Wert für AS (vs. N) in diesem Kollektiv.",
+            npv: "Negativer Prädiktiver Wert für AS (vs. N) in diesem Kollektiv.",
+            acc: "Accuracy für AS (vs. N) in diesem Kollektiv.",
+            auc: "AUC / Balanced Accuracy für AS (vs. N) in diesem Kollektiv."
+        },
+        asVsT2PerfTable: {
+            metric: "Diagnostische Metrik.",
+            asValue: "Wert der Metrik für Avocado Sign (AS) (vs. N) im Kollektiv [KOLLEKTIV], inkl. 95% CI.",
+            t2Value: "Wert der Metrik für die ausgewählte T2-Basis ([T2_SHORT_NAME]) (vs. N) im Kollektiv [KOLLEKTIV], inkl. 95% CI."
+        },
+        asVsT2TestTable: {
+            test: "Statistischer Test zum Vergleich von AS vs. [T2_SHORT_NAME].",
+            statistic: "Wert der Teststatistik.",
+            pValue: "p-Wert des Tests. p < 0.05 bedeutet einen statistisch signifikanten Unterschied zwischen AS und [T2_SHORT_NAME] in Bezug auf die getestete Metrik (Accuracy oder AUC) im Kollektiv [KOLLEKTIV].",
+            method: "Name des verwendeten statistischen Tests."
+        }
     },
     exportTab: {
         singleExports: "Einzelexporte",
@@ -245,8 +265,8 @@ const TOOLTIP_CONTENT = {
         balAcc: { name: "Balanced Accuracy", description: "Balanced Accuracy ([METHODE] vs. N): Der Mittelwert aus Sensitivität und Spezifität.<br><i>Formel: (Sensitivität + Spezifität) / 2</i><br>Ein robustes Maß bei ungleichen Gruppengrößen (Prävalenzen).", interpretation: "Die Balanced Accuracy der Methode [METHODE], die Sensitivität und Spezifität gleich gewichtet, betrug <strong>[WERT]</strong> (95% CI nach [METHOD_CI]: [LOWER] - [UPPER]) im Kollektiv [KOLLEKTIV]."},
         f1: { name: "F1-Score", description: "F1-Score ([METHODE] vs. N): Das harmonische Mittel aus PPV (Precision) und Sensitivität (Recall).<br><i>Formel: 2 * (PPV * Sensitivität) / (PPV + Sensitivität)</i><br>Nützlich, wenn sowohl falsch positive als auch falsch negative Ergebnisse relevant sind, besonders bei unbalancierten Klassen.", interpretation: "Der F1-Score für die Methode [METHODE], der Präzision und Sensitivität kombiniert, beträgt <strong>[WERT]</strong> (95% CI nach [METHOD_CI]: [LOWER] - [UPPER]) im Kollektiv [KOLLEKTIV]."},
         auc: { name: "Area Under Curve (AUC)", description: "AUC ([METHODE] vs. N): Fläche unter der Receiver Operating Characteristic (ROC)-Kurve. Repräsentiert die Fähigkeit der Methode [METHODE], zufällig ausgewählte N+ und N- Patienten korrekt zu rangreihen. 0.5 entspricht Zufall, 1.0 perfekter Trennung.<br><i>Für binäre Tests (wie AS oder eine feste T2-Regel) ist AUC = Balanced Accuracy.</i>", interpretation: "Die AUC von <strong>[WERT]</strong> (95% CI nach [METHOD_CI]: [LOWER] - [UPPER]) deutet auf eine <strong>[BEWERTUNG]</strong> generelle Trennschärfe der Methode [METHODE] zwischen N+ und N- Fällen im Kollektiv [KOLLEKTIV] hin."},
-        mcnemar: { name: "McNemar-Test (p-Wert)", description: "Prüft auf einen signifikanten Unterschied in den diskordanten Paaren (Fälle, bei denen AS und T2 unterschiedliche Ergebnisse liefern) bei gepaarten Daten.<br><i>Nullhypothese: Anzahl(AS+/T2-) = Anzahl(AS-/T2+)</i><br>Ein signifikanter p-Wert deutet auf einen systematischen Unterschied in der Fehlklassifizierungsrate hin.", interpretation: "Der McNemar-Test ergab einen p-Wert von <strong>[P_WERT] ([SIGNIFIKANZ])</strong>. Dies deutet darauf hin, dass sich die Fehlklassifizierungsraten von AS und T2 im Kollektiv [KOLLEKTIV] [SIGNIFIKANZ_TEXT] unterscheiden."},
-        delong: { name: "DeLong-Test (p-Wert für AUC)", description: "Vergleicht zwei AUC-Werte von ROC-Kurven, die auf denselben (gepaarten) Daten basieren, unter Berücksichtigung der Kovarianz.<br><i>Nullhypothese: AUC(AS) = AUC(T2)</i>", interpretation: "Der DeLong-Test ergab einen p-Wert von <strong>[P_WERT] ([SIGNIFIKANZ])</strong>. Dies deutet darauf hin, dass sich die AUC-Werte (bzw. Balanced Accuracies) von AS und T2 im Kollektiv [KOLLEKTIV] [SIGNIFIKANZ_TEXT] unterscheiden."},
+        mcnemar: { name: "McNemar-Test (p-Wert)", description: "Prüft auf einen signifikanten Unterschied in den diskordanten Paaren (Fälle, bei denen AS und T2 unterschiedliche Ergebnisse liefern) bei gepaarten Daten.<br><i>Nullhypothese: Anzahl(AS+/T2-) = Anzahl(AS-/T2+)</i><br>Ein signifikanter p-Wert deutet auf einen systematischen Unterschied in der Fehlklassifizierungsrate hin.", interpretation: "Der McNemar-Test ergab einen p-Wert von <strong>[P_WERT] ([SIGNIFIKANZ])</strong>. Dies deutet darauf hin, dass sich die Fehlklassifizierungsraten von AS und [T2_SHORT_NAME] im Kollektiv [KOLLEKTIV] [SIGNIFIKANZ_TEXT] unterscheiden."},
+        delong: { name: "DeLong-Test (p-Wert für AUC)", description: "Vergleicht zwei AUC-Werte von ROC-Kurven, die auf denselben (gepaarten) Daten basieren, unter Berücksichtigung der Kovarianz.<br><i>Nullhypothese: AUC(AS) = AUC(T2)</i>", interpretation: "Der DeLong-Test ergab einen p-Wert von <strong>[P_WERT] ([SIGNIFIKANZ])</strong>. Dies deutet darauf hin, dass sich die AUC-Werte (bzw. Balanced Accuracies) von AS und [T2_SHORT_NAME] im Kollektiv [KOLLEKTIV] [SIGNIFIKANZ_TEXT] unterscheiden."},
         phi: { name: "Phi-Koeffizient (φ)", description: "Maß für die Stärke und Richtung des Zusammenhangs zwischen zwei binären Variablen (z.B. Vorhandensein von Merkmal [MERKMAL] und N-Status). Wertebereich von -1 (perfekt negativ) bis +1 (perfekt positiv), 0 bedeutet kein Zusammenhang.<br><i>Berechnet aus der 2x2-Kontingenztafel.</i>", interpretation: "Der Phi-Koeffizient von <strong>[WERT]</strong> deutet auf einen <strong>[STAERKE]</strong> Zusammenhang zwischen dem Merkmal '[MERKMAL]' und dem N-Status im Kollektiv [KOLLEKTIV] hin."},
         rd: { name: "Risk Difference (RD)", description: "Absolute Differenz in der Wahrscheinlichkeit (Risiko) für N+ zwischen Patienten mit und ohne das Merkmal [MERKMAL].<br><i>Formel: P(N+|Merkmal+) - P(N+|Merkmal-)</i><br>Gibt den absoluten Effekt des Merkmals an.", interpretation: "Das Risiko für N+ war um <strong>[WERT]%</strong> absolut [HOEHER_NIEDRIGER] bei Patienten mit dem Merkmal '[MERKMAL]' verglichen mit Patienten ohne dieses Merkmal (95% CI nach [METHOD_CI]: [LOWER]% - [UPPER]%) im Kollektiv [KOLLEKTIV]."},
         or: { name: "Odds Ratio (OR)", description: "Quotient der Odds für N+ bei Vorhandensein vs. Abwesenheit des Merkmals [MERKMAL].<br><i>Formel: Odds(N+|Merkmal+)/Odds(N+|Merkmal-)</i><br>OR > 1 bedeutet erhöhte Odds für N+ bei Vorhandensein des Merkmals, OR < 1 verringerte Odds.", interpretation: "Die Chance (Odds) für einen N+ Status war bei Patienten mit dem Merkmal '[MERKMAL]' um den Faktor <strong>[WERT]</strong> [FAKTOR_TEXT] im Vergleich zu Patienten ohne dieses Merkmal (95% CI nach [METHOD_CI]: [LOWER] - [UPPER], p=[P_WERT], [SIGNIFIKANZ]) im Kollektiv [KOLLEKTIV]."},
