@@ -284,7 +284,7 @@ const uiComponents = (() => {
 
         metrics.forEach((key, index) => {
             const metricData = stats[key];
-            const descriptionTooltip = (TOOLTIP_CONTENT.t2MetricsOverview?.[key] || TOOLTIP_CONTENT.statMetrics[key]?.description || key).replace(/\[METHODE\]/g, 'T2');
+            const metricDescription = (TOOLTIP_CONTENT.t2MetricsOverview?.[key] || TOOLTIP_CONTENT.statMetrics[key]?.description || key).replace(/\[METHODE\]/g, 'T2');
             const interpretationTemplate = TOOLTIP_CONTENT.statMetrics[key]?.interpretation || 'Keine Interpretation verfügbar.';
             const digits = (key === 'f1' || key === 'auc') ? 3 : 1;
             const isPercent = !(key === 'f1' || key === 'auc');
@@ -307,7 +307,7 @@ const uiComponents = (() => {
 
             contentHTML += `
                 <div class="p-1 flex-fill bd-highlight ${index > 0 ? 'border-start' : ''}">
-                    <strong data-tippy-content="${descriptionTooltip}">${metricDisplayNames[key]}:</strong>
+                    <strong data-tippy-content="${metricDescription}">${metricDisplayNames[key]}:</strong>
                     <span data-tippy-content="${filledInterpretation}"> ${formattedValue}</span>
                 </div>`;
         });
