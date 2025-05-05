@@ -3,30 +3,44 @@ const uiViewLogic = (() => {
     // Interne Hilfsfunktionen zum Generieren der Tooltip-Inhalte
     function _getMetricDescriptionHTML(key, methode = '') {
        const desc = TOOLTIP_CONTENT.statMetrics[key]?.description || key;
+       // Ersetze nur [METHODE], falls vorhanden. Andere Platzhalter sind hier nicht relevant.
        return desc.replace(/\[METHODE\]/g, methode);
     }
 
     function _getMetricInterpretationHTML(key, metricData, methode = '', kollektivName = '') {
         const interpretationTemplate = TOOLTIP_CONTENT.statMetrics[key]?.interpretation || 'Keine Interpretation verfügbar.';
-        if (!metricData) return 'Keine Daten für Interpretation verfügbar.';
+        // Stelle sicher, dass metricData ein Objekt ist, auch wenn nur der Wert übergeben wird
+        const data = (typeof metricData === 'object' && metricData !== null) ? metricData : { value: metricData, ci: null, method: 'N/A' };
         const na = '--';
         const digits = (key === 'f1' || key === 'auc') ? 3 : 1;
         const isPercent = !(key === 'f1' || key === 'auc');
-        const valueStr = formatNumber(metricData?.value, digits, na);
-        const lowerStr = formatNumber(metricData?.ci?.lower, digits, na);
-        const upperStr = formatNumber(metricData?.ci?.upper, digits, na);
-        const ciMethodStr = metricData?.method || na;
-        const bewertungStr = (key === 'auc') ? getAUCBewertung(metricData?.value) : '';
-        return interpretationTemplate
+        const valueStr = formatNumber(data?.value, digits, na);
+        const lowerStr = formatNumber(data?.ci?.lower, digits, na);
+        const upperStr = formatNumber(data?.ci?.upper, digits, na);
+        const ciMethodStr = data?.method || 'N/A'; // Verwende N/A wenn Methode nicht verfügbar
+        const bewertungStr = (key === 'auc') ? getAUCBewertung(data?.value) : '';
+
+        // Ersetze alle relevanten Platzhalter sorgfältig
+        let interpretation = interpretationTemplate
             .replace(/\[METHODE\]/g, methode)
             .replace(/\[WERT\]/g, `<strong>${valueStr}${isPercent ? '%' : ''}</strong>`)
             .replace(/\[LOWER\]/g, lowerStr)
             .replace(/\[UPPER\]/g, upperStr)
             .replace(/\[METHOD_CI\]/g, ciMethodStr)
             .replace(/\[KOLLEKTIV\]/g, `<strong>${kollektivName}</strong>`)
-            .replace(/\[BEWERTUNG\]/g, `<strong>${bewertungStr}</strong>`)
-            .replace(/<hr.*?>.*$/, ''); // Sicherstellen, dass kein <hr> übrig bleibt
+            .replace(/\[BEWERTUNG\]/g, `<strong>${bewertungStr}</strong>`);
+
+        // Entferne Sätze/Teile, die sich auf CI beziehen, falls keine CI-Daten vorhanden sind
+        if (lowerStr === na || upperStr === na) {
+             interpretation = interpretation.replace(/\(95% CI nach .*?: .*? - .*?\)/g, '(Keine CI-Daten verfügbar)');
+             interpretation = interpretation.replace(/nach \[METHOD_CI\]:/g, ''); // Entferne auch den Methodenteil, wenn CIs fehlen
+        }
+         interpretation = interpretation.replace(/p=\[P_WERT\], \[SIGNIFIKANZ\]/g,''); // Entferne p-Wert Teil falls nicht relevant für diese Metrik
+         interpretation = interpretation.replace(/<hr.*?>.*$/, ''); // Sicherstellen, dass kein <hr> übrig bleibt
+
+        return interpretation;
     }
+
 
     function _getTestDescriptionHTML(key, t2ShortName = 'T2') {
         const desc = TOOLTIP_CONTENT.statMetrics[key]?.description || key;
@@ -54,17 +68,17 @@ const uiViewLogic = (() => {
         const interpretationTemplate = TOOLTIP_CONTENT.statMetrics[key]?.interpretation || 'Keine Interpretation verfügbar.';
         if (!assocObj) return 'Keine Daten für Interpretation verfügbar.';
         const na = '--';
-        let valueStr = na, lowerStr = na, upperStr = na, ciMethodStr = na, bewertungStr = '', pStr = na, sigSymbol = '', sigText = '';
+        let valueStr = na, lowerStr = na, upperStr = na, ciMethodStr = na, bewertungStr = '', pStr = na, sigSymbol = '', sigText = '', pVal = NaN;
+        const assozPValue = assocObj?.pValue; // p-Wert für Assoziation (Fisher/MWU)
 
         if (key === 'or') {
-            const pVal = assocObj?.pValue;
             valueStr = formatNumber(assocObj.or?.value, 2, na);
             lowerStr = formatNumber(assocObj.or?.ci?.lower, 2, na);
             upperStr = formatNumber(assocObj.or?.ci?.upper, 2, na);
             ciMethodStr = assocObj.or?.method || na;
-            pStr = (pVal !== null && !isNaN(pVal)) ? (pVal < 0.001 ? '&lt;0.001' : formatNumber(pVal, 3, na)) : na;
-            sigSymbol = getStatisticalSignificanceSymbol(pVal);
-            sigText = getStatisticalSignificanceText(pVal);
+            pStr = (assozPValue !== null && !isNaN(assozPValue)) ? (assozPValue < 0.001 ? '&lt;0.001' : formatNumber(assozPValue, 3, na)) : na;
+            sigSymbol = getStatisticalSignificanceSymbol(assozPValue);
+            sigText = getStatisticalSignificanceText(assozPValue);
         } else if (key === 'rd') {
             valueStr = formatNumber(assocObj.rd?.value !== null && !isNaN(assocObj.rd?.value) ? assocObj.rd.value * 100 : NaN, 1, na);
             lowerStr = formatNumber(assocObj.rd?.ci?.lower !== null && !isNaN(assocObj.rd?.ci?.lower) ? assocObj.rd.ci.lower * 100 : NaN, 1, na);
@@ -73,9 +87,25 @@ const uiViewLogic = (() => {
         } else if (key === 'phi') {
             valueStr = formatNumber(assocObj.phi?.value, 2, na);
             bewertungStr = getPhiBewertung(assocObj.phi?.value);
+        } else if (key === 'fisher' || key === 'mannwhitney' || key === 'pvalue') { // Added 'pvalue' for direct use
+             pVal = assocObj?.pValue;
+             pStr = (pVal !== null && !isNaN(pVal)) ? (pVal < 0.001 ? '&lt;0.001' : formatNumber(pVal, 3, na)) : na;
+             sigSymbol = getStatisticalSignificanceSymbol(pVal);
+             sigText = getStatisticalSignificanceText(pVal);
+             // Use the defaultP interpretation template if specific one not found
+             const specificInterpretation = TOOLTIP_CONTENT.statMetrics[key]?.interpretation;
+             const templateToUse = specificInterpretation || TOOLTIP_CONTENT.statMetrics.defaultP.interpretation;
+             return templateToUse
+                 .replace(/\[P_WERT\]/g, `<strong>${pStr}</strong>`)
+                 .replace(/\[SIGNIFIKANZ\]/g, sigSymbol)
+                 .replace(/\[SIGNIFIKANZ_TEXT\]/g, `<strong>${sigText}</strong>`)
+                 .replace(/\[MERKMAL\]/g, `'${merkmalName}'`) // Add MERKMAL replacement
+                 .replace(/\[VARIABLE\]/g, `'${merkmalName}'`) // Add VARIABLE replacement
+                 .replace(/\[KOLLEKTIV\]/g, `<strong>${kollektivName}</strong>`)
+                 .replace(/<hr.*?>.*$/, '');
         }
 
-        return interpretationTemplate
+        let interpretation = interpretationTemplate
             .replace(/\[MERKMAL\]/g, `'${merkmalName}'`)
             .replace(/\[WERT\]/g, `<strong>${valueStr}${key === 'rd' ? '%' : ''}</strong>`)
             .replace(/\[LOWER\]/g, lowerStr)
@@ -85,9 +115,23 @@ const uiViewLogic = (() => {
             .replace(/\[FAKTOR_TEXT\]/g, assocObj?.or?.value > 1 ? TOOLTIP_CONTENT.statMetrics.orFaktorTexte.ERHOEHT : (assocObj?.or?.value < 1 ? TOOLTIP_CONTENT.statMetrics.orFaktorTexte.VERRINGERT : TOOLTIP_CONTENT.statMetrics.orFaktorTexte.UNVERAENDERT))
             .replace(/\[HOEHER_NIEDRIGER\]/g, assocObj?.rd?.value > 0 ? TOOLTIP_CONTENT.statMetrics.rdRichtungTexte.HOEHER : (assocObj?.rd?.value < 0 ? TOOLTIP_CONTENT.statMetrics.rdRichtungTexte.NIEDRIGER : TOOLTIP_CONTENT.statMetrics.rdRichtungTexte.GLEICH))
             .replace(/\[STAERKE\]/g, `<strong>${bewertungStr}</strong>`)
-            .replace(/\[P_WERT\]/g, `<strong>${pStr}</strong>`) // Wird für OR-Interpretation gebraucht
-            .replace(/\[SIGNIFIKANZ\]/g, sigSymbol) // Wird für OR-Interpretation gebraucht
+            .replace(/\[P_WERT\]/g, `<strong>${pStr}</strong>`)
+            .replace(/\[SIGNIFIKANZ\]/g, sigSymbol)
             .replace(/<hr.*?>.*$/, ''); // Sicherstellen, dass kein <hr> übrig bleibt
+
+         // Remove CI part if data is missing
+         if (key === 'or' || key === 'rd') {
+            if (lowerStr === na || upperStr === na) {
+                interpretation = interpretation.replace(/\(95% CI nach .*?: .*? - .*?\)/g, '(Keine CI-Daten verfügbar)');
+                interpretation = interpretation.replace(/nach \[METHOD_CI\]:/g, ''); // Remove method if CI is missing
+            }
+         }
+         // Remove p-value part from OR interpretation if p-value is missing (shouldn't happen with Fisher)
+         if (key === 'or' && pStr === na) {
+             interpretation = interpretation.replace(/, p=.*?, .*?\)/g, ')');
+         }
+
+        return interpretation;
     }
 
     function createTableHeaderHTML(tableId, sortState, columns) {
@@ -294,6 +338,7 @@ const uiViewLogic = (() => {
         if (!stats || Object.keys(stats).length === 0) return '<p class="text-muted small p-3">Keine Assoziationsdaten verfügbar.</p>';
         const na = '--'; const fP = (pVal) => (pVal !== null && !isNaN(pVal)) ? (pVal < 0.001 ? '<0.001' : formatNumber(pVal, 3, na)) : na;
         let tableHTML = `<div class="table-responsive px-2"><table class="table table-sm table-striped small mb-0 caption-top" id="table-assoziation-${kollektivName.replace(/\s+/g, '_')}"><caption>Assoziation zwischen Merkmalen und N-Status (+/-)</caption><thead><tr><th>Merkmal</th><th>OR (95% CI)</th><th>RD (%) (95% CI)</th><th>Phi (φ)</th><th>p-Wert</th><th>Test</th></tr></thead><tbody>`;
+
         const getPValueInterpretationAssoc = (key, assocObj) => {
              const testName = assocObj?.testName || '';
              const pTooltipKey = testName.includes("Fisher") ? 'fisher' : (testName.includes("Mann-Whitney") ? 'mannwhitney' : 'defaultP');
@@ -306,12 +351,61 @@ const uiViewLogic = (() => {
              const merkmalName = assocObj?.featureName || '';
              return (TOOLTIP_CONTENT.statMetrics[pTooltipKey]?.description || '').replace('[MERKMAL]', merkmalName).replace('[VARIABLE]', merkmalName);
         };
-        const addRow = (key, assocObj, isActive = true) => { if (!assocObj) return ''; const merkmalName = assocObj.featureName || key; const orStr = formatCI(assocObj.or?.value, assocObj.or?.ci?.lower, assocObj.or?.ci?.upper, 2, false, na); const rdValPerc = formatNumber(assocObj.rd?.value !== null && !isNaN(assocObj.rd?.value) ? assocObj.rd.value * 100 : NaN, 1, na); const rdCILowerPerc = formatNumber(assocObj.rd?.ci?.lower !== null && !isNaN(assocObj.rd?.ci?.lower) ? assocObj.rd.ci.lower * 100 : NaN, 1, na); const rdCIUpperPerc = formatNumber(assocObj.rd?.ci?.upper !== null && !isNaN(assocObj.rd?.ci?.upper) ? assocObj.rd.ci.upper * 100 : NaN, 1, na); const rdStr = `${rdValPerc} (${rdCILowerPerc} - ${rdCIUpperPerc})`; const phiStr = formatNumber(assocObj.phi?.value, 2, na); const pStr = fP(assocObj.pValue); const sigSymbol = getStatisticalSignificanceSymbol(assocObj.pValue); const testName = assocObj.testName || na; const aktivText = isActive ? '' : ' <small class="text-muted">(inaktiv)</small>'; const merkmalDesc = `Merkmal: ${merkmalName}`; return `<tr><td data-tippy-content="${merkmalDesc}">${merkmalName}${aktivText}</td><td data-tippy-content="${_getAssociationInterpretationHTML('or', assocObj, merkmalName, kollektivName)}">${orStr}</td><td data-tippy-content="${_getAssociationInterpretationHTML('rd', assocObj, merkmalName, kollektivName)}">${rdStr}</td><td data-tippy-content="${_getAssociationInterpretationHTML('phi', assocObj, merkmalName, kollektivName)}">${phiStr}</td><td data-tippy-content="${getPValueInterpretationAssoc(key, assocObj)}">${pStr} ${sigSymbol}</td><td data-tippy-content="${getTestDescriptionAssoc(assocObj)}">${testName}</td></tr>`; };
+        const getMerkmalDescriptionHTMLAssoc = (key, assocObj) => {
+             const baseName = TOOLTIP_CONTENT.statMetrics[key]?.name || assocObj?.featureName || key;
+             return `Merkmal: ${baseName}`; // Keep it simple, more details are in value tooltips
+        };
+
+        const addRow = (key, assocObj, isActive = true) => {
+            if (!assocObj) return '';
+            const merkmalName = assocObj.featureName || key;
+            const orStr = formatCI(assocObj.or?.value, assocObj.or?.ci?.lower, assocObj.or?.ci?.upper, 2, false, na);
+            const rdValPerc = formatNumber(assocObj.rd?.value !== null && !isNaN(assocObj.rd?.value) ? assocObj.rd.value * 100 : NaN, 1, na);
+            const rdCILowerPerc = formatNumber(assocObj.rd?.ci?.lower !== null && !isNaN(assocObj.rd?.ci?.lower) ? assocObj.rd.ci.lower * 100 : NaN, 1, na);
+            const rdCIUpperPerc = formatNumber(assocObj.rd?.ci?.upper !== null && !isNaN(assocObj.rd?.ci?.upper) ? assocObj.rd.ci.upper * 100 : NaN, 1, na);
+            const rdStr = `${rdValPerc} (${rdCILowerPerc} - ${rdCIUpperPerc})`;
+            const phiStr = formatNumber(assocObj.phi?.value, 2, na);
+            const pStr = fP(assocObj.pValue);
+            const sigSymbol = getStatisticalSignificanceSymbol(assocObj.pValue);
+            const testName = assocObj.testName || na;
+            const aktivText = isActive ? '' : ' <small class="text-muted">(inaktiv)</small>';
+
+            return `<tr>
+                <td data-tippy-content="${getMerkmalDescriptionHTMLAssoc(key, assocObj)}">${merkmalName}${aktivText}</td>
+                <td data-tippy-content="${_getAssociationInterpretationHTML('or', assocObj, merkmalName, kollektivName)}">${orStr}</td>
+                <td data-tippy-content="${_getAssociationInterpretationHTML('rd', assocObj, merkmalName, kollektivName)}">${rdStr}</td>
+                <td data-tippy-content="${_getAssociationInterpretationHTML('phi', assocObj, merkmalName, kollektivName)}">${phiStr}</td>
+                <td data-tippy-content="${getPValueInterpretationAssoc(key, assocObj)}">${pStr} ${sigSymbol}</td>
+                <td data-tippy-content="${getTestDescriptionAssoc(assocObj)}">${testName}</td>
+            </tr>`;
+        };
+
         if (stats.as) tableHTML += addRow('as', stats.as);
-        if (stats.size_mwu && stats.size_mwu.testName && !stats.size_mwu.testName.includes("Invalid") && !stats.size_mwu.testName.includes("Nicht genug")) { const mwuObj = stats.size_mwu; const pStr = fP(mwuObj.pValue); const sigSymbol = getStatisticalSignificanceSymbol(mwuObj.pValue); const pTooltip = getPValueInterpretationAssoc('size_mwu', mwuObj); tableHTML += `<tr><td data-tippy-content="Vergleich der medianen Lymphknotengröße zwischen N+ und N-.">LK Größe (Median Vgl.)</td><td>${na}</td><td>${na}</td><td>${na}</td><td data-tippy-content="${pTooltip}">${pStr} ${sigSymbol}</td><td data-tippy-content="${getTestDescriptionAssoc(mwuObj)}">${mwuObj.testName || na}</td></tr>`; }
-        const featureOrder = ['size', 'form', 'kontur', 'homogenitaet', 'signal']; featureOrder.forEach(key => { if (stats[key]) { const isActive = criteria[key]?.active === true; tableHTML += addRow(key, stats[key], isActive); } });
-        tableHTML += `</tbody></table></div>`; return tableHTML;
+        if (stats.size_mwu && stats.size_mwu.testName && !stats.size_mwu.testName.includes("Invalid") && !stats.size_mwu.testName.includes("Nicht genug")) {
+            const mwuObj = stats.size_mwu;
+            const pStr = fP(mwuObj.pValue);
+            const sigSymbol = getStatisticalSignificanceSymbol(mwuObj.pValue);
+            const pTooltip = getPValueInterpretationAssoc('size_mwu', mwuObj);
+            const descTooltip = "Vergleich der medianen Lymphknotengröße zwischen N+ und N-.";
+            const testDescTooltip = getTestDescriptionAssoc(mwuObj);
+            tableHTML += `<tr>
+                <td data-tippy-content="${descTooltip}">LK Größe (Median Vgl.)</td>
+                <td>${na}</td><td>${na}</td><td>${na}</td>
+                <td data-tippy-content="${pTooltip}">${pStr} ${sigSymbol}</td>
+                <td data-tippy-content="${testDescTooltip}">${mwuObj.testName || na}</td>
+            </tr>`;
+        }
+        const featureOrder = ['size', 'form', 'kontur', 'homogenitaet', 'signal'];
+        featureOrder.forEach(key => {
+            if (stats[key]) {
+                const isActive = criteria[key]?.active === true;
+                tableHTML += addRow(key, stats[key], isActive);
+            }
+        });
+        tableHTML += `</tbody></table></div>`;
+        return tableHTML;
     }
+
 
     function createVergleichKollektiveContentHTML(stats, kollektiv1Name, kollektiv2Name) {
         if (!stats || !stats.accuracyComparison || !stats.aucComparison) return '<p class="text-muted small p-3">Keine Kollektiv-Vergleichsdaten verfügbar.</p>';
@@ -340,7 +434,7 @@ const uiViewLogic = (() => {
          if (!Array.isArray(results) || results.length === 0) return '<p class="text-muted small p-3">Keine Daten für Kriterienvergleich verfügbar.</p>';
          const tc = TOOLTIP_CONTENT || {}; const cc = tc.criteriaComparisonTable || {};
          const headers = [
-             { key: 'set', label: cc.tableHeaderSet || "Methode / Kriteriensatz", tooltip: null }, // Kein Tooltip für den Namen der Methode hier
+             { key: 'set', label: cc.tableHeaderSet || "Methode / Kriteriensatz", tooltip: null },
              { key: 'sens', label: cc.tableHeaderSens || "Sens.", tooltip: cc.tableHeaderSens },
              { key: 'spez', label: cc.tableHeaderSpez || "Spez.", tooltip: cc.tableHeaderSpez },
              { key: 'ppv', label: cc.tableHeaderPPV || "PPV", tooltip: cc.tableHeaderPPV },
@@ -351,26 +445,33 @@ const uiViewLogic = (() => {
          const tableId = "table-kriterien-vergleich";
          let tableHTML = `<div class="table-responsive px-2"><table class="table table-sm table-striped table-hover small caption-top" id="${tableId}"><caption>Vergleich verschiedener Kriteriensätze (vs. N) für Kollektiv: ${kollektivName}</caption><thead class="small"><tr>`;
          headers.forEach(h => {
-            // Tooltip nur am Header für die Beschreibung der Metrik
             const tooltipAttr = h.tooltip ? `data-tippy-content="${h.tooltip}"` : '';
             tableHTML += `<th ${tooltipAttr}>${h.label}</th>`;
          });
          tableHTML += `</tr></thead><tbody>`;
          results.forEach(result => {
              const isApplied = result.id === APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_STUDY_ID; const isAS = result.id === APP_CONFIG.SPECIAL_IDS.AVOCADO_SIGN_ID; const rowClass = isApplied ? 'table-primary' : (isAS ? 'table-info' : ''); let nameDisplay = result.name || 'Unbekannt'; if (isApplied) nameDisplay = APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_DISPLAY_NAME; else if (isAS) nameDisplay = APP_CONFIG.SPECIAL_IDS.AVOCADO_SIGN_DISPLAY_NAME;
-             // Zellen enthalten nur Werte, keine Tooltips hier
-             tableHTML += `<tr class="${rowClass}"><td class="fw-bold">${nameDisplay}</td><td>${formatPercent(result.sens, 1)}</td><td>${formatPercent(result.spez, 1)}</td><td>${formatPercent(result.ppv, 1)}</td><td>${formatPercent(result.npv, 1)}</td><td>${formatPercent(result.acc, 1)}</td><td>${formatNumber(result.auc, 3)}</td></tr>`;
+             // Tooltip für die Interpretation des Wertes in dieser Zelle hinzufügen
+             const tooltipSens = _getMetricInterpretationHTML('sens', { value: result.sens }, nameDisplay, kollektivName);
+             const tooltipSpez = _getMetricInterpretationHTML('spez', { value: result.spez }, nameDisplay, kollektivName);
+             const tooltipPPV = _getMetricInterpretationHTML('ppv', { value: result.ppv }, nameDisplay, kollektivName);
+             const tooltipNPV = _getMetricInterpretationHTML('npv', { value: result.npv }, nameDisplay, kollektivName);
+             const tooltipAcc = _getMetricInterpretationHTML('acc', { value: result.acc }, nameDisplay, kollektivName);
+             const tooltipAUC = _getMetricInterpretationHTML('auc', { value: result.auc }, nameDisplay, kollektivName);
+
+             tableHTML += `<tr class="${rowClass}"><td class="fw-bold">${nameDisplay}</td><td data-tippy-content="${tooltipSens}">${formatPercent(result.sens, 1)}</td><td data-tippy-content="${tooltipSpez}">${formatPercent(result.spez, 1)}</td><td data-tippy-content="${tooltipPPV}">${formatPercent(result.ppv, 1)}</td><td data-tippy-content="${tooltipNPV}">${formatPercent(result.npv, 1)}</td><td data-tippy-content="${tooltipAcc}">${formatPercent(result.acc, 1)}</td><td data-tippy-content="${tooltipAUC}">${formatNumber(result.auc, 3)}</td></tr>`;
          });
          tableHTML += `</tbody></table></div>`; return tableHTML;
     }
 
+
     function _createPresentationView_ASPUR_HTML(presentationData) {
         const { statsGesamt, statsDirektOP, statsNRCT, kollektiv, statsCurrentKollektiv, patientCount } = presentationData || {}; const kollektives = ['Gesamt', 'direkt OP', 'nRCT']; const statsMap = { 'Gesamt': statsGesamt, 'direkt OP': statsDirektOP, 'nRCT': statsNRCT }; const currentKollektivName = getKollektivDisplayName(kollektiv);
         const hasDataForCurrent = !!(statsCurrentKollektiv && statsCurrentKollektiv.matrix && statsCurrentKollektiv.matrix.rp !== undefined && (statsCurrentKollektiv.matrix.rp + statsCurrentKollektiv.matrix.fp + statsCurrentKollektiv.matrix.fn + statsCurrentKollektiv.matrix.rn) > 0);
-        const createPerfTableRow = (stats, kollektivKey) => { const kollektivDisplayName = getKollektivDisplayName(kollektivKey); const na = '--'; const fCI_p = (m, k) => { const d = (k === 'auc'||k==='f1') ? 3 : 1; const p = !(k === 'auc'||k==='f1'); return formatCI(m?.value, m?.ci?.lower, m?.ci?.upper, d, p, na); }; const getInterpretationTT = (mk, st) => { return getMetricInterpretationHTML(mk, st, 'AS', kollektivDisplayName); }; if (!stats || typeof stats.matrix !== 'object') return `<tr><td class="fw-bold" data-tippy-content="${TOOLTIP_CONTENT.praesentation.asPurPerfTable?.kollektiv || 'Kollektiv'}">${kollektivDisplayName} (N=?)</td><td colspan="6" class="text-muted text-center">Daten fehlen</td></tr>`; const count = stats.matrix ? (stats.matrix.rp + stats.matrix.fp + stats.matrix.fn + stats.matrix.rn) : 0; return `<tr><td class="fw-bold" data-tippy-content="${TOOLTIP_CONTENT.praesentation.asPurPerfTable?.kollektiv || 'Kollektiv'}">${kollektivDisplayName} (N=${count})</td><td data-tippy-content="${getInterpretationTT('sens', stats)}">${fCI_p(stats.sens, 'sens')}</td><td data-tippy-content="${getInterpretationTT('spez', stats)}">${fCI_p(stats.spez, 'spez')}</td><td data-tippy-content="${getInterpretationTT('ppv', stats)}">${fCI_p(stats.ppv, 'ppv')}</td><td data-tippy-content="${getInterpretationTT('npv', stats)}">${fCI_p(stats.npv, 'npv')}</td><td data-tippy-content="${getInterpretationTT('acc', stats)}">${fCI_p(stats.acc, 'acc')}</td><td data-tippy-content="${getInterpretationTT('auc', stats)}">${fCI_p(stats.auc, 'auc')}</td></tr>`; };
+        const createPerfTableRow = (stats, kollektivKey) => { const kollektivDisplayName = getKollektivDisplayName(kollektivKey); const na = '--'; const fCI_p = (m, k) => { const d = (k === 'auc'||k==='f1') ? 3 : 1; const p = !(k === 'auc'||k==='f1'); return formatCI(m?.value, m?.ci?.lower, m?.ci?.upper, d, p, na); }; const getInterpretationTT = (mk, st) => { return _getMetricInterpretationHTML(mk, st, 'AS', kollektivDisplayName); }; if (!stats || typeof stats.matrix !== 'object') return `<tr><td class="fw-bold" data-tippy-content="${TOOLTIP_CONTENT.praesentation.asPurPerfTable?.kollektiv || 'Kollektiv'}">${kollektivDisplayName} (N=?)</td><td colspan="6" class="text-muted text-center">Daten fehlen</td></tr>`; const count = stats.matrix ? (stats.matrix.rp + stats.matrix.fp + stats.matrix.fn + stats.matrix.rn) : 0; return `<tr><td class="fw-bold" data-tippy-content="${TOOLTIP_CONTENT.praesentation.asPurPerfTable?.kollektiv || 'Kollektiv'}">${kollektivDisplayName} (N=${count})</td><td data-tippy-content="${getInterpretationTT('sens', stats)}">${fCI_p(stats.sens, 'sens')}</td><td data-tippy-content="${getInterpretationTT('spez', stats)}">${fCI_p(stats.spez, 'spez')}</td><td data-tippy-content="${getInterpretationTT('ppv', stats)}">${fCI_p(stats.ppv, 'ppv')}</td><td data-tippy-content="${getInterpretationTT('npv', stats)}">${fCI_p(stats.npv, 'npv')}</td><td data-tippy-content="${getInterpretationTT('acc', stats)}">${fCI_p(stats.acc, 'acc')}</td><td data-tippy-content="${getInterpretationTT('auc', stats)}">${fCI_p(stats.auc, 'auc')}</td></tr>`; };
         const perfCSVTooltip = TOOLTIP_CONTENT.praesentation.downloadPerformanceCSV?.description || "CSV"; const perfMDTooltip = TOOLTIP_CONTENT.praesentation.downloadPerformanceMD?.description || "MD"; const tablePNGTooltip = TOOLTIP_CONTENT.praesentation.downloadTablePNG?.description || "Tabelle als PNG"; const perfChartPNGTooltip = `Chart (${currentKollektivName}) PNG`; const perfChartSVGTooltip = `Chart (${currentKollektivName}) SVG`; const chartId = "praes-as-pur-perf-chart"; const tableId = "praes-as-pur-perf-table"; const dlIconPNG = APP_CONFIG.EXPORT_SETTINGS.FILENAME_TYPES.CHART_SINGLE_PNG ? 'fa-image':'fa-download'; const dlIconSVG = APP_CONFIG.EXPORT_SETTINGS.FILENAME_TYPES.CHART_SINGLE_SVG ? 'fa-file-code':'fa-download';
         const tooltipKeys = ['kollektiv', 'sens', 'spez', 'ppv', 'npv', 'acc', 'auc'];
-        let tableHTML = `<div class="col-12"><div class="card h-100"><div class="card-header d-flex justify-content-between align-items-center"><span>AS Performance vs. N für alle Kollektive</span><button class="btn btn-sm btn-outline-secondary p-0 px-1 border-0 table-download-png-btn" id="dl-${tableId}-png" data-table-id="${tableId}" data-table-name="Praes_AS_Perf" data-tippy-content="${tablePNGTooltip}"><i class="fas fa-image"></i></button></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-striped table-hover table-sm small mb-0" id="${tableId}"><thead class="small"><tr>${tooltipKeys.map((key, index) => `<th data-tippy-content="${TOOLTIP_CONTENT.praesentation.asPurPerfTable?.[key] || getMetricDescriptionHTML(key, 'AS') || ''}">${index === 0 ? 'Kollektiv' : (key.charAt(0).toUpperCase() + key.slice(1) + '. (95% CI)')}</th>`).join('')}</tr></thead><tbody>${kollektives.map(k => createPerfTableRow(statsMap[k], k)).join('')}</tbody></table></div></div><div class="card-footer text-end p-1"><button class="btn btn-sm btn-outline-secondary me-1" id="download-performance-as-pur-csv" data-tippy-content="${perfCSVTooltip}"><i class="fas fa-file-csv me-1"></i>CSV</button><button class="btn btn-sm btn-outline-secondary" id="download-performance-as-pur-md" data-tippy-content="${perfMDTooltip}"><i class="fab fa-markdown me-1"></i>MD</button></div></div></div>`;
+        let tableHTML = `<div class="col-12"><div class="card h-100"><div class="card-header d-flex justify-content-between align-items-center"><span>AS Performance vs. N für alle Kollektive</span><button class="btn btn-sm btn-outline-secondary p-0 px-1 border-0 table-download-png-btn" id="dl-${tableId}-png" data-table-id="${tableId}" data-table-name="Praes_AS_Perf" data-tippy-content="${tablePNGTooltip}"><i class="fas fa-image"></i></button></div><div class="card-body p-0"><div class="table-responsive"><table class="table table-striped table-hover table-sm small mb-0" id="${tableId}"><thead class="small"><tr>${tooltipKeys.map((key, index) => `<th data-tippy-content="${TOOLTIP_CONTENT.praesentation.asPurPerfTable?.[key] || _getMetricDescriptionHTML(key, 'AS') || ''}">${index === 0 ? 'Kollektiv' : (key.charAt(0).toUpperCase() + key.slice(1) + '. (95% CI)')}</th>`).join('')}</tr></thead><tbody>${kollektives.map(k => createPerfTableRow(statsMap[k], k)).join('')}</tbody></table></div></div><div class="card-footer text-end p-1"><button class="btn btn-sm btn-outline-secondary me-1" id="download-performance-as-pur-csv" data-tippy-content="${perfCSVTooltip}"><i class="fas fa-file-csv me-1"></i>CSV</button><button class="btn btn-sm btn-outline-secondary" id="download-performance-as-pur-md" data-tippy-content="${perfMDTooltip}"><i class="fab fa-markdown me-1"></i>MD</button></div></div></div>`;
         let chartHTML = `<div class="col-lg-8 offset-lg-2"><div class="card"><div class="card-header d-flex justify-content-between align-items-center"><span>Visualisierung Güte (AS vs. N) - Kollektiv: ${currentKollektivName}</span><span class="card-header-buttons"><button class="btn btn-sm btn-outline-secondary p-0 px-1 border-0 chart-download-btn" id="dl-${chartId}-png" data-chart-id="${chartId}" data-format="png" data-tippy-content="${perfChartPNGTooltip}"><i class="fas ${dlIconPNG}"></i></button><button class="btn btn-sm btn-outline-secondary p-0 px-1 border-0 chart-download-btn" id="dl-${chartId}-svg" data-chart-id="${chartId}" data-format="svg" data-tippy-content="${perfChartSVGTooltip}"><i class="fas ${dlIconSVG}"></i></button></span></div><div class="card-body p-1"><div id="${chartId}" class="praes-chart-container border rounded" style="min-height: 280px;" data-tippy-content="Balkendiagramm der Gütekriterien für AS vs. N für Kollektiv ${currentKollektivName}.">${hasDataForCurrent ? '' : `<p class="text-center text-muted p-3">Keine Daten für Chart (${currentKollektivName}).</p>`}</div></div></div></div>`;
         return `<div class="row g-3"><div class="col-12"><h3 class="text-center mb-3">Diagnostische Güte - Avocado Sign</h3></div>${tableHTML}${chartHTML}</div>`;
     }
@@ -432,9 +533,9 @@ const uiViewLogic = (() => {
                  const isRate = !(key === 'f1' || key === 'auc'); const digits = isRate ? 1 : 3;
                  const valAS = formatCI(statsAS[key]?.value, statsAS[key]?.ci?.lower, statsAS[key]?.ci?.upper, digits, isRate, na);
                  const valT2 = formatCI(statsT2[key]?.value, statsT2[key]?.ci?.lower, statsT2[key]?.ci?.upper, digits, isRate, na);
-                 const tooltipDesc = getMetricDescriptionHTML(key, 'Wert');
-                 const tooltipAS = getMetricInterpretationHTML(key, statsAS, 'AS', kollektivName);
-                 const tooltipT2 = getMetricInterpretationHTML(key, statsT2, t2ShortNameEffective, kollektivName);
+                 const tooltipDesc = _getMetricDescriptionHTML(key, 'Wert');
+                 const tooltipAS = _getMetricInterpretationHTML(key, statsAS[key], 'AS', kollektivName);
+                 const tooltipT2 = _getMetricInterpretationHTML(key, statsT2[key], t2ShortNameEffective, kollektivName);
                  comparisonTableHTML += `<tr><td data-tippy-content="${tooltipDesc}">${metricNames[key]}</td><td data-tippy-content="${tooltipAS}">${valAS}</td><td data-tippy-content="${tooltipT2}">${valT2}</td></tr>`;
             });
             comparisonTableHTML += `</tbody></table></div>`;
@@ -442,10 +543,10 @@ const uiViewLogic = (() => {
             const comparisonTableCardHTML = uiComponents.createStatistikCard(perfTableId+'_card', perfTitle, comparisonTableHTML, false, 'praesentation.comparisonTableCard', compTableDownloadBtns, perfTableId);
 
             let testsTableHTML = `<table class="table table-sm table-striped small mb-0" id="${testTableId}"><thead class="small visually-hidden"><tr><th>Test</th><th>Statistik</th><th>p-Wert</th><th>Methode</th></tr></thead><tbody>`;
-            const mcNemarDesc = getTestDescriptionHTML('mcnemar', t2ShortNameEffective);
-            const mcNemarInterp = getTestInterpretationHTML('mcnemar', vergleich?.mcnemar, kollektivName, t2ShortNameEffective);
-            const delongDesc = getTestDescriptionHTML('delong', t2ShortNameEffective);
-            const delongInterp = getTestInterpretationHTML('delong', vergleich?.delong, kollektivName, t2ShortNameEffective);
+            const mcNemarDesc = _getTestDescriptionHTML('mcnemar', t2ShortNameEffective);
+            const mcNemarInterp = _getTestInterpretationHTML('mcnemar', vergleich?.mcnemar, kollektivName, t2ShortNameEffective);
+            const delongDesc = _getTestDescriptionHTML('delong', t2ShortNameEffective);
+            const delongInterp = _getTestInterpretationHTML('delong', vergleich?.delong, kollektivName, t2ShortNameEffective);
             testsTableHTML += `<tr><td data-tippy-content="${mcNemarDesc}">McNemar (Acc)</td><td>${formatNumber(vergleich?.mcnemar?.statistic, 3, '--')} (df=${vergleich?.mcnemar?.df || '--'})</td><td data-tippy-content="${mcNemarInterp}"> ${fPVal(vergleich?.mcnemar)} ${getStatisticalSignificanceSymbol(vergleich?.mcnemar?.pValue)}</td><td class="text-muted">${vergleich?.mcnemar?.method || '--'}</td></tr>`;
             testsTableHTML += `<tr><td data-tippy-content="${delongDesc}">DeLong (AUC)</td><td>Z=${formatNumber(vergleich?.delong?.Z, 3, '--')}</td><td data-tippy-content="${delongInterp}"> ${fPVal(vergleich?.delong)} ${getStatisticalSignificanceSymbol(vergleich?.delong?.pValue)}</td><td class="text-muted">${vergleich?.delong?.method || '--'}</td></tr>`;
             testsTableHTML += `</tbody></table>`;
