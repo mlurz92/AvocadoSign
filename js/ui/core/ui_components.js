@@ -276,19 +276,46 @@ const uiComponents = (() => {
         if (!stats || !stats.matrix || stats.matrix.rp === undefined) {
              return `<div class="card bg-light border-secondary" data-tippy-content="${cardTooltip}"><div class="card-header card-header-sm bg-secondary text-white">Kurzübersicht Diagnostische Güte (T2 vs. N - angew. Kriterien)</div><div class="card-body p-2"><p class="m-0 text-muted small">Metriken für T2 nicht verfügbar.</p></div></div>`;
         }
-        const { sens, spez, ppv, npv, acc, balAcc, f1, auc } = stats;
-        const formatMetric = (metricData, key, digits=1, isPercent=true) => { if (!metricData) return '--'; const tooltipBase = TOOLTIP_CONTENT.statMetrics[key]?.description || key.toUpperCase(); const tooltipInterpBase = TOOLTIP_CONTENT.statMetrics[key]?.interpretation || ''; const displayDigits = (key === 'f1' || key === 'auc') ? 3 : digits; const formattedCI = formatCI(metricData.value, metricData.ci?.lower, metricData.ci?.upper, displayDigits, isPercent, '--'); const ciMethod = metricData.method || 'N/A'; const tooltipInterp = tooltipInterpBase.replace(/\[METHODE\]/g, 'T2 (angewandt)').replace(/\[WERT\]/g, formatNumber(metricData.value, displayDigits, '--')).replace(/\[LOWER\]/g, formatNumber(metricData.ci?.lower, displayDigits, '--')).replace(/\[UPPER\]/g, formatNumber(metricData.ci?.upper, displayDigits, '--')).replace(/\[KOLLEKTIV\]/g, kollektivName).replace(/\[METHOD_CI\]/g, ciMethod).replace(/\[BEWERTUNG\]/g, key === 'auc' ? getAUCBewertung(metricData.value) : '').replace(/%/g, '%'); const tooltipFull = `${tooltipBase}<hr class='my-1'>${tooltipInterp}`; return `<span data-tippy-content="${tooltipFull}">${formattedCI}</span>`; };
-        return `<div class="card bg-light border-secondary" data-tippy-content="${cardTooltip}"><div class="card-header card-header-sm bg-secondary text-white">Kurzübersicht Diagnostische Güte (T2 vs. N - angew. Kriterien)</div><div class="card-body p-2"><div class="d-flex flex-wrap justify-content-around small text-center">
-            <div class="p-1 flex-fill bd-highlight"><strong>Sens:</strong> ${formatMetric(sens, 'sens', 1, true)}</div>
-            <div class="p-1 flex-fill bd-highlight border-start"><strong>Spez:</strong> ${formatMetric(spez, 'spez', 1, true)}</div>
-            <div class="p-1 flex-fill bd-highlight border-start"><strong>PPV:</strong> ${formatMetric(ppv, 'ppv', 1, true)}</div>
-            <div class="p-1 flex-fill bd-highlight border-start"><strong>NPV:</strong> ${formatMetric(npv, 'npv', 1, true)}</div>
-            <div class="p-1 flex-fill bd-highlight border-start"><strong>Acc:</strong> ${formatMetric(acc, 'acc', 1, true)}</div>
-            <div class="p-1 flex-fill bd-highlight border-start"><strong>BalAcc:</strong> ${formatMetric(balAcc, 'balAcc', 1, true)}</div>
-            <div class="p-1 flex-fill bd-highlight border-start"><strong>F1:</strong> ${formatMetric(f1, 'f1', 3, false)}</div>
-            <div class="p-1 flex-fill bd-highlight border-start"><strong>AUC:</strong> ${formatMetric(auc, 'auc', 3, false)}</div>
-        </div></div></div>`;
+        const metrics = ['sens', 'spez', 'ppv', 'npv', 'acc', 'balAcc', 'f1', 'auc'];
+        const metricDisplayNames = { sens: 'Sens', spez: 'Spez', ppv: 'PPV', npv: 'NPV', acc: 'Acc', balAcc: 'BalAcc', f1: 'F1', auc: 'AUC' };
+        const na = '--';
+
+        let contentHTML = '<div class="d-flex flex-wrap justify-content-around small text-center">';
+
+        metrics.forEach((key, index) => {
+            const metricData = stats[key];
+            const descriptionTooltip = TOOLTIP_CONTENT.t2MetricsOverview?.[key] || TOOLTIP_CONTENT.statMetrics[key]?.description || key;
+            const interpretationTooltip = TOOLTIP_CONTENT.statMetrics[key]?.interpretation || 'Keine Interpretation verfügbar.';
+            const digits = (key === 'f1' || key === 'auc') ? 3 : 1;
+            const isPercent = !(key === 'f1' || key === 'auc');
+            const formattedValue = formatCI(metricData?.value, metricData?.ci?.lower, metricData?.ci?.upper, digits, isPercent, na);
+            const valueStr = formatNumber(metricData?.value, digits, na);
+            const lowerStr = formatNumber(metricData?.ci?.lower, digits, na);
+            const upperStr = formatNumber(metricData?.ci?.upper, digits, na);
+            const ciMethodStr = metricData?.method || na;
+            const bewertungStr = (key === 'auc') ? getAUCBewertung(metricData?.value) : '';
+
+            const filledInterpretation = interpretationTooltip
+                .replace(/\[METHODE\]/g, 'T2')
+                .replace(/\[WERT\]/g, `<strong>${valueStr}${isPercent ? '%' : ''}</strong>`)
+                .replace(/\[LOWER\]/g, lowerStr)
+                .replace(/\[UPPER\]/g, upperStr)
+                .replace(/\[METHOD_CI\]/g, ciMethodStr)
+                .replace(/\[KOLLEKTIV\]/g, `<strong>${kollektivName}</strong>`)
+                .replace(/\[BEWERTUNG\]/g, `<strong>${bewertungStr}</strong>`);
+
+            contentHTML += `
+                <div class="p-1 flex-fill bd-highlight ${index > 0 ? 'border-start' : ''}">
+                    <strong data-tippy-content="${descriptionTooltip}">${metricDisplayNames[key]}:</strong>
+                    <span data-tippy-content="${filledInterpretation}">${formattedValue}</span>
+                </div>`;
+        });
+
+        contentHTML += '</div>';
+
+        return `<div class="card bg-light border-secondary" data-tippy-content="${cardTooltip}"><div class="card-header card-header-sm bg-secondary text-white">Kurzübersicht Diagnostische Güte (T2 vs. N - angew. Kriterien)</div><div class="card-body p-2">${contentHTML}</div></div>`;
     }
+
 
     function createMethodenBeschreibungContent(lang = 'de') {
         const placeholders = { ANZAHL_GESAMT: '[ANZAHL_GESAMT]', ANZAHL_DIREKT_OP: '[ANZAHL_DIREKT_OP]', ANZAHL_NRCT: '[ANZAHL_NRCT]', T2_SIZE_MIN: '[T2_SIZE_MIN]', T2_SIZE_MAX: '[T2_SIZE_MAX]', BOOTSTRAP_REPLICATIONS: '[BOOTSTRAP_REPLICATIONS]', SIGNIFICANCE_LEVEL: '[SIGNIFICANCE_LEVEL]' };
