@@ -284,8 +284,8 @@ const uiComponents = (() => {
 
         metrics.forEach((key, index) => {
             const metricData = stats[key];
-            const descriptionTooltip = TOOLTIP_CONTENT.t2MetricsOverview?.[key] || TOOLTIP_CONTENT.statMetrics[key]?.description || key;
-            const interpretationTooltip = TOOLTIP_CONTENT.statMetrics[key]?.interpretation || 'Keine Interpretation verfügbar.';
+            const descriptionTooltip = (TOOLTIP_CONTENT.t2MetricsOverview?.[key] || TOOLTIP_CONTENT.statMetrics[key]?.description || key).replace(/\[METHODE\]/g, 'T2');
+            const interpretationTemplate = TOOLTIP_CONTENT.statMetrics[key]?.interpretation || 'Keine Interpretation verfügbar.';
             const digits = (key === 'f1' || key === 'auc') ? 3 : 1;
             const isPercent = !(key === 'f1' || key === 'auc');
             const formattedValue = formatCI(metricData?.value, metricData?.ci?.lower, metricData?.ci?.upper, digits, isPercent, na);
@@ -295,19 +295,20 @@ const uiComponents = (() => {
             const ciMethodStr = metricData?.method || na;
             const bewertungStr = (key === 'auc') ? getAUCBewertung(metricData?.value) : '';
 
-            const filledInterpretation = interpretationTooltip
+            const filledInterpretation = interpretationTemplate
                 .replace(/\[METHODE\]/g, 'T2')
                 .replace(/\[WERT\]/g, `<strong>${valueStr}${isPercent ? '%' : ''}</strong>`)
                 .replace(/\[LOWER\]/g, lowerStr)
                 .replace(/\[UPPER\]/g, upperStr)
                 .replace(/\[METHOD_CI\]/g, ciMethodStr)
                 .replace(/\[KOLLEKTIV\]/g, `<strong>${kollektivName}</strong>`)
-                .replace(/\[BEWERTUNG\]/g, `<strong>${bewertungStr}</strong>`);
+                .replace(/\[BEWERTUNG\]/g, `<strong>${bewertungStr}</strong>`)
+                .replace(/<hr.*?>.*$/, ''); // Remove second part if exists
 
             contentHTML += `
                 <div class="p-1 flex-fill bd-highlight ${index > 0 ? 'border-start' : ''}">
                     <strong data-tippy-content="${descriptionTooltip}">${metricDisplayNames[key]}:</strong>
-                    <span data-tippy-content="${filledInterpretation}">${formattedValue}</span>
+                    <span data-tippy-content="${filledInterpretation}"> ${formattedValue}</span>
                 </div>`;
         });
 
@@ -315,7 +316,6 @@ const uiComponents = (() => {
 
         return `<div class="card bg-light border-secondary" data-tippy-content="${cardTooltip}"><div class="card-header card-header-sm bg-secondary text-white">Kurzübersicht Diagnostische Güte (T2 vs. N - angew. Kriterien)</div><div class="card-body p-2">${contentHTML}</div></div>`;
     }
-
 
     function createMethodenBeschreibungContent(lang = 'de') {
         const placeholders = { ANZAHL_GESAMT: '[ANZAHL_GESAMT]', ANZAHL_DIREKT_OP: '[ANZAHL_DIREKT_OP]', ANZAHL_NRCT: '[ANZAHL_NRCT]', T2_SIZE_MIN: '[T2_SIZE_MIN]', T2_SIZE_MAX: '[T2_SIZE_MAX]', BOOTSTRAP_REPLICATIONS: '[BOOTSTRAP_REPLICATIONS]', SIGNIFICANCE_LEVEL: '[SIGNIFICANCE_LEVEL]' };
@@ -355,8 +355,8 @@ const uiComponents = (() => {
                 </ul>
                 <p>Ein p-Wert unter ${placeholders.SIGNIFICANCE_LEVEL} wurde als statistisch signifikant interpretiert.</p>
 
-                <h3 id="methoden-software">6. Software und Bibliotheken</h3>
-                <p>Die Webanwendung basiert auf HTML5, CSS3 und JavaScript (ES6+). Folgende externe Bibliotheken wurden genutzt: Bootstrap (v5.3) für das UI-Framework, D3.js (v7) für Datenvisualisierungen, Tippy.js (v6) für Tooltips, PapaParse (v5) für CSV-Exporte und JSZip (v3) für die Erstellung von ZIP-Archiven.</p>
+                 <h3 id="methoden-software">6. Software und Bibliotheken</h3>
+                 <p>Die Webanwendung basiert auf HTML5, CSS3 und JavaScript (ES6+). Folgende externe Bibliotheken wurden genutzt: Bootstrap (v5.3) für das UI-Framework, D3.js (v7) für Datenvisualisierungen, Tippy.js (v6) für Tooltips, PapaParse (v5) für CSV-Exporte und JSZip (v3) für die Erstellung von ZIP-Archiven.</p>
              `,
              en: `
                 <h3 id="methoden-studienanlage">1. Study Design and Software</h3>
