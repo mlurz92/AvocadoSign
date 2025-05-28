@@ -1,17 +1,55 @@
 const uiComponents = (() => {
 
-    function createDashboardCard(title, content, chartId = null, cardClasses = '', headerClasses = '', bodyClasses = '', downloadButtons = []) {
+    function _createHeaderButtonHTML(buttons, targetId, defaultTitle = 'Element') {
         let headerButtonHtml = '';
-         if(downloadButtons && downloadButtons.length > 0 && chartId) {
-             headerButtonHtml = downloadButtons.map(btn =>
-                 `<button class="btn btn-sm btn-outline-secondary p-0 px-1 border-0 chart-download-btn" id="${btn.id}" data-chart-id="${chartId}" data-format="${btn.format}" data-tippy-content="${btn.tooltip || `Als ${btn.format.toUpperCase()} herunterladen`}"> <i class="fas ${btn.icon || 'fa-download'}"></i></button>`
-             ).join('');
+        if (buttons && buttons.length > 0 && targetId) {
+            headerButtonHtml = buttons.map(btn => {
+                const btnId = btn.id || `dl-${targetId.replace(/[^a-zA-Z0-9_-]/g, '')}-${btn.format || 'action'}`;
+                const iconClass = btn.icon || 'fa-download';
+                let tooltip = btn.tooltip || `Als ${String(btn.format || 'Aktion').toUpperCase()} herunterladen`;
+
+                const safeDefaultTitle = String(defaultTitle).replace(/[^a-zA-Z0-9_-\s]/gi, '').substring(0, 50);
+                const safeChartName = String(btn.chartName || safeDefaultTitle).replace(/[^a-zA-Z0-9_-\s]/gi, '').substring(0, 50);
+                const safeTableName = String(btn.tableName || safeDefaultTitle).replace(/[^a-zA-Z0-9_-\s]/gi, '').substring(0, 50);
+
+                if (btn.format === 'png' && btn.chartId && TOOLTIP_CONTENT.exportTab.chartSinglePNG?.description) {
+                    tooltip = TOOLTIP_CONTENT.exportTab.chartSinglePNG.description.replace('{ChartName}', `<strong>${safeChartName}</strong>`);
+                } else if (btn.format === 'svg' && btn.chartId && TOOLTIP_CONTENT.exportTab.chartSingleSVG?.description) {
+                    tooltip = TOOLTIP_CONTENT.exportTab.chartSingleSVG.description.replace('{ChartName}', `<strong>${safeChartName}</strong>`);
+                } else if (btn.format === 'png' && btn.tableId && TOOLTIP_CONTENT.exportTab.tableSinglePNG?.description) {
+                    tooltip = TOOLTIP_CONTENT.exportTab.tableSinglePNG.description.replace('{TableName}', `<strong>${safeTableName}</strong>`);
+                }
+
+
+                const dataAttributes = [];
+                if (btn.chartId) dataAttributes.push(`data-chart-id="${btn.chartId}"`);
+                if (btn.tableId) dataAttributes.push(`data-table-id="${btn.tableId}"`);
+                
+                if (btn.tableName) dataAttributes.push(`data-table-name="${safeTableName.replace(/\s/g, '_')}"`);
+                else if (btn.chartId) dataAttributes.push(`data-chart-name="${safeChartName.replace(/\s/g, '_')}"`);
+                else dataAttributes.push(`data-default-name="${safeDefaultTitle.replace(/\s/g, '_')}"`);
+
+
+                if (btn.format) dataAttributes.push(`data-format="${btn.format}"`);
+
+                return `<button class="btn btn-sm btn-outline-secondary p-0 px-1 border-0 ${btn.tableId ? 'table-download-png-btn' : (btn.chartId ? 'chart-download-btn' : '')}" id="${btnId}" ${dataAttributes.join(' ')} data-tippy-content="${tooltip}"><i class="fas ${iconClass}"></i></button>`;
+            }).join('');
         }
-        const tooltipContent = TOOLTIP_CONTENT.deskriptiveStatistik[chartId]?.description || title || '';
+        return headerButtonHtml;
+    }
+
+    function createDashboardCard(title, content, chartId = null, cardClasses = '', headerClasses = '', bodyClasses = '', downloadButtons = []) {
+        const headerButtonHtml = _createHeaderButtonHTML(downloadButtons, chartId || title.replace(/[^a-z0-9]/gi, '_'), title);
+        const tooltipKey = chartId ? chartId.replace(/^chart-dash-/, '') : title.toLowerCase().replace(/\s+/g, '');
+        let tooltipContent = TOOLTIP_CONTENT.deskriptiveStatistik[tooltipKey]?.description || title || '';
+        if(tooltipKey === 'ageDistribution' || tooltipKey === 'alter') tooltipContent = TOOLTIP_CONTENT.deskriptiveStatistik.chartAge?.description || title;
+        else if(tooltipKey === 'genderDistribution' || tooltipKey === 'geschlecht') tooltipContent = TOOLTIP_CONTENT.deskriptiveStatistik.chartGender?.description || title;
+
+
         return `
             <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 dashboard-card-col ${cardClasses}">
                 <div class="card h-100 dashboard-card">
-                    <div class="card-header ${headerClasses} d-flex justify-content-between align-items-center" data-tippy-content="${tooltipContent}">
+                    <div class="card-header ${headerClasses} d-flex justify-content-between align-items-center" data-tippy-content="${tooltipContent.replace('[KOLLEKTIV]', '<strong>dem aktuellen Kollektiv</strong>')}">
                         <span class="text-truncate">${title}</span>
                         <span class="card-header-buttons flex-shrink-0 ps-1">${headerButtonHtml}</span>
                     </div>
@@ -86,7 +124,7 @@ const uiComponents = (() => {
                         ${createCriteriaGroup('homogenitaet', 'Homogenität', 't2Homogenitaet', createButtonOptions)}
                         ${createCriteriaGroup('signal', 'Signal', 't2Signal', (key, isChecked, label) => `
                             <div>${createButtonOptions(key, isChecked, label)}</div>
-                            <small class="text-muted d-block mt-1">Hinweis: Lymphknoten mit Signal 'null' erfüllen das Signal-Kriterium nie.</small>
+                            <small class="text-muted d-block mt-1">Hinweis: Lymphknoten mit Signal 'null' (d.h. nicht beurteilbar/nicht vorhanden) erfüllen das Signal-Kriterium nie.</small>
                         `)}
                         <div class="col-12 d-flex justify-content-end align-items-center border-top pt-3 mt-3">
                             <button class="btn btn-sm btn-outline-secondary me-2" id="btn-reset-criteria" data-tippy-content="${TOOLTIP_CONTENT.t2Actions.reset}">
@@ -106,6 +144,12 @@ const uiComponents = (() => {
         const startButtonText = workerAvailable ? '<i class="fas fa-cogs me-1"></i> Optimierung starten' : '<i class="fas fa-times-circle me-1"></i> Worker nicht verfügbar';
         const statusText = workerAvailable ? 'Bereit.' : 'Worker konnte nicht initialisiert werden.';
         const defaultMetric = APP_CONFIG.DEFAULT_SETTINGS.BRUTE_FORCE_METRIC || 'Balanced Accuracy';
+        const displayKollektivName = getKollektivDisplayName(currentKollektivName);
+        const resultContainerTooltip = (TOOLTIP_CONTENT.bruteForceResult.description || 'Ergebnis der Optimierung.')
+                                      .replace('[N_GESAMT]', '--')
+                                      .replace('[N_PLUS]', '--')
+                                      .replace('[N_MINUS]', '--');
+
 
         return `
         <div class="col-12">
@@ -130,12 +174,12 @@ const uiComponents = (() => {
                              </button>
                         </div>
                          <div class="col-md-4">
-                             <div id="brute-force-info" class="text-muted small text-md-end" data-tippy-content="${TOOLTIP_CONTENT.bruteForceInfo.description}">
-                                 Status: <span id="bf-status-text" class="fw-bold">${statusText}</span><br>Kollektiv: <strong id="bf-kollektiv-info">${currentKollektivName}</strong>
+                             <div id="brute-force-info" class="text-muted small text-md-end" data-tippy-content="${(TOOLTIP_CONTENT.bruteForceInfo.description || 'Status des Optimierungs-Workers und aktuelles Kollektiv.').replace('[KOLLEKTIV_NAME]', `<strong>${displayKollektivName}</strong>`)}">
+                                 Status: <span id="bf-status-text" class="fw-bold">${statusText}</span><br>Kollektiv: <strong id="bf-kollektiv-info">${displayKollektivName}</strong>
                              </div>
                          </div>
                     </div>
-                     <div id="brute-force-progress-container" class="mt-3 d-none" data-tippy-content="${TOOLTIP_CONTENT.bruteForceProgress.description}">
+                     <div id="brute-force-progress-container" class="mt-3 d-none" data-tippy-content="${(TOOLTIP_CONTENT.bruteForceProgress.description || 'Fortschritt der laufenden Optimierung.').replace('[TOTAL]', '0')}">
                          <div class="d-flex justify-content-between mb-1 small">
                             <span>Fortschritt: <span id="bf-tested-count">0</span> / <span id="bf-total-count">0</span></span>
                             <span id="bf-progress-percent">0%</span>
@@ -144,14 +188,14 @@ const uiComponents = (() => {
                             <div class="progress-bar progress-bar-striped progress-bar-animated" id="bf-progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                          </div>
                          <div class="mt-2 small">
-                            Beste <span id="bf-metric-label" class="fw-bold">Metrik</span> bisher: <span id="bf-best-metric" class="fw-bold">--</span>
-                            <div id="bf-best-criteria" class="mt-1 text-muted" style="word-break: break-word;">Beste Kriterien: --</div>
+                            Beste <span id="bf-metric-label" class="fw-bold">Metrik</span> bisher: <span id="bf-best-metric" class="fw-bold" data-tippy-content="Bester bisher gefundener Wert für die Zielmetrik.">--</span>
+                            <div id="bf-best-criteria" class="mt-1 text-muted" style="word-break: break-word;" data-tippy-content="Kriterienkombination und Logik für den besten bisherigen Metrikwert.">Beste Kriterien: --</div>
                          </div>
-                          <button class="btn btn-danger btn-sm mt-2 d-none" id="btn-cancel-brute-force" data-tippy-content="Bricht die laufende Brute-Force-Optimierung ab.">
+                          <button class="btn btn-danger btn-sm mt-2 d-none" id="btn-cancel-brute-force" data-tippy-content="Bricht die laufende Brute-Force-Optimierung ab. Bereits gefundene Ergebnisse gehen verloren.">
                             <i class="fas fa-times me-1"></i> Abbrechen
                          </button>
                      </div>
-                     <div id="brute-force-result-container" class="mt-3 d-none alert alert-success p-2" role="alert" data-tippy-content="${TOOLTIP_CONTENT.bruteForceResult.description}">
+                     <div id="brute-force-result-container" class="mt-3 d-none alert alert-success p-2" role="alert" data-tippy-content="${resultContainerTooltip}">
                          <h6 class="alert-heading small">Optimierung Abgeschlossen</h6>
                          <p class="mb-1 small">Beste Kombi für <strong id="bf-result-metric"></strong> (Koll.: <strong id="bf-result-kollektiv"></strong>):</p>
                          <ul class="list-unstyled mb-1 small">
@@ -159,12 +203,13 @@ const uiComponents = (() => {
                             <li><strong>Logik:</strong> <span id="bf-result-logic" class="fw-bold"></span></li>
                             <li style="word-break: break-word;"><strong>Kriterien:</strong> <span id="bf-result-criteria" class="fw-bold"></span></li>
                          </ul>
-                         <p class="mb-1 small text-muted">Dauer: <span id="bf-result-duration"></span>s | Getestet: <span id="bf-result-total-tested"></span></small></p>
+                         <p class="mb-1 small text-muted">Dauer: <span id="bf-result-duration"></span>s | Getestet: <span id="bf-result-total-tested"></span></p>
+                         <p class="mb-0 small text-muted" data-tippy-content="${TOOLTIP_CONTENT.bruteForceResult.kollektivStats || 'Statistik des für diese Optimierung verwendeten Kollektivs.'}">Kollektiv N: <span id="bf-result-kollektiv-n">--</span> (N+: <span id="bf-result-kollektiv-nplus">--</span>, N-: <span id="bf-result-kollektiv-nminus">--</span>)</p>
                          <hr class="my-1">
-                         <button class="btn btn-success btn-sm me-2" id="btn-apply-best-bf-criteria" data-tippy-content="Wendet die beste gefundene Kriterienkombination an und speichert sie.">
+                         <button class="btn btn-success btn-sm me-2" id="btn-apply-best-bf-criteria" data-tippy-content="Wendet die beste gefundene Kriterienkombination an und speichert sie. Die Auswertungstabelle und alle Statistiken werden aktualisiert.">
                              <i class="fas fa-check me-1"></i> Anwenden
                          </button>
-                         <button class="btn btn-outline-secondary btn-sm" id="btn-show-brute-force-details" data-bs-toggle="modal" data-bs-target="#brute-force-modal" data-tippy-content="${TOOLTIP_CONTENT.bruteForceDetailsButton.description}">
+                         <button class="btn btn-outline-secondary btn-sm" id="btn-show-brute-force-details" data-bs-toggle="modal" data-bs-target="#brute-force-modal" data-tippy-content="${TOOLTIP_CONTENT.bruteForceDetailsButton.description || 'Zeigt die Top 10 Ergebnisse und weitere Details.'}">
                              <i class="fas fa-list-ol me-1"></i> Top 10
                          </button>
                      </div>
@@ -176,20 +221,15 @@ const uiComponents = (() => {
 
     function createStatistikCard(id, title, content = '', addPadding = true, tooltipKey = null, downloadButtons = [], tableId = null) {
         const cardTooltipHtml = tooltipKey && TOOLTIP_CONTENT[tooltipKey]?.cardTitle
-            ? `data-tippy-content="${TOOLTIP_CONTENT[tooltipKey].cardTitle.replace(/\[KOLLEKTIV\]/g, '{KOLLEKTIV_PLACEHOLDER}')}"`
-            : '';
+            ? `data-tippy-content="${(TOOLTIP_CONTENT[tooltipKey].cardTitle || title).replace('[KOLLEKTIV]', '<strong>[KOLLEKTIV_PLACEHOLDER]</strong>')}"`
+            : `data-tippy-content="${title}"`;
 
-        let headerButtonHtml = downloadButtons.map(btn => `
-            <button class="btn btn-sm btn-outline-secondary p-0 px-1 border-0 chart-download-btn" id="${btn.id}" data-chart-id="${id}-content" data-format="${btn.format}" data-tippy-content="${btn.tooltip}">
-                <i class="fas ${btn.icon}"></i>
-            </button>`).join('');
+        const headerButtonHtml = _createHeaderButtonHTML(downloadButtons, id + '-content', title);
 
-        if (APP_CONFIG.EXPORT_SETTINGS.ENABLE_TABLE_PNG_EXPORT && tableId) {
-             const pngExportButton = { id: `dl-${id}-table-png`, icon: 'fa-image', tooltip: `Tabelle '${title}' als PNG herunterladen.`, format: 'png', tableId: tableId, tableName: title.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').substring(0,30) };
-             headerButtonHtml += `
-                 <button class="btn btn-sm btn-outline-secondary p-0 px-1 border-0 table-download-png-btn" id="${pngExportButton.id}" data-table-id="${pngExportButton.tableId}" data-table-name="${pngExportButton.tableName}" data-tippy-content="${pngExportButton.tooltip}">
-                     <i class="fas ${pngExportButton.icon}"></i>
-                 </button>`;
+        let finalButtonHtml = headerButtonHtml;
+        if (APP_CONFIG.EXPORT_SETTINGS.ENABLE_TABLE_PNG_EXPORT && tableId && !downloadButtons.some(b => b.tableId === tableId)) {
+             const pngExportButton = { id: `dl-card-${id}-${tableId}-png`, icon: 'fa-image', tooltip: `Tabelle '${title}' als PNG herunterladen.`, format: 'png', tableId: tableId, tableName: title };
+             finalButtonHtml += _createHeaderButtonHTML([pngExportButton], tableId, title);
         }
 
         return `
@@ -198,7 +238,7 @@ const uiComponents = (() => {
                     <div class="card-header" ${cardTooltipHtml}>
                          ${title}
                          <span class="float-end card-header-buttons">
-                            ${headerButtonHtml}
+                            ${finalButtonHtml}
                          </span>
                      </div>
                     <div class="card-body ${addPadding ? '' : 'p-0'}" style="overflow-y: auto; overflow-x: hidden;">
@@ -227,7 +267,7 @@ const uiComponents = (() => {
             return `<button class="btn ${buttonClass} w-100 mb-2 d-flex justify-content-start align-items-center" id="export-${idSuffix}" ${tooltipHtml} ${disabledAttr}><i class="${iconClass} fa-fw me-2"></i> <span class="flex-grow-1 text-start">${text} (.${ext})</span></button>`;
          };
 
-        const exportDesc = TOOLTIP_CONTENT.exportTab.description.replace('[KOLLEKTIV]', `<strong>${safeKollektiv}</strong>`);
+        const exportDesc = TOOLTIP_CONTENT.exportTab.description.replace('[KOLLEKTIV]', `<strong>${getKollektivDisplayName(currentKollektiv)}</strong>`);
 
         return `
             <div class="row export-options-container">
@@ -242,7 +282,7 @@ const uiComponents = (() => {
                             ${generateButtonHTML('deskriptiv-md', 'fab fa-markdown', 'Deskriptive Statistik', 'deskriptivMD')}
                             ${generateButtonHTML('comprehensive-report-html', 'fas fa-file-invoice', 'Umfassender Bericht', 'comprehensiveReportHTML')}
                              <h6 class="mt-3 text-muted small text-uppercase mb-2">Tabellen & Rohdaten</h6>
-                             ${generateButtonHTML('patienten-md', 'fab fa-markdown', 'Patientenliste', 'patientenMD')}
+                             ${generateButtonHTML('daten-md', 'fab fa-markdown', 'Datenliste', 'datenMD')}
                              ${generateButtonHTML('auswertung-md', 'fab fa-markdown', 'Auswertungstabelle', 'auswertungMD')}
                              ${generateButtonHTML('filtered-data-csv', 'fas fa-database', 'Gefilterte Rohdaten', 'filteredDataCSV')}
                              <h6 class="mt-3 text-muted small text-uppercase mb-2">Diagramme & Tabellen (als Bilder)</h6>
@@ -255,7 +295,7 @@ const uiComponents = (() => {
                     <div class="card h-100">
                         <div class="card-header">${TOOLTIP_CONTENT.exportTab.exportPackages}</div>
                         <div class="card-body">
-                             <p class="small text-muted mb-3">Bündelt mehrere thematisch zusammengehörige Exportdateien in einem ZIP-Archiv für das Kollektiv <strong>${safeKollektiv}</strong>.</p>
+                             <p class="small text-muted mb-3">Bündelt mehrere thematisch zusammengehörige Exportdateien in einem ZIP-Archiv für das Kollektiv <strong>${getKollektivDisplayName(currentKollektiv)}</strong>.</p>
                             ${generateZipButtonHTML('all-zip', 'fas fa-file-archive', 'Gesamtpaket (Alle Dateien)', 'allZIP')}
                             ${generateZipButtonHTML('csv-zip', 'fas fa-file-csv', 'Nur CSVs', 'csvZIP')}
                             ${generateZipButtonHTML('md-zip', 'fab fa-markdown', 'Nur Markdown', 'mdZIP')}
@@ -265,16 +305,17 @@ const uiComponents = (() => {
                     </div>
                 </div>
                 <div class="col-lg-12 col-xl-4 mb-3">
-                   <div class="card h-100"> <div class="card-header">Hinweise zum Export</div> <div class="card-body small"> <ul class="list-unstyled mb-0"> <li class="mb-2"><i class="fas fa-info-circle fa-fw me-1 text-primary"></i>Alle Exporte basieren auf dem aktuell gewählten Kollektiv und den zuletzt **angewendeten** T2-Kriterien.</li> <li class="mb-2"><i class="fas fa-table fa-fw me-1 text-primary"></i>**CSV:** Für Statistiksoftware; Trennzeichen: Semikolon (;).</li> <li class="mb-2"><i class="fab fa-markdown fa-fw me-1 text-primary"></i>**MD:** Für Dokumentation.</li> <li class="mb-2"><i class="fas fa-file-alt fa-fw me-1 text-primary"></i>**TXT:** Brute-Force-Bericht.</li> <li class="mb-2"><i class="fas fa-file-invoice fa-fw me-1 text-primary"></i>**HTML Bericht:** Umfassend, druckbar.</li> <li class="mb-2"><i class="fas fa-images fa-fw me-1 text-primary"></i>**PNG:** Pixelbasiert (Diagramme/Tabellen).</li> <li class="mb-2"><i class="fas fa-file-code fa-fw me-1 text-primary"></i>**SVG:** Vektorbasiert (Diagramme), skalierbar.</li> <li class="mb-0"><i class="fas fa-exclamation-triangle fa-fw me-1 text-warning"></i>ZIP-Exporte erfassen nur aktuell sichtbare Elemente. Einzel-Downloads sind direkt am Element möglich.</li> </ul> </div> </div>
+                   <div class="card h-100"> <div class="card-header">Hinweise zum Export</div> <div class="card-body small"> <ul class="list-unstyled mb-0"> <li class="mb-2"><i class="fas fa-info-circle fa-fw me-1 text-primary"></i>Alle Exporte basieren auf dem aktuell gewählten Kollektiv und den zuletzt **angewendeten** T2-Kriterien.</li> <li class="mb-2"><i class="fas fa-table fa-fw me-1 text-primary"></i>**CSV:** Für Statistiksoftware; Trennzeichen: Semikolon (;).</li> <li class="mb-2"><i class="fab fa-markdown fa-fw me-1 text-primary"></i>**MD:** Für Dokumentation.</li> <li class="mb-2"><i class="fas fa-file-alt fa-fw me-1 text-primary"></i>**TXT:** Brute-Force-Bericht.</li> <li class="mb-2"><i class="fas fa-file-invoice fa-fw me-1 text-primary"></i>**HTML Bericht:** Umfassend, druckbar.</li> <li class="mb-2"><i class="fas fa-images fa-fw me-1 text-primary"></i>**PNG:** Pixelbasiert (Diagramme/Tabellen).</li> <li class="mb-2"><i class="fas fa-file-code fa-fw me-1 text-primary"></i>**SVG:** Vektorbasiert (Diagramme), skalierbar.</li> <li class="mb-0"><i class="fas fa-exclamation-triangle fa-fw me-1 text-warning"></i>ZIP-Exporte für Diagramme/Tabellen erfassen nur aktuell im Statistik- oder Auswertungstab sichtbare/gerenderte Elemente. Einzel-Downloads sind direkt am Element möglich (z.B. auch im Präsentationstab).</li> </ul> </div> </div>
                 </div>
             </div>
         `;
     }
 
     function createT2MetricsOverview(stats, kollektivName) {
-        const cardTooltip = (TOOLTIP_CONTENT.t2MetricsOverview.cardTitle || '').replace('[KOLLEKTIV]', `<strong>${kollektivName}</strong>`);
+        const displayKollektivName = getKollektivDisplayName(kollektivName);
+        const cardTooltip = (TOOLTIP_CONTENT.t2MetricsOverview.cardTitle || 'Kurzübersicht der diagnostischen Güte (T2 vs. N) für Kollektiv [KOLLEKTIV].').replace('[KOLLEKTIV]', `<strong>${displayKollektivName}</strong>`);
         if (!stats || !stats.matrix || stats.matrix.rp === undefined) {
-             return `<div class="card bg-light border-secondary" data-tippy-content="${cardTooltip}"><div class="card-header card-header-sm bg-secondary text-white">Kurzübersicht Diagnostische Güte (T2 vs. N - angew. Kriterien)</div><div class="card-body p-2"><p class="m-0 text-muted small">Metriken für T2 nicht verfügbar.</p></div></div>`;
+             return `<div class="card bg-light border-secondary" data-tippy-content="${cardTooltip}"><div class="card-header card-header-sm bg-secondary text-white">Kurzübersicht Diagnostische Güte (T2 vs. N - angew. Kriterien)</div><div class="card-body p-2"><p class="m-0 text-muted small">Metriken für T2 nicht verfügbar für Kollektiv ${displayKollektivName}.</p></div></div>`;
         }
         const metrics = ['sens', 'spez', 'ppv', 'npv', 'acc', 'balAcc', 'f1', 'auc'];
         const metricDisplayNames = { sens: 'Sens', spez: 'Spez', ppv: 'PPV', npv: 'NPV', acc: 'Acc', balAcc: 'BalAcc', f1: 'F1', auc: 'AUC' };
@@ -284,31 +325,16 @@ const uiComponents = (() => {
 
         metrics.forEach((key, index) => {
             const metricData = stats[key];
-            const metricDescription = (TOOLTIP_CONTENT.t2MetricsOverview?.[key] || TOOLTIP_CONTENT.statMetrics[key]?.description || key).replace(/\[METHODE\]/g, 'T2');
-            const interpretationTemplate = TOOLTIP_CONTENT.statMetrics[key]?.interpretation || 'Keine Interpretation verfügbar.';
+            const metricDescription = (TOOLTIP_CONTENT.t2MetricsOverview?.[key] || TOOLTIP_CONTENT.statMetrics[key]?.description || key).replace(/\[METHODE\]/g, '<strong>T2 (angewandt)</strong>');
+            const interpretationHTML = ui_helpers.getMetricInterpretationHTML(key, metricData, 'T2 (angewandt)', displayKollektivName);
             const digits = (key === 'f1' || key === 'auc') ? 3 : 1;
             const isPercent = !(key === 'f1' || key === 'auc');
             const formattedValue = formatCI(metricData?.value, metricData?.ci?.lower, metricData?.ci?.upper, digits, isPercent, na);
-            const valueStr = formatNumber(metricData?.value, digits, na);
-            const lowerStr = formatNumber(metricData?.ci?.lower, digits, na);
-            const upperStr = formatNumber(metricData?.ci?.upper, digits, na);
-            const ciMethodStr = metricData?.method || na;
-            const bewertungStr = (key === 'auc') ? getAUCBewertung(metricData?.value) : '';
-
-            const filledInterpretation = interpretationTemplate
-                .replace(/\[METHODE\]/g, 'T2')
-                .replace(/\[WERT\]/g, `<strong>${valueStr}${isPercent ? '%' : ''}</strong>`)
-                .replace(/\[LOWER\]/g, lowerStr)
-                .replace(/\[UPPER\]/g, upperStr)
-                .replace(/\[METHOD_CI\]/g, ciMethodStr)
-                .replace(/\[KOLLEKTIV\]/g, `<strong>${kollektivName}</strong>`)
-                .replace(/\[BEWERTUNG\]/g, `<strong>${bewertungStr}</strong>`)
-                .replace(/<hr.*?>.*$/, ''); // Remove second part if exists
 
             contentHTML += `
                 <div class="p-1 flex-fill bd-highlight ${index > 0 ? 'border-start' : ''}">
                     <strong data-tippy-content="${metricDescription}">${metricDisplayNames[key]}:</strong>
-                    <span data-tippy-content="${filledInterpretation}"> ${formattedValue}</span>
+                    <span data-tippy-content="${interpretationHTML}"> ${formattedValue}</span>
                 </div>`;
         });
 
@@ -317,97 +343,135 @@ const uiComponents = (() => {
         return `<div class="card bg-light border-secondary" data-tippy-content="${cardTooltip}"><div class="card-header card-header-sm bg-secondary text-white">Kurzübersicht Diagnostische Güte (T2 vs. N - angew. Kriterien)</div><div class="card-body p-2">${contentHTML}</div></div>`;
     }
 
-    function createMethodenBeschreibungContent(lang = 'de') {
-        const placeholders = { ANZAHL_GESAMT: '[ANZAHL_GESAMT]', ANZAHL_DIREKT_OP: '[ANZAHL_DIREKT_OP]', ANZAHL_NRCT: '[ANZAHL_NRCT]', T2_SIZE_MIN: '[T2_SIZE_MIN]', T2_SIZE_MAX: '[T2_SIZE_MAX]', BOOTSTRAP_REPLICATIONS: '[BOOTSTRAP_REPLICATIONS]', SIGNIFICANCE_LEVEL: '[SIGNIFICANCE_LEVEL]' };
-        const texts = {
-             de: `
-                <h3 id="methoden-studienanlage">1. Studienanlage und Software</h3>
-                <p>Diese Analyse basiert auf einer **retrospektiven Auswertung prospektiv erhobener Daten** einer monozentrischen Kohorte von Patientinnen und Patienten mit histologisch gesichertem Rektumkarzinom, die ursprünglich für die Evaluation des „Avocado Signs" rekrutiert wurde (Lurz & Schäfer, Eur Radiol 2025). Die vorliegende Untersuchung nutzt eine **speziell entwickelte, interaktive Webanwendung** (v${APP_CONFIG.APP_VERSION}, implementiert in HTML5, CSS3, JavaScript ES6+) als primäres Werkzeug für die Datenanalyse, statistische Auswertung und Visualisierung. Alle hier berichteten Ergebnisse wurden mit dieser Anwendung generiert.</p>
+    function createBruteForceModalContent(resultsData) {
+        const { results, metric, kollektiv, duration, totalTested, nGesamt, nPlus, nMinus } = resultsData;
+        if (!results || results.length === 0) return '<p class="text-muted">Keine Ergebnisse gefunden.</p>';
 
-                <h3 id="methoden-patientenkohorte">2. Patientenkollektiv und Datenbasis</h3>
-                <p>Das analysierte Kollektiv umfasst ${placeholders.ANZAHL_GESAMT} konsekutive Patienten, die zwischen Januar 2020 und November 2023 eingeschlossen wurden. Davon erhielten ${placeholders.ANZAHL_NRCT} Patienten eine neoadjuvante Radiochemotherapie (nRCT-Gruppe), während ${placeholders.ANZAHL_DIREKT_OP} Patienten primär operiert wurden (Direkt-OP-Gruppe). Die Analysen können für das Gesamtkollektiv oder separat für die Subgruppen durchgeführt werden.</p>
-                <p>Die Datenbasis ist ein fest integrierter, präprozessierter Datensatz, der dem der Avocado-Sign Publikation entspricht. Er enthält für jeden Patienten demographische Daten, Therapieinformationen, den pathologischen N-Status (N+/N-, Anzahl N+ LK, Gesamtzahl untersuchter LK) als Referenzstandard, den mittels kontrastverstärkter T1w-MRT ermittelten Avocado-Sign-Status (AS+/AS-, Anzahl AS+ LK, Gesamtzahl sichtbarer LK) sowie detaillierte morphologische Informationen zu allen im hochauflösenden T2w-MRT sichtbaren mesorektalen Lymphknoten (Kurzachsendurchmesser [mm], Form ['rund'/'oval'], Kontur ['scharf'/'irregulär'], Homogenität ['homogen'/'heterogen'], Signalintensität ['signalarm'/'intermediär'/'signalreich']).</p>
+        const formatCriteriaFunc = typeof studyT2CriteriaManager !== 'undefined' ? studyT2CriteriaManager.formatCriteriaForDisplay : (c, l) => 'Formatierungsfehler';
+        const getKollektivNameFunc = typeof getKollektivDisplayName === 'function' ? getKollektivDisplayName : (k) => k;
+        const bestResult = results[0];
+        const kollektivName = getKollektivNameFunc(kollektiv);
+        const metricDisplayName = metric === 'PPV' ? 'PPV' : metric === 'NPV' ? 'NPV' : metric;
+        const resultContainerTooltip = (TOOLTIP_CONTENT.bruteForceResult.description || 'Ergebnis der Optimierung.')
+                                      .replace('[N_GESAMT]', formatNumber(nGesamt,0,'?'))
+                                      .replace('[N_PLUS]', formatNumber(nPlus,0,'?'))
+                                      .replace('[N_MINUS]', formatNumber(nMinus,0,'?'));
 
-                <h3 id="methoden-bildgebung-und-bewertung">3. Bildgebung und Bewertung</h3>
-                <p>Die MRT-Untersuchungen erfolgten auf einem 3.0-T System (Siemens Healthineers) unter Verwendung eines standardisierten Protokolls, das hochauflösende T2w-Sequenzen in drei Ebenen sowie axiale T1w-Sequenzen nach Gabe eines Gadolinium-basierten Kontrastmittels (Gadoteridol) umfasste. Die Bewertung des **Avocado Signs** erfolgte wie in der Originalpublikation beschrieben (hypointenser Kern in sonst homogen hyperintensem LK auf T1w KM).</p>
-                <p>Die Bewertung der **T2-gewichteten morphologischen Kriterien** erfolgte interaktiv innerhalb der Webanwendung. Der Nutzer kann folgende Kriterien aktivieren und deren spezifische Ausprägung als "suspekt" definieren:</p>
-                <ul>
-                    <li><strong>Größe:</strong> Kurzachsendurchmesser ≥ Schwellenwert (einstellbar von ${placeholders.T2_SIZE_MIN} bis ${placeholders.T2_SIZE_MAX} mm, Schrittweite 0.1 mm).</li>
-                    <li><strong>Form:</strong> 'rund' oder 'oval'.</li>
-                    <li><strong>Kontur:</strong> 'scharf' oder 'irregulär'.</li>
-                    <li><strong>Homogenität:</strong> 'homogen' oder 'heterogen'.</li>
-                    <li><strong>Signal:</strong> 'signalarm', 'intermediär' oder 'signalreich'.</li>
+        let tableHTML = `
+            <div class="alert alert-light small p-2 mb-3" data-tippy-content="${resultContainerTooltip}">
+                <p class="mb-1"><strong>Beste Kombi für '${metricDisplayName}' (Koll.: '${kollektivName}'):</strong></p>
+                <ul class="list-unstyled mb-1">
+                    <li><strong>Wert:</strong> ${formatNumber(bestResult.metricValue, 4)}</li>
+                    <li><strong>Logik:</strong> ${bestResult.logic.toUpperCase()}</li>
+                    <li><strong>Kriterien:</strong> ${formatCriteriaFunc(bestResult.criteria, bestResult.logic)}</li>
                 </ul>
-                <p>Die aktivierten Kriterien werden mittels einer global wählbaren **logischen Verknüpfung** ('UND' oder 'ODER') kombiniert. Ein Lymphknoten gilt als T2-positiv, wenn er die definierte Regel erfüllt (bei 'UND' müssen alle aktiven Kriterien erfüllt sein, bei 'ODER' mindestens eines). Ein Patient erhält den Status T2='+', wenn mindestens einer seiner T2-Lymphknoten positiv bewertet wird.</p>
-                <p>Zusätzlich implementiert die Anwendung **fest definierte T2-Kriteriensets aus der Literatur** für Vergleichszwecke: Barbaro et al. (2024), Koh et al. (2008), sowie die von Rutegård et al. (2025) evaluierten ESGAR 2016 Kriterien. Diese Sets werden spezifisch auf die entsprechenden Subgruppen angewendet.</p>
+                <p class="mb-1 text-muted"><small>Dauer: ${formatNumber(duration / 1000, 1)}s | Getestet: ${formatNumber(totalTested, 0)}</small></p>
+                <p class="mb-0 text-muted" data-tippy-content="${TOOLTIP_CONTENT.bruteForceResult.kollektivStats || 'Statistik des für diese Optimierung verwendeten Kollektivs.'}"><small>Kollektiv N=${formatNumber(nGesamt,0,'N/A')} (N+: ${formatNumber(nPlus,0,'N/A')}, N-: ${formatNumber(nMinus,0,'N/A')})</small></p>
+            </div>
+            <h6 class="mb-2">Top Ergebnisse (inkl. identischer Werte):</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped table-hover small" id="bruteforce-results-table">
+                    <thead class="small">
+                        <tr>
+                            <th data-tippy-content="Rang des Ergebnisses.">Rang</th>
+                            <th data-tippy-content="Erreichter Wert der Zielmetrik (${metricDisplayName}). Höher ist besser.">${metricDisplayName}</th>
+                            <th data-tippy-content="Sensitivität dieser Kriterienkombination.">Sens.</th>
+                            <th data-tippy-content="Spezifität dieser Kriterienkombination.">Spez.</th>
+                            <th data-tippy-content="Positiver Prädiktiver Wert dieser Kriterienkombination.">PPV</th>
+                            <th data-tippy-content="Negativer Prädiktiver Wert dieser Kriterienkombination.">NPV</th>
+                            <th data-tippy-content="Verwendete logische Verknüpfung (UND/ODER).">Logik</th>
+                            <th data-tippy-content="Kombination der T2-Malignitätskriterien.">Kriterien</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
 
-                <h3 id="methoden-optimierung">4. Optimierung von T2-Kriterien</h3>
-                <p>Eine integrierte **Brute-Force-Optimierungsfunktion** (implementiert als Web Worker) testet systematisch alle sinnvollen Kombinationen der definierbaren T2-Kriterien (aktive Merkmale, spezifische Werte/Schwellenwert, UND/ODER-Logik). Ziel ist die Identifikation der Kriterienkombination, die eine vom Benutzer gewählte **diagnostische Zielmetrik** (Accuracy, Balanced Accuracy, F1-Score, PPV oder NPV) im Vergleich zum pathologischen N-Status für das ausgewählte Kollektiv maximiert.</p>
+        let rank = 1, displayedCount = 0, lastMetricValue = -Infinity;
+        const precision = 8;
 
-                <h3 id="methoden-statistik">5. Statistische Analyse</h3>
-                <p>Alle statistischen Analysen wurden mittels spezifisch implementierter JavaScript-Module innerhalb der Webanwendung durchgeführt. Als Referenzstandard für den Lymphknotenstatus diente stets die Histopathologie.</p>
-                <ul>
-                    <li><strong>Deskriptive Statistik:</strong> Häufigkeiten, Median, Mittelwert ± Standardabweichung (SD), Minimum und Maximum wurden für demographische Daten und Lymphknotenanzahlen berechnet.</li>
-                    <li><strong>Diagnostische Güte:</strong> Für das Avocado Sign (AS) und die jeweils angewendeten T2-Kriterien wurden Sensitivität, Spezifität, Positiver Prädiktiver Wert (PPV), Negativer Prädiktiver Wert (NPV), Accuracy und Balanced Accuracy (BalAcc, entspricht AUC für binäre Tests) berechnet. 95% Konfidenzintervalle (CI) für Proportionen wurden mittels Wilson Score Interval Methode ermittelt. Für BalAcc und F1-Score wurden 95% CIs mittels Bootstrap Percentile Methode (mit ${placeholders.BOOTSTRAP_REPLICATIONS} Replikationen) geschätzt.</li>
-                    <li><strong>Vergleich von AS vs. T2 (gepaart):</strong> Die Accuracies von AS und den angewendeten T2-Kriterien wurden mittels McNemar-Test verglichen. Die AUCs (BalAcc) wurden mittels DeLong-Test verglichen.</li>
-                    <li><strong>Assoziationsanalysen:</strong> Der Zusammenhang zwischen AS-Status bzw. einzelnen T2-Merkmalen und dem N-Status wurde mittels Odds Ratio (OR) mit 95% CI (Woolf Logit Methode mit +0.5 Korrektur), Risk Difference (RD) mit 95% CI (Wald Methode) und Phi-Koeffizient (φ) quantifiziert. Der p-Wert für den Zusammenhang wurde mittels Fisher's Exact Test berechnet. Für den Kurzachsendurchmesser wurde der Mann-Whitney-U-Test zum Vergleich der Mediane zwischen N+ und N- Patienten verwendet.</li>
-                    <li><strong>Vergleich zwischen Kollektiven (ungepaart):</strong> Im Vergleichsmodus wurden Accuracies mittels Fisher's Exact Test und AUCs mittels eines Z-Tests verglichen.</li>
-                </ul>
-                <p>Ein p-Wert unter ${placeholders.SIGNIFICANCE_LEVEL} wurde als statistisch signifikant interpretiert.</p>
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i];
+            if (!result || typeof result.metricValue !== 'number' || !isFinite(result.metricValue)) continue;
 
-                 <h3 id="methoden-software">6. Software und Bibliotheken</h3>
-                 <p>Die Webanwendung basiert auf HTML5, CSS3 und JavaScript (ES6+). Folgende externe Bibliotheken wurden genutzt: Bootstrap (v5.3) für das UI-Framework, D3.js (v7) für Datenvisualisierungen, Tippy.js (v6) für Tooltips, PapaParse (v5) für CSV-Exporte und JSZip (v3) für die Erstellung von ZIP-Archiven.</p>
-             `,
-             en: `
-                <h3 id="methoden-studienanlage">1. Study Design and Software</h3>
-                <p>This analysis is based on a **retrospective evaluation of prospectively collected data** from a single-center cohort of patients with histologically confirmed rectal cancer, originally recruited for the evaluation of the "Avocado Sign" (Lurz & Schäfer, Eur Radiol 2025). The present investigation utilizes a **custom-developed, interactive web application** (v${APP_CONFIG.APP_VERSION}, implemented in HTML5, CSS3, JavaScript ES6+) as the primary tool for data analysis, statistical evaluation, and visualization. All results reported herein were generated using this application.</p>
+            const currentMetricValueRounded = parseFloat(result.metricValue.toFixed(precision));
+            const lastMetricValueRounded = parseFloat(lastMetricValue.toFixed(precision));
+            let currentRank = rank;
 
-                <h3 id="methoden-patientenkohorte">2. Patient Cohort and Data Basis</h3>
-                <p>The analyzed cohort comprises ${placeholders.ANZAHL_GESAMT} consecutive patients enrolled between January 2020 and November 2023. Of these, ${placeholders.ANZAHL_NRCT} patients received neoadjuvant chemoradiotherapy (nRCT group), while ${placeholders.ANZAHL_DIREKT_OP} patients underwent primary surgery (upfront surgery group). Analyses can be performed on the entire cohort or separately for the subgroups.</p>
-                <p>The data basis is a fixed, preprocessed dataset identical to that of the Avocado Sign publication. It includes demographic data, therapy information, pathological N-status (N+/N-, number of N+ LNs, total number of examined LNs) as the reference standard, the Avocado Sign status determined by contrast-enhanced T1w-MRI (AS+/AS-, number of AS+ LNs, total number of visible LNs), and detailed morphological information for all mesorectal lymph nodes visible on high-resolution T2w-MRI (short-axis diameter [mm], shape ['round'/'oval'], border ['sharp'/'irregular'], homogeneity ['homogeneous'/'heterogeneous'], signal intensity ['signal-poor'/'intermediate'/'signal-rich']).</p>
+            const isNewRank = Math.abs(currentMetricValueRounded - lastMetricValueRounded) > 1e-8;
 
-                <h3 id="methoden-bildgebung-und-bewertung">3. Imaging and Assessment</h3>
-                <p>MRI examinations were performed on a 3.0-T system (Siemens Healthineers) using a standardized protocol including high-resolution T2w sequences in three planes and axial T1w sequences after administration of a gadolinium-based contrast agent (Gadoteridol). The **Avocado Sign** was assessed as described in the original publication (hypointense core within an otherwise homogeneously hyperintense node on T1w CE-MRI).</p>
-                <p>The assessment of **T2-weighted morphological criteria** was performed interactively within the web application. Users can activate criteria and define their specific "suspicious" characteristic:</p>
-                <ul>
-                    <li><strong>Size:</strong> Short-axis diameter ≥ threshold (adjustable from ${placeholders.T2_SIZE_MIN} to ${placeholders.T2_SIZE_MAX} mm, step 0.1 mm).</li>
-                    <li><strong>Shape:</strong> 'round' or 'oval'.</li>
-                    <li><strong>Border:</strong> 'sharp' or 'irregular'.</li>
-                    <li><strong>Homogeneity:</strong> 'homogeneous' or 'heterogeneous'.</li>
-                    <li><strong>Signal:</strong> 'signal-poor', 'intermediate', or 'signal-rich'.</li>
-                </ul>
-                <p>Activated criteria are combined using a globally selectable **logical operator** ('AND' or 'OR'). A lymph node is considered T2-positive if it meets the defined rule (for 'AND', all active criteria must be met; for 'OR', at least one must be met). A patient receives the status T2='+' if at least one of their T2 lymph nodes is rated positive.</p>
-                <p>Additionally, the application implements **predefined T2 criteria sets from the literature** for comparison: Barbaro et al. (2024), Koh et al. (2008), and the ESGAR 2016 criteria as evaluated by Rutegård et al. (2025). These sets are applied specifically to the corresponding subgroups.</p>
+            if (i > 0 && isNewRank) {
+                rank = displayedCount + 1;
+                currentRank = rank;
+            } else if (i > 0) {
+                currentRank = rank;
+            }
 
-                <h3 id="methoden-optimierung">4. Optimization of T2 Criteria</h3>
-                <p>An integrated **brute-force optimization function** (implemented as a Web Worker) systematically tests all meaningful combinations of the definable T2 criteria (active features, specific values/threshold, AND/OR logic). The objective is to identify the criteria combination that maximizes a user-selected **diagnostic target metric** (Accuracy, Balanced Accuracy, F1-Score, PPV, or NPV) compared to the pathological N-status for the selected cohort.</p>
+            if (rank > 10 && isNewRank && i >=10 ) break; // Ensure at least 10 distinct ranks or more items if scores are tied
 
-                <h3 id="methoden-statistik">5. Statistical Analysis</h3>
-                <p>All statistical analyses were performed using custom JavaScript modules implemented within the web application. Histopathology served as the reference standard for lymph node status.</p>
-                <ul>
-                    <li><strong>Descriptive Statistics:</strong> Frequencies, median, mean ± standard deviation (SD), minimum, and maximum were calculated for demographic data and lymph node counts.</li>
-                    <li><strong>Diagnostic Performance:</strong> For the Avocado Sign (AS) and the applied T2 criteria, sensitivity, specificity, Positive Predictive Value (PPV), Negative Predictive Value (NPV), Accuracy, and Balanced Accuracy (BalAcc, equivalent to AUC for binary tests) were calculated. 95% confidence intervals (CI) for proportions were determined using the Wilson Score Interval method. For BalAcc and F1-Score, 95% CIs were estimated using the Bootstrap Percentile method (with ${placeholders.BOOTSTRAP_REPLICATIONS} replications).</li>
-                    <li><strong>Comparison of AS vs. T2 (paired):</strong> Accuracies of AS and the applied T2 criteria were compared using McNemar's test. AUCs (BalAcc) were compared using DeLong's test.</li>
-                    <li><strong>Association Analyses:</strong> The association between AS status or individual T2 features and N-status was quantified using Odds Ratio (OR) with 95% CI (Woolf Logit method with +0.5 correction), Risk Difference (RD) with 95% CI (Wald method), and Phi coefficient (φ). The p-value for association was calculated using Fisher's Exact Test. For short-axis diameter, the Mann-Whitney U test was used to compare medians between N+ and N- patients.</li>
-                    <li><strong>Comparison between Cohorts (unpaired):</strong> In comparison mode, Accuracies were compared using Fisher's Exact Test, and AUCs were compared using a Z-test.</li>
-                </ul>
-                <p>A p-value below ${placeholders.SIGNIFICANCE_LEVEL} was considered statistically significant.</p>
+            tableHTML += `
+                <tr>
+                    <td>${currentRank}.</td>
+                    <td>${formatNumber(result.metricValue, 4)}</td>
+                    <td>${result.sens !== undefined ? formatPercent(result.sens, 1) : 'N/A'}</td>
+                    <td>${result.spez !== undefined ? formatPercent(result.spez, 1) : 'N/A'}</td>
+                    <td>${result.ppv !== undefined ? formatPercent(result.ppv, 1) : 'N/A'}</td>
+                    <td>${result.npv !== undefined ? formatPercent(result.npv, 1) : 'N/A'}</td>
+                    <td>${result.logic.toUpperCase()}</td>
+                    <td>${formatCriteriaFunc(result.criteria, result.logic)}</td>
+                </tr>`;
 
-                 <h3 id="methoden-software">6. Software and Libraries</h3>
-                 <p>The web application is based on HTML5, CSS3, and JavaScript (ES6+). The following external libraries were utilized: Bootstrap (v5.3) for the UI framework, D3.js (v7) for data visualizations, Tippy.js (v6) for tooltips, PapaParse (v5) for CSV exports, and JSZip (v3) for creating ZIP archives.</p>
-             `
-        };
-        return texts[lang] || `<p>Methodology description for language '${lang}' not available.</p>`;
+            if (isNewRank || i === 0) {
+                lastMetricValue = result.metricValue;
+            }
+            displayedCount++;
+        }
+        tableHTML += `</tbody></table></div>`;
+        return tableHTML;
     }
 
-    function createBruteForceModalContent(results, metric, kollektiv, duration, totalTested) {
-        if (!results || results.length === 0) return '<p class="text-muted">Keine Ergebnisse gefunden.</p>';
-        const formatCriteriaFunc = typeof studyT2CriteriaManager !== 'undefined' ? studyT2CriteriaManager.formatCriteriaForDisplay : (c, l) => 'Formatierungsfehler'; const getKollektivNameFunc = typeof getKollektivDisplayName === 'function' ? getKollektivDisplayName : (k) => k;
-        const bestResult = results[0]; const kollektivName = getKollektivNameFunc(kollektiv); const metricDisplayName = metric === 'PPV' ? 'PPV' : metric === 'NPV' ? 'NPV' : metric;
-        let tableHTML = `<div class="alert alert-light small p-2 mb-3"><p class="mb-1"><strong>Beste Kombi für '${metricDisplayName}' (Koll.: '${kollektivName}'):</strong></p><ul class="list-unstyled mb-1"><li><strong>Wert:</strong> ${formatNumber(bestResult.metricValue, 4)}</li><li><strong>Logik:</strong> ${bestResult.logic.toUpperCase()}</li><li><strong>Kriterien:</strong> ${formatCriteriaFunc(bestResult.criteria, bestResult.logic)}</li></ul><p class="mb-0 text-muted"><small>Dauer: ${formatNumber(duration / 1000, 1)}s | Getestet: ${formatNumber(totalTested, 0)}</small></p></div><h6 class="mb-2">Top 10 Ergebnisse (inkl. identischer Werte):</h6><div class="table-responsive"><table class="table table-sm table-striped table-hover small" id="bruteforce-results-table"><thead class="small"><tr><th data-tippy-content="Rang">Rang</th><th data-tippy-content="Wert der Zielmetrik (${metricDisplayName})">${metricDisplayName}</th><th data-tippy-content="Logik">Logik</th><th data-tippy-content="Kriterienkombination">Kriterien</th></tr></thead><tbody>`;
-        let rank = 1, displayedCount = 0, lastMetricValue = -Infinity; const precision = 8;
-        for (let i = 0; i < results.length; i++) { const result = results[i]; if (!result || typeof result.metricValue !== 'number' || !isFinite(result.metricValue)) continue; const currentMetricValueRounded = parseFloat(result.metricValue.toFixed(precision)); const lastMetricValueRounded = parseFloat(lastMetricValue.toFixed(precision)); let currentRank = rank; const isNewRank = Math.abs(currentMetricValueRounded - lastMetricValueRounded) > 1e-8; if (i > 0 && isNewRank) { rank = displayedCount + 1; currentRank = rank; } else if (i > 0) { currentRank = rank; } if (rank > 10 && isNewRank) break; tableHTML += `<tr><td>${currentRank}.</td><td>${formatNumber(result.metricValue, 4)}</td><td>${result.logic.toUpperCase()}</td><td>${formatCriteriaFunc(result.criteria, result.logic)}</td></tr>`; if (isNewRank || i === 0) { lastMetricValue = result.metricValue; } displayedCount++; }
-        tableHTML += `</tbody></table></div>`; return tableHTML;
+    function createPublikationTabHeader() {
+        const lang = state.getCurrentPublikationLang() || PUBLICATION_CONFIG.defaultLanguage;
+        const currentBfMetric = state.getCurrentPublikationBruteForceMetric() || PUBLICATION_CONFIG.defaultBruteForceMetricForPublication;
+
+        const sectionNavItems = PUBLICATION_CONFIG.sections.map(mainSection => {
+            const sectionTooltip = TOOLTIP_CONTENT.publikationTabTooltips[mainSection.id]?.description || UI_TEXTS.publikationTab.sectionLabels[mainSection.labelKey] || mainSection.labelKey;
+            return `
+                <li class="nav-item">
+                    <a class="nav-link py-2 publikation-section-link" href="#" data-section-id="${mainSection.id}" data-tippy-content="${sectionTooltip}">
+                        ${UI_TEXTS.publikationTab.sectionLabels[mainSection.labelKey] || mainSection.labelKey}
+                    </a>
+                </li>`;
+        }).join('');
+
+        const bfMetricOptions = PUBLICATION_CONFIG.bruteForceMetricsForPublication.map(opt =>
+            `<option value="${opt.value}" ${opt.value === currentBfMetric ? 'selected' : ''}>${opt.label}</option>`
+        ).join('');
+
+        return `
+            <div class="row mb-3 sticky-top bg-light py-2 shadow-sm" style="top: var(--sticky-header-offset); z-index: 1015;">
+                <div class="col-md-3">
+                    <h5 class="mb-2">Abschnitte</h5>
+                    <nav id="publikation-sections-nav" class="nav flex-column nav-pills" data-tippy-content="${TOOLTIP_CONTENT.publikationTabTooltips.sectionSelect?.description || 'Wählen Sie einen Publikationsabschnitt.'}">
+                        ${sectionNavItems}
+                    </nav>
+                </div>
+                <div class="col-md-9">
+                    <div class="d-flex justify-content-end align-items-center mb-2">
+                        <div class="me-3">
+                           <label for="publikation-bf-metric-select" class="form-label form-label-sm mb-0 me-1">${UI_TEXTS.publikationTab.bruteForceMetricSelectLabel}</label>
+                           <select class="form-select form-select-sm d-inline-block" id="publikation-bf-metric-select" style="width: auto;" data-tippy-content="${TOOLTIP_CONTENT.publikationTabTooltips.bruteForceMetricSelect.description}">
+                               ${bfMetricOptions}
+                           </select>
+                        </div>
+                        <div class="form-check form-switch" data-tippy-content="${TOOLTIP_CONTENT.publikationTabTooltips.spracheSwitch.description}">
+                            <input class="form-check-input" type="checkbox" role="switch" id="publikation-sprache-switch" ${lang === 'en' ? 'checked' : ''}>
+                            <label class="form-check-label fw-bold" for="publikation-sprache-switch" id="publikation-sprache-label">${UI_TEXTS.publikationTab.spracheSwitchLabel[lang]}</label>
+                        </div>
+                    </div>
+                    <div id="publikation-content-area" class="bg-white p-3 border rounded" style="min-height: 400px; max-height: calc(100vh - var(--sticky-header-offset) - 4rem - 2rem); overflow-y: auto;">
+                        <p class="text-muted">Bitte wählen Sie einen Abschnitt aus der Navigation.</p>
+                    </div>
+                </div>
+            </div>`;
     }
 
     return Object.freeze({
@@ -417,8 +481,8 @@ const uiComponents = (() => {
         createStatistikCard,
         createExportOptions,
         createT2MetricsOverview,
-        createMethodenBeschreibungContent,
-        createBruteForceModalContent
+        createBruteForceModalContent,
+        createPublikationTabHeader
     });
 
 })();

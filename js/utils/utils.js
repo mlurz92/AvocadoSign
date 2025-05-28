@@ -41,23 +41,28 @@ function formatPercent(num, digits = 1, placeholder = '--%') {
 
 function formatCI(value, ciLower, ciUpper, digits = 1, isPercent = false, placeholder = '--') {
     const formatFn = isPercent ? formatPercent : formatNumber;
-    const formattedValue = formatFn(value, digits, placeholder);
+    const formattedValue = formatFn(value, digits, placeholder, !isPercent); // Use standard format for non-percent numbers in CI
 
-    if (formattedValue === placeholder) {
+    if (formattedValue === placeholder && !(value === 0 && placeholder === '--')) { // Allow 0 to be formatted
         return placeholder;
     }
+    
+    let valueToDisplay = formattedValue;
+    if (isPercent && formattedValue !== placeholder) {
+         valueToDisplay = formattedValue.replace('%','');
+    }
 
-    const formattedLower = formatFn(ciLower, digits, null);
-    const formattedUpper = formatFn(ciUpper, digits, null);
+
+    const formattedLower = formatFn(ciLower, digits, null, !isPercent);
+    const formattedUpper = formatFn(ciUpper, digits, null, !isPercent);
 
     if (formattedLower !== null && formattedUpper !== null) {
-        const valueWithoutPercent = isPercent ? formattedValue.replace('%','') : formattedValue;
-        const lowerStr = isPercent ? formattedLower.replace('%','') : formattedLower;
-        const upperStr = isPercent ? formattedUpper.replace('%','') : formattedUpper;
-        const ciStr = `(${lowerStr}\u00A0-\u00A0${upperStr})`;
-        return `${valueWithoutPercent} ${ciStr}${isPercent ? '%' : ''}`;
+        const lowerStr = isPercent ? String(formattedLower).replace('%','') : String(formattedLower);
+        const upperStr = isPercent ? String(formattedUpper).replace('%','') : String(formattedUpper);
+        const ciStr = `(${lowerStr}\u00A0-\u00A0${upperStr})`; // Non-breaking space
+        return `${valueToDisplay} ${ciStr}${isPercent ? '%' : ''}`;
     } else {
-        return formattedValue;
+        return formattedValue; // Return value with % if applicable and CI is not available
     }
 }
 
@@ -285,21 +290,49 @@ function getSortFunction(key, direction = 'asc', subKey = null) {
     };
 }
 
-function getStatisticalSignificanceSymbol(pValue, significanceLevel = 0.05) {
-    if (pValue === null || pValue === undefined || isNaN(pValue)) return '';
-    const level = significanceLevel;
-    if (pValue < 0.001) return '***';
-    if (pValue < 0.01) return '**';
-    if (pValue < level) return '*';
-    return 'ns';
+function getStatisticalSignificanceSymbol(pValue) {
+    if (pValue === null || pValue === undefined || isNaN(pValue) || !isFinite(pValue)) return '';
+    const significanceLevels = APP_CONFIG.STATISTICAL_CONSTANTS.SIGNIFICANCE_SYMBOLS; // Bereits absteigend sortiert
+    const overallSignificanceLevel = APP_CONFIG.STATISTICAL_CONSTANTS.SIGNIFICANCE_LEVEL;
+
+    for (const level of significanceLevels) {
+        if (pValue < level.threshold) {
+            return level.symbol;
+        }
+    }
+    if (pValue < overallSignificanceLevel) { // Falls kein Symbol in der Liste passt, aber unter dem allgemeinen Niveau
+        return significanceLevels[significanceLevels.length - 1]?.symbol || '*'; // Fallback zum geringsten definierten Symbol
+    }
+    return 'ns'; // not significant
 }
 
-function getStatisticalSignificanceText(pValue, significanceLevel = 0.05) {
-     if (pValue === null || pValue === undefined || isNaN(pValue)) return '';
+function getStatisticalSignificanceText(pValue, significanceLevel = APP_CONFIG.STATISTICAL_CONSTANTS.SIGNIFICANCE_LEVEL) {
+     if (pValue === null || pValue === undefined || isNaN(pValue) || !isFinite(pValue)) return '';
      const level = significanceLevel;
      return pValue < level
-         ? 'statistisch signifikant'
-         : 'statistisch nicht signifikant';
+         ? UI_TEXTS.statMetrics.signifikanzTexte.SIGNIFIKANT || 'statistisch signifikant'
+         : UI_TEXTS.statMetrics.signifikanzTexte.NICHT_SIGNIFIKANT || 'statistisch nicht signifikant';
+}
+
+function getPValueText(pValue, lang = 'de') {
+    if (pValue === null || pValue === undefined || isNaN(pValue) || !isFinite(pValue)) return 'N/A';
+
+    const pLessThanThreshold = APP_CONFIG.STATISTICAL_CONSTANTS.SIGNIFICANCE_SYMBOLS[0]?.threshold || 0.001; // kleinster Schwellenwert für 'p < ...'
+    if (pValue < pLessThanThreshold) {
+        const thresholdStr = String(pLessThanThreshold).replace('.', lang === 'de' ? ',' : '.');
+        return lang === 'de' ? `p < ${thresholdStr}` : `P < ${thresholdStr.replace('0,','.')}`;
+    }
+
+    let pFormatted = formatNumber(pValue, 3, 'N/A', true); // useStandardFormat = true
+    if (pFormatted === '0.000' && pLessThanThreshold === 0.001) { // Spezifischer Fall, wenn p sehr klein, aber nicht <0.001 laut Formatierung
+         const thresholdStr = String(pLessThanThreshold).replace('.', lang === 'de' ? ',' : '.');
+         return lang === 'de' ? `p < ${thresholdStr}` : `P < ${thresholdStr.replace('0,','.')}`;
+    }
+
+    if (lang === 'de' && pFormatted !== 'N/A') {
+        pFormatted = pFormatted.replace('.', ',');
+    }
+    return `p = ${pFormatted}`;
 }
 
 function generateUUID() {
@@ -307,7 +340,7 @@ function generateUUID() {
         return crypto.randomUUID();
     } else {
         let d = new Date().getTime();
-        let d2 = (performance && performance.now && (performance.now() * 1000)) || 0;
+        let d2 = (typeof performance !== 'undefined' && performance.now && (performance.now() * 1000)) || 0;
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             let r = Math.random() * 16;
             if (d > 0) {
@@ -344,7 +377,7 @@ function arraysAreEqual(arr1, arr2) {
 
 function getAUCBewertung(aucValue) {
     const value = parseFloat(aucValue);
-    if (isNaN(value) || value < 0 || value > 1) return 'N/A';
+    if (isNaN(value) || value < 0 || value > 1) return UI_TEXTS.statMetrics.assoziationStaerkeTexte.nicht_bestimmbar || 'N/A';
     if (value >= 0.9) return 'exzellent';
     if (value >= 0.8) return 'gut';
     if (value >= 0.7) return 'moderat';
@@ -354,10 +387,11 @@ function getAUCBewertung(aucValue) {
 
 function getPhiBewertung(phiValue) {
     const value = parseFloat(phiValue);
-    if (isNaN(value)) return 'N/A';
+    if (isNaN(value)) return UI_TEXTS.statMetrics.assoziationStaerkeTexte.nicht_bestimmbar || 'N/A';
     const absPhi = Math.abs(value);
-    if (absPhi >= 0.5) return 'stark';
-    if (absPhi >= 0.3) return 'moderat';
-    if (absPhi >= 0.1) return 'schwach';
-    return 'sehr schwach';
+    const texts = UI_TEXTS.statMetrics.assoziationStaerkeTexte || {};
+    if (absPhi >= 0.5) return texts.stark || 'stark';
+    if (absPhi >= 0.3) return texts.moderat || 'moderat';
+    if (absPhi >= 0.1) return texts.schwach || 'schwach';
+    return texts.sehr_schwach || 'sehr schwach';
 }

@@ -196,7 +196,8 @@ const t2CriteriaManager = (() => {
 
         const lymphNodes = patient.lymphknoten_t2;
         if (!Array.isArray(lymphNodes)) {
-             return defaultReturn;
+            const activeCriteriaKeysForEmpty = Object.keys(criteria).filter(key => key !== 'logic' && criteria[key]?.active === true);
+            return { t2Status: activeCriteriaKeysForEmpty.length > 0 ? '-' : null, positiveLKCount: 0, bewerteteLK: [] };
         }
 
         let patientIsPositive = false;
@@ -204,9 +205,13 @@ const t2CriteriaManager = (() => {
         const bewerteteLK = [];
         const activeCriteriaKeys = Object.keys(criteria).filter(key => key !== 'logic' && criteria[key]?.active === true);
 
-        if (lymphNodes.length === 0) {
+        if (lymphNodes.length === 0 && activeCriteriaKeys.length > 0) {
             return { t2Status: '-', positiveLKCount: 0, bewerteteLK: [] };
         }
+        if (lymphNodes.length === 0 && activeCriteriaKeys.length === 0) {
+            return { t2Status: null, positiveLKCount: 0, bewerteteLK: [] };
+        }
+
 
         lymphNodes.forEach(lk => {
             if (!lk) {
@@ -241,8 +246,14 @@ const t2CriteriaManager = (() => {
             bewerteteLK.push(bewerteterLK);
         });
 
+        let finalT2Status = null;
+        if (activeCriteriaKeys.length > 0) {
+            finalT2Status = patientIsPositive ? '+' : '-';
+        }
+
+
         return {
-            t2Status: patientIsPositive ? '+' : '-',
+            t2Status: finalT2Status,
             positiveLKCount: positiveLKCount,
             bewerteteLK: bewerteteLK
         };
@@ -255,7 +266,13 @@ const t2CriteriaManager = (() => {
         }
         if (!criteria || (logic !== 'UND' && logic !== 'ODER')) {
              console.error("evaluateDataset: Ungültige Kriterien oder Logik.");
-             return cloneDeep(dataset);
+             return dataset.map(p => {
+                 const pCopy = cloneDeep(p);
+                 pCopy.t2 = null;
+                 pCopy.anzahl_t2_plus_lk = 0;
+                 pCopy.lymphknoten_t2_bewertet = (pCopy.lymphknoten_t2 || []).map(lk => ({...lk, isPositive: false, checkResult: {}}));
+                 return pCopy;
+             });
         }
 
         return dataset.map(patient => {
@@ -265,7 +282,6 @@ const t2CriteriaManager = (() => {
             patientCopy.t2 = t2Status;
             patientCopy.anzahl_t2_plus_lk = positiveLKCount;
             patientCopy.lymphknoten_t2_bewertet = bewerteteLK;
-
             return patientCopy;
         }).filter(p => p !== null);
     }
