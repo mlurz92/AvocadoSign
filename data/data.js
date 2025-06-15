@@ -3033,7 +3033,7 @@ window.patientDataRaw = [
   {
     id: 54,
     lastName: "Halfter",
-    firstName: "Karin",
+    firstName: "Karina",
     birthDate: "1958-01-06",
     sex: "f",
     therapy: "neoadjuvantTherapy",
@@ -3141,7 +3141,7 @@ window.patientDataRaw = [
   {
     id: 56,
     lastName: "Börner",
-    firstName: "Joachim",
+    firstName: "Joachen",
     birthDate: "1949-12-02",
     sex: "m",
     therapy: "neoadjuvantTherapy",
@@ -5778,7 +5778,7 @@ window.patientDataRaw = [
   {
     id: 106,
     lastName: "Hühnerbein",
-    firstName: "Thomas",
+    firstName: "Tom",
     birthDate: "1952-11-11",
     sex: "m",
     therapy: "surgeryAlone",
