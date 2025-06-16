@@ -1,75 +1,54 @@
-# Nodal Staging Analysis Tool (Version 3.1.0)
+# Nodal Staging Analysis Tool (v3.2.1)
 
-## 1. Einleitung
+This repository contains the source code for the "Nodal Staging: Avocado Sign vs. T2 Criteria" analysis tool, a client-side web application for advanced research in medical imaging.
 
-Das **Nodal Staging: Avocado Sign vs. T2 Criteria** Analysis Tool ist eine dedizierte, client-seitige Webanwendung, die für die **wissenschaftliche Forschung** im Bereich der radiologischen Diagnostik des Rektumkarzinoms entwickelt wurde. Es bietet eine interaktive und umfassende Plattform zur Analyse und zum Vergleich der diagnostischen Leistung verschiedener MRT-basierter Kriterien zur Beurteilung des mesorektalen Lymphknotenstatus (N-Status).
+For a comprehensive guide on the scientific background, application features, and user workflow, please refer to the detailed **[Application Guide](./docs/Application_Guide.md)**.
 
-Die Anwendung konzentriert sich auf die Evaluation des innovativen "Avocado Sign" (AS) im direkten Vergleich mit:
-* Etablierten, literaturbasierten T2-gewichteten (T2w) morphologischen Kriterien.
-* Datengetriebenen, kohorten-optimierten T2w-Kriterien, die durch eine automatisierte Brute-Force-Analyse auf dem vorliegenden Datensatz ermittelt werden.
+## 1. Introduction
 
-Dieses Tool ist darauf ausgelegt, den gesamten Forschungsprozess zu unterstützen, von der interaktiven Datenexploration über komplexe statistische Analysen bis hin zur Erstellung von Manuskriptentwürfen, die speziell den Publikationsanforderungen medizinisch-radiologischer Fachjournale gerecht werden.
+### 1.1. Project Purpose
+This application is a specialized research instrument designed for the in-depth, reproducible analysis and comparison of diagnostic performance between different MRI-based criteria for assessing mesorectal lymph node status (N-status) in rectal cancer. Its primary scientific goal is to rigorously evaluate the contrast-based **Avocado Sign (AS)** against a spectrum of T2-weighted (T2w) morphological criteria.
 
-### 1.1. Kernfunktionalitäten
+### 1.2. Core Features
+*   **Interactive Data Exploration:** A high-performance, filterable table view of the patient dataset.
+*   **Flexible Criteria Definition:** A dynamic control panel for defining and combining T2w malignancy criteria.
+*   **Automated Criteria Optimization:** An integrated brute-force algorithm, running in a dedicated Web Worker, to systematically identify the mathematically optimal criteria combination for a user-selected diagnostic metric.
+*   **Comprehensive Statistical Analysis:** Automated calculation of all relevant diagnostic performance metrics (Sensitivity, Specificity, PPV, NPV, Accuracy, AUC) including 95% confidence intervals and statistical comparison tests (e.g., DeLong, McNemar).
+*   **Publication Assistant:** A dedicated module that generates formatted, English-language text, tables, and figures for a scientific manuscript, precisely adhering to the style guidelines of the journal *Radiology*.
+*   **Versatile Data Export:** A central hub for downloading raw data, analysis results, tables, charts, and publication texts in various standard formats (CSV, Markdown, TXT, PNG, SVG, HTML).
 
-* **Interaktive Datenexploration:** Visualisierung und Sortierung eines pseudonymisierten Patientendatensatzes mit detaillierter Ansicht individueller Lymphknotenmerkmale.
-* **Flexible Kriteriendefinition:** Dynamische Definition und Anwendung komplexer T2w-Malignitätskriterien, inklusive anpassbarer Schwellenwerte und logischer Verknüpfungen (AND/OR).
-* **Automatisierte Kriterien-Optimierung:** Eine integrierte Brute-Force-Analyse identifiziert auf Basis einer wählbaren Zielmetrik die mathematisch optimalen T2w-Kriterienkombinationen für eine gegebene Patientenkohorte.
-* **Umfassende statistische Analyse:** Berechnung und Darstellung aller relevanten Metriken zur diagnostischen Güte (Sensitivität, Spezifität, PPV, NPV, Genauigkeit, AUC), inklusive 95%-Konfidenzintervallen und statistischer Vergleichstests (z.B. DeLong, McNemar).
-* **Publikations-Assistent:** Generierung von professionell formatierten Texten, Tabellen und Abbildungen für ein wissenschaftliches Manuskript, unter Einhaltung spezifischer Stilrichtlinien (z.B. des Fachjournals *Radiology*).
-* **Vielseitiger Datenexport:** Export von Rohdaten, Analyseergebnissen, Tabellen, Grafiken und generierten Publikationstexten in diversen gängigen Formaten (CSV, Markdown, TXT, PNG, SVG, HTML).
+### 1.3. Disclaimer: Research Instrument Only
+**This application is designed exclusively for research and educational purposes.** The presented data, statistics, and generated texts are based on a static, pseudonymized research dataset. **The results must not, under any circumstances, be used for clinical diagnosis, direct treatment decisions, or any other primary medical applications.** The scientific and clinical responsibility for the interpretation and use of the generated results lies solely with the user.
 
-### 1.2. Wichtiger Hinweis: Forschungsinstrument
+## 2. Setup and Usage
 
-**Disclaimer:** Diese Anwendung ist ausschließlich für **Forschungs- und Bildungszwecke** konzipiert. Die dargestellten Daten, Statistiken und generierten Texte basieren auf einem statischen, pseudonymisierten Forschungsdatensatz. **Die Ergebnisse dürfen nicht für die klinische Diagnostik, direkte Behandlungsentscheidungen oder andere primäre medizinische Anwendungen herangezogen werden.** Die wissenschaftliche und klinische Verantwortung für die Interpretation und Verwendung der generierten Ergebnisse liegt allein beim Nutzer.
+### 2.1. System Requirements
+*   A modern desktop web browser (e.g., Google Chrome, Mozilla Firefox, Microsoft Edge, or Safari).
+*   Web Worker support is required for the brute-force optimization feature.
 
-## 2. Einrichtung und Ausführung
+### 2.2. Installation
+No installation or server-side setup is required. The application runs entirely in the client's browser.
 
-Die Anwendung ist als in sich geschlossene Web-Applikation konzipiert, die direkt in einem modernen Webbrowser ausgeführt wird und keine serverseitige Komponente oder Installation erfordert.
+1.  Clone or download this repository.
+2.  Open the `index.html` file in a compatible web browser.
+3.  An internet connection is needed on the first run to load external libraries (e.g., Bootstrap, D3.js) from their respective CDNs.
 
-* **Voraussetzungen:** Ein moderner Desktop-Webbrowser (z.B. aktuelle Versionen von Google Chrome, Mozilla Firefox, Microsoft Edge oder Safari). Die Nutzung von Web Workers wird für die Brute-Force-Optimierung vorausgesetzt.
-* **Ausführung:** Öffnen Sie einfach die Datei `index.html` in einem kompatiblen Browser. Eine Internetverbindung wird für das erstmalige Laden externer Bibliotheken von Content Delivery Networks (CDNs) benötigt.
+## 3. Technical Overview
 
-## 3. Die Anwendungsmodule im Detail (Tabs)
+### 3.1. Application Architecture
+The application follows a modular architecture that separates data logic, service functions, and UI rendering:
 
-Die Anwendung ist in sechs Hauptmodule unterteilt, die über die Navigationsleiste zugänglich sind. Die **globale Kohortenauswahl** im Header ("Overall", "Surgery alone", "Neoadjuvant therapy") filtert dabei die Daten für alle Module.
+1.  **Event Handler (`event_manager.js`):** Captures user interactions.
+2.  **State Manager (`state.js`):** Manages the global application state (e.g., active cohort, sort order).
+3.  **App Controller (`main.js`):** Orchestrates the data flow, triggering recalculations and re-rendering upon state changes.
+4.  **Core Modules (`core/`):** Process and evaluate the raw data (`data_processor.js`, `t2_criteria_manager.js`, `study_criteria_manager.js`).
+5.  **Service Layer (`services/`):** Contains the complex business logic for statistics, export, brute-force optimization, and publication generation.
+6.  **UI Layer (`ui/`):** Responsible for rendering all data and components.
 
-### 3.1. Data Tab
-Dient der Darstellung und Exploration des zugrundeliegenden Patientendatensatzes. Eine sortierbare Tabelle zeigt alle Patientendaten. Zeilen können erweitert werden, um detaillierte morphologische Eigenschaften der T2-Lymphknoten des jeweiligen Patienten anzuzeigen.
+### 3.2. Directory Structure
+<details>
+<summary>Click to expand a full list of all project files and their locations.</summary>
 
-### 3.2. Analysis Tab
-Das Herzstück für die interaktive Analyse.
-* **Dashboard:** Bietet eine schnelle grafische Übersicht über die Verteilungen in der aktuellen Kohorte.
-* **Define T2 Malignancy Criteria:** Ermöglicht die flexible Definition von T2-Kriterien (Größe, Form, etc.) und deren logische Verknüpfung (AND/OR). Änderungen müssen mit "Apply & Save" übernommen werden, um in der gesamten Anwendung wirksam zu werden.
-* **Criteria Optimization (Brute-Force):** Findet automatisch die beste T2-Kriterien-Kombination, um eine ausgewählte Zielmetrik (z.B. "Balanced Accuracy") zu maximieren.
-* **Analyse-Tabelle:** Visualisiert die Auswirkung der angewandten Kriterien auf Patientenebene und zeigt in einer Detailansicht, welche Kriterien bei jedem einzelnen Lymphknoten erfüllt sind.
-
-### 3.3. Statistics Tab
-Bietet eine formale statistische Auswertung und den Vergleich der diagnostischen Methoden.
-* **Ansichten:** Wechsel zwischen einer detaillierten Einzelansicht der aktuellen Kohorte und einer Vergleichsansicht zweier wählbarer Kohorten.
-* **Statistik-Karten:** Präsentiert deskriptive Statistiken, die diagnostische Güte von AS und T2, statistische Tests zum Vergleich beider Methoden (McNemar, DeLong) und Assoziationsanalysen.
-* **Criteria Comparison Table:** Vergleicht die Performance des Avocado Signs mit den angewandten Kriterien und etablierten Kriteriensätzen aus der Literatur.
-
-### 3.4. Comparison Tab
-Bereitet ausgewählte Ergebnisse visuell für Präsentationen auf.
-* **Ansichten:** Fokussiert entweder auf die alleinige Performance des AS oder auf den direkten Vergleich zwischen AS und einem wählbaren T2-Kriteriensatz (selbst definierte oder aus der Literatur).
-* **Dynamische Inhalte:** Generiert automatisch Vergleichstabellen, statistische Tests und ein Balkendiagramm für die visuelle Gegenüberstellung. Alle Elemente sind exportierbar.
-
-### 3.5. Publication Tab
-Ein Assistent zur Erstellung eines wissenschaftlichen Manuskripts.
-* **Strukturierte Generierung:** Erzeugt für jeden Abschnitt eines Papers (Abstract, Methods, Results etc.) professionell formulierte, englischsprachige Texte.
-* **Dynamische Integration:** Die generierten Texte binden automatisch die aktuellsten Analyseergebnisse ein und formatieren diese gemäß den Stilrichtlinien des Fachjournals *Radiology*.
-* **Kontext-Anpassung:** Die Narrative kann durch die Auswahl der zugrundeliegenden Brute-Force-Zielmetrik angepasst werden.
-
-### 3.6. Export Tab
-Ein zentraler Hub für den Export von Daten und Ergebnissen.
-* **Formate:** Bietet Exporte als CSV, Markdown, TXT, PNG, SVG und einen umfassenden, druckbaren HTML-Bericht.
-* **Pakete:** Ermöglicht den Download gebündelter ZIP-Archive, z.B. alle Grafiken oder alle Markdown-Texte auf einmal.
-* **Kontext-Sensitivität:** Alle Exporte basieren auf der aktuell gewählten globalen Kohorte und den angewandten T2-Kriterien.
-
-## 4. Technischer Überblick
-
-### 4.1. Verzeichnisstruktur
 ```
 /
 ├── css/
@@ -77,7 +56,14 @@ Ein zentraler Hub für den Export von Daten und Ergebnissen.
 ├── data/
 │   └── data.js
 ├── docs/
-│   ├── ... (Dokumentationsdateien)
+│   ├── Application_Guide.md
+│   ├── Barbaro_2024_summary.txt
+│   ├── Koh_2008_summary.txt
+│   ├── Lurz_Schaefer_AvocadoSign_2025.pdf.txt
+│   ├── Lurz_Schaefer_AvocadoSign_2025_summary.txt
+│   ├── Radiology_Publication_Instructions_for_Authors.md
+│   ├── Radiology_Scientific_Style_Guide.md
+│   └── Rutegard_2025_summary.txt
 ├── js/
 │   ├── app/
 │   │   ├── main.js
@@ -88,41 +74,50 @@ Ein zentraler Hub für den Export von Daten und Ergebnissen.
 │   │   └── t2_criteria_manager.js
 │   ├── services/
 │   │   ├── publication_service/
-│   │   │   └── ... (Generatoren für Publikationsteile)
+│   │   │   ├── abstract_generator.js
+│   │   │   ├── discussion_generator.js
+│   │   │   ├── introduction_generator.js
+│   │   │   ├── methods_generator.js
+│   │   │   ├── publication_helpers.js
+│   │   │   ├── references_generator.js
+│   │   │   ├── results_generator.js
+│   │   │   ├── stard_generator.js
+│   │   │   └── title_page_generator.js
+│   │   ├── publication_service.js
 │   │   ├── brute_force_manager.js
 │   │   ├── export_service.js
 │   │   └── statistics_service.js
 │   ├── ui/
 │   │   ├── components/
-│   │   │   └── ... (Wiederverwendbare UI-Komponenten)
+│   │   │   ├── chart_renderer.js
+│   │   │   ├── flowchart_renderer.js
+│   │   │   ├── table_renderer.js
+│   │   │   └── ui_components.js
 │   │   ├── tabs/
-│   │   │   └── ... (Renderer für jeden Haupt-Tab)
+│   │   │   ├── analysis_tab.js
+│   │   │   ├── comparison_tab.js
+│   │   │   ├── data_tab.js
+│   │   │   ├── export_tab.js
+│   │   │   ├── publication_tab.js
+│   │   │   └── statistics_tab.js
 │   │   ├── event_manager.js
 │   │   └── ui_manager.js
-│   └── config.js
 │   └── utils.js
 ├── workers/
 │   └── brute_force_worker.js
-└── index.html
+├── index.html
 └── README.md
 ```
+</details>
 
-### 4.2. Schlüsseltechnologien
-* **Kern:** HTML5, CSS3, JavaScript (ES6+)
-* **UI/Layout:** Bootstrap 5
-* **Datenvisualisierung:** D3.js
-* **Asynchrone Berechnung:** Web Workers
-* **UI-Verbesserungen:** Tippy.js
-* **Dateiverarbeitung:** PapaParse, JSZip, html2canvas
-
-### 4.3. Glossar
-* **AS:** Avocado Sign
-* **AUC:** Area Under the Curve
-* **BF:** Brute-Force
-* **CI:** Confidence Interval (Konfidenzintervall)
-* **nRCT:** Neoadjuvant Chemoradiotherapy
-* **NPV:** Negative Predictive Value
-* **OR:** Odds Ratio
-* **PPV:** Positive Predictive Value
-* **RD:** Risk Difference
-* **T2w:** T2-weighted
+### 3.3. Glossary
+*   **AS:** Avocado Sign
+*   **AUC:** Area Under the Curve
+*   **BF:** Brute-Force
+*   **CI:** Confidence Interval
+*   **nRCT:** Neoadjuvant Chemoradiotherapy
+*   **NPV:** Negative Predictive Value
+*   **OR:** Odds Ratio
+*   **PPV:** Positive Predictive Value
+*   **RD:** Risk Difference
+*   **T2w:** T2-weighted
