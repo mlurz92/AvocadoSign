@@ -15,7 +15,7 @@ This application is a specialized research instrument designed for the in-depth,
 *   **Automated Criteria Optimization:** An integrated brute-force algorithm, running in a dedicated Web Worker, to systematically identify the mathematically optimal criteria combination for a user-selected diagnostic metric.
 *   **Comprehensive Statistical Analysis:** Automated calculation of all relevant diagnostic performance metrics (Sensitivity, Specificity, PPV, NPV, Accuracy, AUC) including 95% confidence intervals and statistical comparison tests (e.g., DeLong, McNemar).
 *   **Publication Assistant:** A dedicated module that generates formatted, English-language text, tables, and figures for a scientific manuscript, precisely adhering to the style guidelines of the journal *Radiology*.
-*   **Versatile Data Export:** A central hub for downloading raw data, analysis results, tables, charts, and publication texts in various standard formats (CSV, Markdown, TXT, PNG, SVG, HTML).
+*   **Versatile Data Export:** A central hub for downloading raw data, analysis results, tables, charts, and publication texts in various standard formats (CSV, Markdown, TXT, PNG, SVG, DOCX).
 
 ### 1.3. Disclaimer: Research Instrument Only
 **This application is designed exclusively for research and educational purposes.** The presented data, statistics, and generated texts are based on a static, pseudonymized research dataset. **The results must not, under any circumstances, be used for clinical diagnosis, direct treatment decisions, or any other primary medical applications.** The scientific and clinical responsibility for the interpretation and use of the generated results lies solely with the user.
@@ -102,12 +102,14 @@ The application follows a modular architecture that separates data logic, servic
 │   │   │   └── statistics_tab.js
 │   │   ├── event_manager.js
 │   │   └── ui_manager.js
+│   ├── config.js
 │   └── utils.js
 ├── workers/
 │   └── brute_force_worker.js
 ├── index.html
 └── README.md
 ```
+
 </details>
 
 ### 3.3. Glossary
