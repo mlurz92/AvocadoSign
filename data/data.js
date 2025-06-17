@@ -3032,7 +3032,7 @@ window.patientDataRaw = [
   },
   {
     id: 54,
-    lastName: "Halfter",
+    lastName: "Halfder",
     firstName: "Karina",
     birthDate: "1958-02-06",
     sex: "f",
@@ -3079,7 +3079,7 @@ window.patientDataRaw = [
   },
   {
     id: 55,
-    lastName: "Ackermann",
+    lastName: "Ackerman",
     firstName: "Heiko",
     birthDate: "1950-02-02",
     sex: "m",
@@ -3140,7 +3140,7 @@ window.patientDataRaw = [
   },
   {
     id: 56,
-    lastName: "Börner",
+    lastName: "Börmer",
     firstName: "Joachen",
     birthDate: "1949-11-02",
     sex: "m",
@@ -5777,7 +5777,7 @@ window.patientDataRaw = [
   },
   {
     id: 106,
-    lastName: "Hühnerbein",
+    lastName: "Hühnerpein",
     firstName: "Tom",
     birthDate: "1952-11-11",
     sex: "m",
