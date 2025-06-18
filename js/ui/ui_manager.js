@@ -1,16 +1,6 @@
 window.uiManager = (() => {
-    let _tooltips = [];
     let _isQuickGuideOpen = false;
     let _isCriteriaSaved = true;
-
-    function updateHeaderStatsUI(stats) {
-        if (!window.utils || !window.APP_CONFIG) return;
-        document.getElementById('header-cohort').textContent = stats.cohort;
-        document.getElementById('header-patient-count').textContent = stats.patientCount;
-        document.getElementById('header-status-n').textContent = stats.statusN;
-        document.getElementById('header-status-as').textContent = stats.statusAS;
-        document.getElementById('header-status-t2').textContent = stats.statusT2;
-    }
 
     function updateCohortButtonsUI(currentCohortId, isLocked) {
         if (!window.APP_CONFIG) return;
@@ -27,8 +17,10 @@ window.uiManager = (() => {
         const paneId = `${tabId}-pane`;
         const paneElement = document.getElementById(paneId);
         if (paneElement) {
+            const oldTippys = paneElement.querySelectorAll('[data-tippy-content]');
+            oldTippys.forEach(el => { if (el._tippy) el._tippy.destroy(); });
+
             paneElement.innerHTML = contentGenerator();
-            destroyTooltips();
             initializeTooltips(paneElement);
         }
     }
@@ -171,20 +163,14 @@ window.uiManager = (() => {
     }
 
     function initializeTooltips(containerElement) {
-        if (typeof tippy === 'undefined') return;
-
-        if (_tooltips && Array.isArray(_tooltips)) {
-            _tooltips.forEach(instance => {
-                if (instance && typeof instance.destroy === 'function') {
-                    instance.destroy();
-                }
-            });
-            _tooltips = [];
-        }
+        if (typeof tippy === 'undefined' || !containerElement) return;
 
         const elementsWithTooltips = containerElement.querySelectorAll('[data-tippy-content]');
 
         elementsWithTooltips.forEach(element => {
+            if (element._tippy) {
+                element._tippy.destroy();
+            }
             const content = element.getAttribute('data-tippy-content');
             if (content) {
                 let theme = 'glass';
@@ -192,7 +178,7 @@ window.uiManager = (() => {
                     theme = 'warning';
                 }
 
-                const instance = tippy(element, {
+                tippy(element, {
                     content: content,
                     allowHTML: true,
                     animation: 'fade',
@@ -201,25 +187,21 @@ window.uiManager = (() => {
                     theme: theme,
                     touch: ['hold', 500]
                 });
-                if (instance) {
-                    _tooltips.push(instance);
-                }
             }
         });
     }
 
-    function destroyTooltips() {
-        if (_tooltips && Array.isArray(_tooltips)) {
-            _tooltips.forEach(instance => {
-                if (instance && typeof instance.destroy === 'function') {
-                    instance.destroy();
-                }
-            });
-            _tooltips = [];
-        }
+    function destroyTooltips(containerElement) {
+        if (!containerElement) return;
+        const elementsWithTooltips = containerElement.querySelectorAll('[data-tippy-content]');
+        elementsWithTooltips.forEach(element => {
+            if (element._tippy) {
+                element._tippy.destroy();
+            }
+        });
     }
 
-    function showToast(message, type = 'info', duration = window.APP_CONFIG?.UI_SETTINGS?.TOAST_DURATION_MS || 4500) {
+    function showToast(message, type = 'info', duration = window.APP_CONFIG?.UI_SETTINGS?.TOAST_DURATION_MS || 1500) {
         if (typeof bootstrap === 'undefined') return;
         const toastContainer = document.getElementById('toast-container');
         if (!toastContainer) return;
@@ -261,22 +243,22 @@ window.uiManager = (() => {
         });
 
         const sizeThreshold = currentCriteria.size?.threshold ?? window.APP_CONFIG.DEFAULT_T2_CRITERIA.size.threshold;
-        const formattedThreshold = window.utils.formatNumber(sizeThreshold, 1, '', true);
+        const formattedThresholdForInput = formatNumber(sizeThreshold, 1, '5.0', true);
         const rangeSize = document.getElementById('range-size');
         const inputSize = document.getElementById('input-size');
         const valueSize = document.getElementById('value-size');
         const isSizeActive = currentCriteria.size?.active;
 
         if (rangeSize) {
-            rangeSize.value = formattedThreshold;
+            rangeSize.value = formattedThresholdForInput;
             rangeSize.disabled = !isSizeActive;
         }
         if (inputSize) {
-            inputSize.value = formattedThreshold;
+            inputSize.value = formattedThresholdForInput;
             inputSize.disabled = !isSizeActive;
         }
         if (valueSize) {
-            valueSize.textContent = window.utils.formatNumber(sizeThreshold, 1);
+            valueSize.textContent = formatNumber(sizeThreshold, 1);
         }
 
         ['shape', 'border', 'homogeneity', 'signal'].forEach(key => {
@@ -317,127 +299,14 @@ window.uiManager = (() => {
     }
 
     function updateBruteForceUI(state, payload, bfWorkerAvailable, currentCohort) {
-        if (!window.APP_CONFIG || !window.utils || !window.uiComponents) return;
-        
         const runnerCardContainer = document.getElementById('brute-force-runner-card-container');
-        const overviewCardContainer = document.getElementById('brute-force-overview-card-container');
-        if (!runnerCardContainer || !overviewCardContainer) return;
+        if (!runnerCardContainer) return;
 
-        const metricOptions = window.APP_CONFIG.AVAILABLE_BRUTE_FORCE_METRICS;
-        const defaultMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
+        const selectedMetric = document.getElementById('brute-force-metric')?.value || window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
         
-        let runnerCardHTML = '';
-        let bfOverviewTableHTML = window.uiComponents.createBruteForceOverviewTableHTML(window.bruteForceManager.getAllResults());
-        window.uiManager.updateElementHTML(overviewCardContainer.id, window.uiComponents.createStatisticsCard(
-            'bf-overview-card',
-            'Brute-Force Optima (Saved Results)',
-            bfOverviewTableHTML,
-            false
-        ));
-        initializeTooltips(overviewCardContainer);
-
-        let startButtonDisabled = true;
-        let cancelButtonDisabled = true;
-        let applyBestButtonDisabled = true;
-        let showDetailsButtonDisabled = true;
-        let progressHTML = '';
-
-        const currentCohortResults = window.bruteForceManager.getAllResultsForCohort(currentCohort);
-        const selectedMetric = document.getElementById('brute-force-metric')?.value || defaultMetric;
-        const currentBestResultForMetric = currentCohortResults?.[selectedMetric]?.bestResult;
-
-        switch (state) {
-            case 'initial':
-                startButtonDisabled = !bfWorkerAvailable;
-                cancelButtonDisabled = true;
-                applyBestButtonDisabled = !currentBestResultForMetric;
-                showDetailsButtonDisabled = !currentBestResultForMetric;
-                progressHTML = `
-                    <p class="mb-2 small text-muted">Select metric and start optimization.</p>
-                    <div class="progress" style="height: 5px;"><div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
-                    <p class="small text-muted mt-2 mb-0">Progress: 0%</p>
-                `;
-                break;
-            case 'started':
-            case 'progress':
-                startButtonDisabled = true;
-                cancelButtonDisabled = false;
-                applyBestButtonDisabled = true;
-                showDetailsButtonDisabled = true;
-                const tested = payload?.tested || 0;
-                const total = payload?.total || 1;
-                const percent = total > 0 ? Math.floor((tested / total) * 100) : 0;
-                const currentBest = payload?.currentBest;
-                const currentBestInfo = currentBest ? `Current Best: <strong>${window.utils.formatNumber(currentBest.metricValue, 4)}</strong> with <code>${window.studyT2CriteriaManager.formatCriteriaForDisplay(currentBest.criteria, currentBest.logic, true)}</code>` : 'No best found yet.';
-                progressHTML = `
-                    <p class="mb-2 small text-muted">Running on cohort: <strong>${window.utils.getCohortDisplayName(currentCohort)}</strong>, Metric: <strong>${payload?.metric || selectedMetric}</strong></p>
-                    <div class="progress" style="height: 5px;"><div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: ${percent}%;" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div></div>
-                    <p class="small text-muted mt-2 mb-0">Combinations tested: ${window.utils.formatNumber(tested, 0)} / ${window.utils.formatNumber(total, 0)} (${percent}%)</p>
-                    <p class="small text-muted mb-0">${currentBestInfo}</p>
-                `;
-                break;
-            case 'result':
-                startButtonDisabled = !bfWorkerAvailable;
-                cancelButtonDisabled = true;
-                applyBestButtonDisabled = !(payload && payload.bestResult);
-                showDetailsButtonDisabled = !(payload && payload.bestResult);
-                const best = payload;
-                const durationSeconds = (best?.duration || 0) / 1000;
-                progressHTML = `
-                    <p class="mb-2 small text-muted">Optimization finished for cohort: <strong>${window.utils.getCohortDisplayName(best?.cohort || currentCohort)}</strong>, Metric: <strong>${best?.metric || selectedMetric}</strong></p>
-                    <div class="progress" style="height: 5px;"><div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
-                    <p class="small text-muted mt-2 mb-0">Total Tested: ${window.utils.formatNumber(best?.totalTested || 0, 0)} in ${window.utils.formatNumber(durationSeconds, 1)} seconds</p>
-                    <p class="small text-muted mb-0">Best Result: <strong>${window.utils.formatNumber(best?.bestResult?.metricValue, 4)}</strong> with <code>${window.studyT2CriteriaManager.formatCriteriaForDisplay(best?.bestResult?.criteria, best?.bestResult?.logic, true)}</code></p>
-                `;
-                break;
-            case 'cancelled':
-                startButtonDisabled = !bfWorkerAvailable;
-                cancelButtonDisabled = true;
-                applyBestButtonDisabled = !currentBestResultForMetric;
-                showDetailsButtonDisabled = !currentBestResultForMetric;
-                progressHTML = `
-                    <p class="mb-2 small text-muted">Optimization cancelled for cohort: <strong>${window.utils.getCohortDisplayName(payload?.cohort || currentCohort)}</strong>.</p>
-                    <div class="progress" style="height: 5px;"><div class="progress-bar bg-warning" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
-                    <p class="small text-muted mt-2 mb-0">Progress: Cancelled</p>
-                `;
-                break;
-            case 'error':
-                startButtonDisabled = !bfWorkerAvailable;
-                cancelButtonDisabled = true;
-                applyBestButtonDisabled = !currentBestResultForMetric;
-                showDetailsButtonDisabled = !currentBestResultForMetric;
-                progressHTML = `
-                    <p class="mb-2 small text-danger">Error during optimization for cohort: <strong>${window.utils.getCohortDisplayName(payload?.cohort || currentCohort)}</strong>.</p>
-                    <div class="progress" style="height: 5px;"><div class="progress-bar bg-danger" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
-                    <p class="small text-danger mt-2 mb-0">Error: ${payload?.message || 'Unknown error'}</p>
-                `;
-                break;
-        }
-
-        runnerCardHTML = window.uiComponents.createStatisticsCard(
-            'bf-runner-card',
-            'Criteria Optimization (Brute-Force)',
-            `
-            <div class="p-3">
-                <div class="mb-3">
-                    <label for="brute-force-metric" class="form-label small text-muted mb-1">Optimize for Metric:</label>
-                    <select class="form-select form-select-sm" id="brute-force-metric" ${window.bruteForceManager.isRunning() ? 'disabled' : ''}>
-                        ${metricOptions.map(m => `<option value="${m.value}" ${m.value === selectedMetric ? 'selected' : ''}>${m.label}</option>`).join('')}
-                    </select>
-                </div>
-                ${progressHTML}
-                <div class="d-flex justify-content-end mt-3">
-                    <button class="btn btn-sm btn-outline-primary me-2" id="btn-start-brute-force" ${startButtonDisabled ? 'disabled' : ''}><i class="fas fa-play me-1"></i> Start</button>
-                    <button class="btn btn-sm btn-outline-warning me-2" id="btn-cancel-brute-force" ${cancelButtonDisabled ? 'disabled' : ''}><i class="fas fa-stop me-1"></i> Cancel</button>
-                    <button class="btn btn-sm btn-info me-2" id="btn-show-bf-details" ${showDetailsButtonDisabled ? 'disabled' : ''}><i class="fas fa-info-circle me-1"></i> Top 10</button>
-                    <button class="btn btn-sm btn-success" id="btn-apply-best-bf-criteria" ${applyBestButtonDisabled ? 'disabled' : ''}><i class="fas fa-arrow-alt-circle-up me-1"></i> Apply Best</button>
-                </div>
-            </div>
-            `,
-            false
-        );
-        window.updateElementHTML(runnerCardContainer.id, runnerCardHTML);
-        initializeTooltips(runnerCardContainer);
+        const runnerCardHTML = window.uiComponents.createBruteForceRunnerCardHTML(state, payload, bfWorkerAvailable, currentCohort, selectedMetric);
+        
+        updateElementHTML(runnerCardContainer.id, runnerCardHTML);
     }
     
     function updateExportButtonStates(currentTabId, hasBruteForceResults, hasPatientData) {
@@ -563,6 +432,8 @@ window.uiManager = (() => {
     function updateElementHTML(elementId, htmlContent) {
         const element = document.getElementById(elementId);
         if (element) {
+            const oldTippys = element.querySelectorAll('[data-tippy-content]');
+            oldTippys.forEach(el => { if (el._tippy) el._tippy.destroy(); });
             element.innerHTML = htmlContent;
             initializeTooltips(element);
         }
@@ -579,7 +450,6 @@ window.uiManager = (() => {
     }
 
     return Object.freeze({
-        updateHeaderStatsUI,
         updateCohortButtonsUI,
         renderTabContent,
         attachRowCollapseListeners,
@@ -599,4 +469,4 @@ window.uiManager = (() => {
         updateElementHTML,
         highlightElement
     });
-})();
+})(); 

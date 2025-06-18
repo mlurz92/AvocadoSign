@@ -571,6 +571,42 @@ window.statisticsService = (() => {
             ageData: ageData
         };
     }
+
+    function calculateDemographicComparison(data1, data2) {
+        const res = {};
+        const age1 = data1.map(p => p.age).filter(a => a !== null && !isNaN(a));
+        const age2 = data2.map(p => p.age).filter(a => a !== null && !isNaN(a));
+        if (age1.length > 1 && age2.length > 1) {
+            const mean1 = getMean(age1);
+            const mean2 = getMean(age2);
+            const sd1 = getStdDev(age1);
+            const sd2 = getStdDev(age2);
+            const n1 = age1.length;
+            const n2 = age2.length;
+            const se_diff = Math.sqrt((sd1 * sd1 / n1) + (sd2 * sd2 / n2));
+            if (se_diff > 0) {
+                const t = (mean1 - mean2) / se_diff;
+                res.age = { pValue: 2 * (1 - normalCDF(Math.abs(t))), test: "Welch's t-test" };
+            } else {
+                res.age = { pValue: 1.0, test: "Welch's t-test (Zero Variance)" };
+            }
+        } else {
+            res.age = { pValue: NaN, test: "Welch's t-test (Insufficient Data)" };
+        }
+        
+        const sex1_m = data1.filter(p => p.sex === 'm').length;
+        const sex1_f = data1.filter(p => p.sex === 'f').length;
+        const sex2_m = data2.filter(p => p.sex === 'm').length;
+        const sex2_f = data2.filter(p => p.sex === 'f').length;
+        res.sex = calculateFisherExactTest(sex1_m, sex1_f, sex2_m, sex2_f);
+
+        const n1_p = data1.filter(p => p.nStatus === '+').length;
+        const n1_n = data1.filter(p => p.nStatus === '-').length;
+        const n2_p = data2.filter(p => p.nStatus === '+').length;
+        const n2_n = data2.filter(p => p.nStatus === '-').length;
+        res.nStatus = calculateFisherExactTest(n1_p, n1_n, n2_p, n2_n);
+        return res;
+    }
     
     function calculateAllPublicationStats(data, appliedT2Criteria, appliedT2Logic, allBruteForceResults) {
         if (!data || !Array.isArray(data)) return null;
@@ -580,11 +616,6 @@ window.statisticsService = (() => {
 
         cohorts.forEach(cohortId => {
             const cohortData = window.dataProcessor.filterDataByCohort(data, cohortId);
-            if (cohortData.length === 0) {
-                results[cohortId] = { descriptive: { patientCount: 0 } };
-                return;
-            }
-
             const evaluatedDataApplied = window.t2CriteriaManager.evaluateDataset(cloneDeep(cohortData), appliedT2Criteria, appliedT2Logic);
             
             results[cohortId] = {
@@ -599,17 +630,22 @@ window.statisticsService = (() => {
                 comparisonASvsT2Bruteforce: {},
                 bruteforceDefinitions: {}
             };
+        });
 
-            allLiteratureSets.forEach(studySet => {
-                if (studySet.applicableCohort === cohortId) {
-                    const evaluatedDataStudy = window.studyT2CriteriaManager.evaluateDatasetWithStudyCriteria(cloneDeep(cohortData), studySet);
-                    results[cohortId].performanceT2Literature[studySet.id] = calculateDiagnosticPerformance(evaluatedDataStudy, 't2Status', 'nStatus');
-                    results[cohortId].comparisonASvsT2Literature[studySet.id] = compareDiagnosticMethods(evaluatedDataStudy, 'asStatus', 't2Status', 'nStatus');
-                }
-            });
-            
+        allLiteratureSets.forEach(studySet => {
+            const cohortForSet = studySet.applicableCohort || window.APP_CONFIG.COHORTS.OVERALL.id;
+            const dataForSet = window.dataProcessor.filterDataByCohort(data, cohortForSet);
+            if (dataForSet.length > 0) {
+                const evaluatedDataStudy = window.studyT2CriteriaManager.evaluateDatasetWithStudyCriteria(cloneDeep(dataForSet), studySet);
+                results[cohortForSet].performanceT2Literature[studySet.id] = calculateDiagnosticPerformance(evaluatedDataStudy, 't2Status', 'nStatus');
+                results[cohortForSet].comparisonASvsT2Literature[studySet.id] = compareDiagnosticMethods(evaluatedDataStudy, 'asStatus', 't2Status', 'nStatus');
+            }
+        });
+        
+        cohorts.forEach(cohortId => {
             const cohortBfResults = allBruteForceResults?.[cohortId];
             if (cohortBfResults) {
+                const cohortData = window.dataProcessor.filterDataByCohort(data, cohortId);
                 Object.keys(cohortBfResults).forEach(metricName => {
                     const bfResult = cohortBfResults[metricName];
                     if (bfResult && bfResult.bestResult?.criteria) {
@@ -628,8 +664,14 @@ window.statisticsService = (() => {
         });
 
         if (results.Overall) {
-            results.Overall.interobserverKappa = window.APP_CONFIG.STATISTICAL_CONSTANTS.INTEROBSERVER_KAPPA;
-            results.Overall.interobserverKappaCI = window.APP_CONFIG.STATISTICAL_CONSTANTS.INTEROBSERVER_KAPPA_CI;
+            results.Overall.interobserverKappa = window.APP_CONFIG.STATISTICAL_CONSTANTS.INTEROBSERVER_KAPPA.value;
+            results.Overall.interobserverKappaCI = window.APP_CONFIG.STATISTICAL_CONSTANTS.INTEROBSERVER_KAPPA.ci;
+        }
+
+        const dataSurgery = window.dataProcessor.filterDataByCohort(data, window.APP_CONFIG.COHORTS.SURGERY_ALONE.id);
+        const dataNeoadjuvant = window.dataProcessor.filterDataByCohort(data, window.APP_CONFIG.COHORTS.NEOADJUVANT.id);
+        if (dataSurgery.length > 0 && dataNeoadjuvant.length > 0) {
+            results.interCohortDemographicComparison = calculateDemographicComparison(dataSurgery, dataNeoadjuvant);
         }
 
         const statsSurgery = results[window.APP_CONFIG.COHORTS.SURGERY_ALONE.id];

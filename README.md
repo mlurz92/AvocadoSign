@@ -42,7 +42,7 @@ The application follows a modular architecture that separates data logic, servic
 2.  **State Manager (`state.js`):** Manages the global application state (e.g., active cohort, sort order).
 3.  **App Controller (`main.js`):** Orchestrates the data flow, triggering recalculations and re-rendering upon state changes.
 4.  **Core Modules (`core/`):** Process and evaluate the raw data (`data_processor.js`, `t2_criteria_manager.js`, `study_criteria_manager.js`).
-5.  **Service Layer (`services/`):** Contains the complex business logic for statistics, export, brute-force optimization, and publication generation.
+5.  **Service Layer (`services/`):** Contains the complex business logic for statistics, export, brute-force optimization, and publication generation. The `publication_service.js` module specifically orchestrates a suite of sub-modules within `services/publication_service/` to assemble the manuscript.
 6.  **UI Layer (`ui/`):** Responsible for rendering all data and components.
 
 ### 3.2. Directory Structure
@@ -83,9 +83,9 @@ The application follows a modular architecture that separates data logic, servic
 │   │   │   ├── results_generator.js
 │   │   │   ├── stard_generator.js
 │   │   │   └── title_page_generator.js
-│   │   ├── publication_service.js
 │   │   ├── brute_force_manager.js
 │   │   ├── export_service.js
+│   │   ├── publication_service.js
 │   │   └── statistics_service.js
 │   ├── ui/
 │   │   ├── components/

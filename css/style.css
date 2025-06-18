@@ -53,9 +53,6 @@ nav.navigation-tabs { top: var(--header-height); height: var(--nav-height); back
 
 .main-content { padding-top: 1.5rem; }
 .app-title { font-size: 1.4rem; font-weight: 600; color: var(--primary-color); margin: 0; }
-.header-meta { display: flex; align-items: center; }
-.header-meta span { font-size: 0.85rem; color: var(--text-medium); margin-right: 1.5rem; }
-.header-meta strong { color: var(--text-dark); font-weight: 500; }
 .nav-tabs .nav-link { color: var(--text-medium); font-weight: 500; transition: color var(--transition-duration) ease, background-color var(--transition-duration) ease, border-color var(--transition-duration) ease; }
 .nav-tabs .nav-link:hover, .nav-tabs .nav-link:focus { color: var(--primary-color-dark); }
 .nav-tabs .nav-link.active { color: var(--primary-color); border-color: var(--border-color) var(--border-color) var(--bg-white); font-weight: 600; }
@@ -130,7 +127,6 @@ tr[aria-expanded="true"] .row-toggle-icon { transform: rotate(180deg); }
     body { padding-top: 0; }
     header.fixed-top { height: auto; position: static !important; }
     header .container-fluid { flex-wrap: wrap; }
-    .header-meta { display: none !important; }
     .app-title { width: 100%; text-align: center; margin: 0.5rem 0; }
     header .btn-group { width: 100%; justify-content: center; }
     nav.navigation-tabs { top: 0; position: sticky; }
@@ -149,6 +145,6 @@ tr[aria-expanded="true"] .row-toggle-icon { transform: rotate(180deg); }
     .table th, .table td { border: 1px solid #ccc !important; }
     #publication-pane .sticky-top { position: static !important; }
     #publication-pane .row > .col-md-3 { display: none !important; }
-    #publication-pane .row > .col-md-9 { width: 100% !important; max-width:100% !important; }
-    #publication-content-area { border: none !important; padding: 0 !important; max-height: none !important; }
+    #publication-pane .row > .col-md-9 { width: 100% !important; max-width:100% !important; flex: 0 0 100%; }
+    #publication-content-area { border: none !important; padding: 0 !important; max-height: none !important; overflow-y: visible !important; }
 }

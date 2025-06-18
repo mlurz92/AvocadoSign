@@ -76,6 +76,11 @@ window.eventManager = (() => {
         }
 
         if (!button || button.disabled) return;
+        
+        if (button.dataset.action === 'apply-saved-bf') {
+            app.applyBestBruteForceCriteria(button.dataset.metric, button.dataset.cohort);
+            return;
+        }
 
         const singleClickActions = {
             'btn-quick-guide': () => window.uiManager.showQuickGuide(),
@@ -91,8 +96,9 @@ window.eventManager = (() => {
             'btn-start-brute-force': () => app.startBruteForceAnalysis(),
             'btn-cancel-brute-force': () => window.bruteForceManager.cancelAnalysis(),
             'btn-apply-best-bf-criteria': () => {
-                const metricSelect = document.getElementById('brute-force-metric');
-                if (metricSelect) app.applyBestBruteForceCriteria(metricSelect.value);
+                if (button.dataset.metric) {
+                    app.applyBestBruteForceCriteria(button.dataset.metric);
+                }
             },
             'btn-show-bf-details': () => {
                  const metricSelect = document.getElementById('brute-force-metric');
@@ -100,12 +106,12 @@ window.eventManager = (() => {
             },
             'statistics-toggle-comparison': () => handleStatsLayoutToggle(button),
             'export-bruteforce-modal-txt': () => {
-                 const metricSelect = document.getElementById('brute-force-metric');
-                 if (metricSelect) {
+                const metric = button.dataset.metric;
+                if (metric) {
                     const cohortId = window.state.getCurrentCohort();
-                    const resultData = window.bruteForceManager.getResultsForCohortAndMetric(cohortId, metricSelect.value);
+                    const resultData = window.bruteForceManager.getResultsForCohortAndMetric(cohortId, metric);
                     window.exportService.exportBruteForceReport(resultData);
-                 }
+                }
             }
         };
 
@@ -262,14 +268,14 @@ window.eventManager = (() => {
     function handlePublicationSectionChange(sectionId) {
         if (window.state.setPublicationSection(sectionId)) {
             app.updateUI();
-            if (window.state.getActiveTabId() === 'publication') {
-                app.refreshCurrentTab();
-                setTimeout(() => {
-                    const element = document.getElementById(sectionId);
-                    if (element) {
-                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }, 100);
+            const contentArea = document.getElementById('publication-content-area');
+            const element = document.getElementById(sectionId);
+            if (contentArea && element) {
+                const offsetTop = element.offsetTop - contentArea.offsetTop;
+                contentArea.scrollTo({
+                    top: offsetTop,
+                    behavior: 'smooth'
+                });
             }
         }
     }

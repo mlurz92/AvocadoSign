@@ -15,10 +15,10 @@ window.flowchartRenderer = (() => {
 
         const width = 600;
         const height = 450;
-        const boxWidth = 240;
-        const boxHeight = 60;
-        const hSpacing = 300;
-        const vSpacing = 90;
+        const boxWidth = 260;
+        const boxHeight = 65;
+        const hSpacing = 320;
+        const vSpacing = 95;
 
         const svg = container.append('svg')
             .attr('viewBox', `0 0 ${width} ${height}`)
@@ -26,7 +26,7 @@ window.flowchartRenderer = (() => {
             .style('width', '100%')
             .style('height', 'auto')
             .style('max-width', `${width}px`)
-            .style('font-family', 'sans-serif')
+            .style('font-family', 'Arial, sans-serif')
             .style('font-size', '12px');
 
         svg.append('defs').append('marker')
@@ -44,11 +44,11 @@ window.flowchartRenderer = (() => {
             .style('stroke', 'none');
 
         const nodes = [
-            { id: 'start', x: (width - boxWidth) / 2, y: 20, text: [`Patients with rectal cancer`, `assessed for eligibility`, `(n = ${nOverall})`] },
-            { id: 'exclusion', x: (width + hSpacing / 2.5), y: 125, width: 180, height: 40, text: [`Excluded (n = 0)`] },
-            { id: 'included', x: (width - boxWidth) / 2, y: 125, text: [`Included in final analysis`, `(n = ${nOverall})`] },
-            { id: 'surgeryAlone', x: (width - hSpacing - boxWidth) / 2, y: 250, text: [`Underwent primary surgery`, `(n = ${nSurgeryAlone})`] },
-            { id: 'neoadjuvant', x: (width + hSpacing - boxWidth) / 2, y: 250, text: [`Received neoadjuvant therapy`, `(n = ${nNeoadjuvantTherapy})`] }
+            { id: 'start', x: (width - boxWidth) / 2, y: 20, text: [`Patients with rectal cancer assessed`, `for eligibility (n = ${nOverall})`] },
+            { id: 'exclusion', x: (width + hSpacing / 2), y: 120, width: 200, height: 50, text: [`Excluded (n = 0)`, `• No exclusion criteria met`] },
+            { id: 'included', x: (width - boxWidth) / 2, y: 130, text: [`Included in final analysis`, `(n = ${nOverall})`] },
+            { id: 'surgeryAlone', x: (width - hSpacing - boxWidth) / 2, y: 260, text: [`Underwent primary surgery`, `(n = ${nSurgeryAlone})`] },
+            { id: 'neoadjuvant', x: (width + hSpacing - boxWidth) / 2, y: 260, text: [`Received neoadjuvant therapy`, `(n = ${nNeoadjuvantTherapy})`] }
         ];
         
         const lineGenerator = d3.line().x(d => d.x).y(d => d.y);
@@ -58,18 +58,18 @@ window.flowchartRenderer = (() => {
             { path: [{x: nodes[0].x + boxWidth, y: nodes[0].y + boxHeight / 2}, {x: nodes[1].x, y: nodes[1].y + (nodes[1].height || boxHeight) / 2}] },
             { path: [
                 {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight},
-                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 30}
+                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}
             ]},
             { path: [
-                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 30},
-                {x: nodes[3].x + boxWidth / 2, y: nodes[2].y + boxHeight + 30}
+                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35},
+                {x: nodes[3].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}
             ]},
             { path: [
-                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 30},
-                {x: nodes[4].x + boxWidth / 2, y: nodes[2].y + boxHeight + 30}
+                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35},
+                {x: nodes[4].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}
             ]},
-            { path: [{x: nodes[3].x + boxWidth / 2, y: nodes[2].y + boxHeight + 30}, {x: nodes[3].x + boxWidth / 2, y: nodes[3].y}] },
-            { path: [{x: nodes[4].x + boxWidth / 2, y: nodes[2].y + boxHeight + 30}, {x: nodes[4].x + boxWidth / 2, y: nodes[4].y}] }
+            { path: [{x: nodes[3].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}, {x: nodes[3].x + boxWidth / 2, y: nodes[3].y}] },
+            { path: [{x: nodes[4].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}, {x: nodes[4].x + boxWidth / 2, y: nodes[4].y}] }
         ];
 
         svg.selectAll('.flowchart-link')
@@ -92,9 +92,9 @@ window.flowchartRenderer = (() => {
         nodeGroups.append('rect')
             .attr('width', d => d.width || boxWidth)
             .attr('height', d => d.height || boxHeight)
-            .attr('fill', '#f8f9fa')
-            .attr('stroke', '#6c757d')
-            .attr('stroke-width', 1)
+            .attr('fill', '#ffffff')
+            .attr('stroke', '#333')
+            .attr('stroke-width', 1.5)
             .attr('rx', 2)
             .attr('ry', 2);
 
@@ -107,12 +107,15 @@ window.flowchartRenderer = (() => {
         textElements.each(function(d) {
             const el = d3.select(this);
             const lineHeight = 1.2;
-            const startY = -((d.text.length - 1) * lineHeight) / 2.1;
+            const startY = -((d.text.length - 1) * lineHeight) / 2 * 12; 
             d.text.forEach((line, i) => {
-                el.append('tspan')
+                const tspan = el.append('tspan')
                     .attr('x', (d.width || boxWidth) / 2)
-                    .attr('dy', i === 0 ? `${startY}em` : `${lineHeight}em`)
+                    .attr('dy', i === 0 ? `${startY}px` : `${lineHeight}em`)
                     .text(line);
+                if (line.startsWith('•')) {
+                    tspan.attr('text-anchor', 'start').attr('x', 15).style('font-size', '11px');
+                }
             });
         });
     }

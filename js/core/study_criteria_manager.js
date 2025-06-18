@@ -150,24 +150,24 @@ window.studyT2CriteriaManager = (() => {
     function evaluatePatientWithStudyCriteria(patient, studyCriteriaSet) {
         const defaultReturn = { t2Status: null, positiveNodeCount: 0, evaluatedNodes: [] };
         if (!patient || !studyCriteriaSet) return defaultReturn;
+        
         const lymphNodes = patient.t2Nodes;
-        if (!Array.isArray(lymphNodes)) {
-             return { t2Status: (Object.keys(studyCriteriaSet.criteria).filter(k => studyCriteriaSet.criteria[k]?.active).length > 0 || studyCriteriaSet.logic === 'KOMBINIERT') ? '-' : null, positiveNodeCount: 0, evaluatedNodes: [] };
+        const criteria = studyCriteriaSet.criteria;
+        const logic = studyCriteriaSet.logic;
+        const activeKeys = Object.keys(criteria).filter(key => key !== 'logic' && criteria[key]?.active);
+        const criteriaAreActive = activeKeys.length > 0 || logic === 'KOMBINIERT';
+
+        if (!criteriaAreActive) {
+            return { t2Status: null, positiveNodeCount: 0, evaluatedNodes: [] };
+        }
+
+        if (!Array.isArray(lymphNodes) || lymphNodes.length === 0) {
+            return { t2Status: '-', positiveNodeCount: 0, evaluatedNodes: [] };
         }
 
         let patientIsPositive = false;
         let positiveNodeCount = 0;
-        const criteria = studyCriteriaSet.criteria;
-        const logic = studyCriteriaSet.logic;
-        const activeKeys = Object.keys(criteria).filter(key => key !== 'logic' && criteria[key]?.active);
         
-        if (lymphNodes.length === 0 && (activeKeys.length > 0 || logic === 'KOMBINIERT')) {
-            return { t2Status: '-', positiveNodeCount: 0, evaluatedNodes: [] };
-        }
-        if (lymphNodes.length === 0) {
-             return { t2Status: null, positiveNodeCount: 0, evaluatedNodes: [] };
-        }
-
         const evaluatedNodes = lymphNodes.map(lk => {
             if (!lk) return null;
             let isNodePositive = false;
@@ -191,13 +191,8 @@ window.studyT2CriteriaManager = (() => {
             return { ...lk, isPositive: isNodePositive, checkResult };
         }).filter(node => node !== null);
 
-        let finalStatus = null;
-        if (logic === 'KOMBINIERT' || activeKeys.length > 0) {
-            finalStatus = patientIsPositive ? '+' : '-';
-        }
-
         return {
-            t2Status: finalStatus,
+            t2Status: patientIsPositive ? '+' : '-',
             positiveNodeCount,
             evaluatedNodes
         };

@@ -206,7 +206,7 @@ window.uiComponents = (() => {
                     <li><strong>Patient Count (N):</strong> ${formatNumber(nTotal, 0)} (N+: ${formatNumber(nPlus, 0)}, N-: ${formatNumber(nMinus, 0)})</li>
                 </ul>
             </div>
-            <h5>Top 10 Results:</h5>
+            <h5>Top Results (including ties):</h5>
             <div class="table-responsive">
                 <table class="table table-sm table-striped small" id="bruteforce-results-table">
                     <thead>
@@ -223,7 +223,7 @@ window.uiComponents = (() => {
         let rank = 1;
         let displayedCount = 0;
         let lastMetricValue = -Infinity;
-        const precision = 8;
+        const precision = 1e-8;
 
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
@@ -233,7 +233,7 @@ window.uiComponents = (() => {
             const lastMetricValueRounded = parseFloat(lastMetricValue.toFixed(precision));
 
             let currentRank = rank;
-            const isNewRank = Math.abs(currentMetricValueRounded - lastMetricValueRounded) > 1e-8;
+            const isNewRank = Math.abs(currentMetricValueRounded - lastMetricValueRounded) > precision;
 
             if (i > 0 && isNewRank) {
                 rank = displayedCount + 1;
@@ -288,6 +288,7 @@ window.uiComponents = (() => {
                             <th>Target Metric</th>
                             <th>Best Value</th>
                             <th>Criteria</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -309,6 +310,15 @@ window.uiComponents = (() => {
                                 <td>${metricName}</td>
                                 <td>${formatNumber(result.bestResult.metricValue, 4, na, true)}</td>
                                 <td><code>${formatCriteriaFunc(result.bestResult.criteria, result.bestResult.logic, true)}</code></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary p-0 px-2" 
+                                            data-action="apply-saved-bf" 
+                                            data-cohort="${cohortId}" 
+                                            data-metric="${metricName}"
+                                            data-tippy-content="Apply this set of criteria to the 'Define T2 Malignancy Criteria' panel.">
+                                        Apply
+                                    </button>
+                                </td>
                             </tr>
                         `;
                     }
@@ -324,6 +334,108 @@ window.uiComponents = (() => {
         return tableHTML;
     }
 
+    function createBruteForceRunnerCardHTML(state, payload, bfWorkerAvailable, currentCohort, selectedMetric) {
+        const metricOptions = window.APP_CONFIG.AVAILABLE_BRUTE_FORCE_METRICS;
+        let startButtonDisabled = true;
+        let cancelButtonDisabled = true;
+        let applyBestButtonDisabled = true;
+        let showDetailsButtonDisabled = true;
+        let progressHTML = '';
+
+        const currentCohortResults = window.bruteForceManager.getAllResultsForCohort(currentCohort);
+        const currentBestResultForMetric = currentCohortResults?.[selectedMetric]?.bestResult;
+        const formatCriteriaFunc = typeof window.studyT2CriteriaManager !== 'undefined' ? window.studyT2CriteriaManager.formatCriteriaForDisplay : (c, l) => 'N/A';
+
+        switch (state) {
+            case 'initial':
+                startButtonDisabled = !bfWorkerAvailable;
+                cancelButtonDisabled = true;
+                applyBestButtonDisabled = !currentBestResultForMetric;
+                showDetailsButtonDisabled = !currentBestResultForMetric;
+                progressHTML = `
+                    <p class="mb-2 small text-muted">Select metric and start optimization.</p>
+                    <div class="progress" style="height: 5px;"><div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
+                    <p class="small text-muted mt-2 mb-0">Progress: 0%</p>
+                `;
+                break;
+            case 'progress':
+                startButtonDisabled = true;
+                cancelButtonDisabled = false;
+                applyBestButtonDisabled = true;
+                showDetailsButtonDisabled = true;
+                const tested = payload?.tested || 0;
+                const total = payload?.total || 1;
+                const percent = total > 0 ? Math.floor((tested / total) * 100) : 0;
+                const currentBest = payload?.currentBest;
+                const currentBestInfo = currentBest ? `Current Best: <strong>${formatNumber(currentBest.metricValue, 4)}</strong> with <code>${formatCriteriaFunc(currentBest.criteria, currentBest.logic, true)}</code>` : 'No best found yet.';
+                progressHTML = `
+                    <p class="mb-2 small text-muted">Running on cohort: <strong>${getCohortDisplayName(currentCohort)}</strong>, Metric: <strong>${payload?.metric || selectedMetric}</strong></p>
+                    <div class="progress" style="height: 5px;"><div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: ${percent}%;" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div></div>
+                    <p class="small text-muted mt-2 mb-0">Combinations tested: ${formatNumber(tested, 0)} / ${formatNumber(total, 0)} (${percent}%)</p>
+                    <p class="small text-muted mb-0">${currentBestInfo}</p>
+                `;
+                break;
+            case 'result':
+                startButtonDisabled = !bfWorkerAvailable;
+                cancelButtonDisabled = true;
+                applyBestButtonDisabled = !(payload && payload.bestResult);
+                showDetailsButtonDisabled = !(payload && payload.bestResult);
+                const best = payload;
+                const durationSeconds = (best?.duration || 0) / 1000;
+                progressHTML = `
+                    <p class="mb-2 small text-muted">Optimization finished for cohort: <strong>${getCohortDisplayName(best?.cohort || currentCohort)}</strong>, Metric: <strong>${best?.metric || selectedMetric}</strong></p>
+                    <div class="progress" style="height: 5px;"><div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div></div>
+                    <p class="small text-muted mt-2 mb-0">Total Tested: ${formatNumber(best?.totalTested || 0, 0)} in ${formatNumber(durationSeconds, 1)} seconds</p>
+                    <p class="small text-muted mb-0">Best Result: <strong>${formatNumber(best?.bestResult?.metricValue, 4)}</strong> with <code>${formatCriteriaFunc(best?.bestResult?.criteria, best?.bestResult?.logic, true)}</code></p>
+                `;
+                break;
+            case 'cancelled':
+                startButtonDisabled = !bfWorkerAvailable;
+                cancelButtonDisabled = true;
+                applyBestButtonDisabled = !currentBestResultForMetric;
+                showDetailsButtonDisabled = !currentBestResultForMetric;
+                progressHTML = `
+                    <p class="mb-2 small text-muted">Optimization cancelled for cohort: <strong>${getCohortDisplayName(payload?.cohort || currentCohort)}</strong>.</p>
+                    <div class="progress" style="height: 5px;"><div class="progress-bar bg-warning" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
+                    <p class="small text-muted mt-2 mb-0">Progress: Cancelled</p>
+                `;
+                break;
+            case 'error':
+                startButtonDisabled = !bfWorkerAvailable;
+                cancelButtonDisabled = true;
+                applyBestButtonDisabled = !currentBestResultForMetric;
+                showDetailsButtonDisabled = !currentBestResultForMetric;
+                progressHTML = `
+                    <p class="mb-2 small text-danger">Error during optimization for cohort: <strong>${getCohortDisplayName(payload?.cohort || currentCohort)}</strong>.</p>
+                    <div class="progress" style="height: 5px;"><div class="progress-bar bg-danger" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>
+                    <p class="small text-danger mt-2 mb-0">Error: ${payload?.message || 'Unknown error'}</p>
+                `;
+                break;
+            default:
+                 progressHTML = `<p class="text-muted small">Waiting for state...</p>`;
+        }
+
+        const content = `
+            <div class="p-3">
+                <div class="mb-3">
+                    <label for="brute-force-metric" class="form-label small text-muted mb-1">Optimize for Metric:</label>
+                    <select class="form-select form-select-sm" id="brute-force-metric" ${window.bruteForceManager.isRunning() ? 'disabled' : ''}>
+                        ${metricOptions.map(m => `<option value="${m.value}" ${m.value === selectedMetric ? 'selected' : ''}>${m.label}</option>`).join('')}
+                    </select>
+                </div>
+                ${progressHTML}
+                <div class="d-flex justify-content-end mt-3">
+                    <button class="btn btn-sm btn-outline-primary me-2" id="btn-start-brute-force" ${startButtonDisabled ? 'disabled' : ''}><i class="fas fa-play me-1"></i> Start</button>
+                    <button class="btn btn-sm btn-outline-warning me-2" id="btn-cancel-brute-force" ${cancelButtonDisabled ? 'disabled' : ''}><i class="fas fa-stop me-1"></i> Cancel</button>
+                    <button class="btn btn-sm btn-info me-2" id="btn-show-bf-details" ${showDetailsButtonDisabled ? 'disabled' : ''}><i class="fas fa-info-circle me-1"></i> Top 10</button>
+                    <button class="btn btn-sm btn-success" id="btn-apply-best-bf-criteria" data-metric="${selectedMetric}" ${applyBestButtonDisabled ? 'disabled' : ''}><i class="fas fa-arrow-alt-circle-up me-1"></i> Apply Best</button>
+                </div>
+            </div>
+        `;
+        
+        return createStatisticsCard('bf-runner-card', 'Criteria Optimization (Brute-Force)', content, false);
+    }
+
     return Object.freeze({
         createHeaderButtonHTML,
         createDashboardCard,
@@ -331,6 +443,7 @@ window.uiComponents = (() => {
         createStatisticsCard,
         createPublicationNav,
         createBruteForceModalContent,
-        createBruteForceOverviewTableHTML
+        createBruteForceOverviewTableHTML,
+        createBruteForceRunnerCardHTML
     });
 })();

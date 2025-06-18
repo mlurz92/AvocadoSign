@@ -1,5 +1,35 @@
 window.dataProcessor = (() => {
 
+    function _deduplicateRawData(rawData) {
+        if (!Array.isArray(rawData)) return [];
+        const patientMap = new Map();
+
+        rawData.forEach(patient => {
+            if (!patient || !patient.lastName || !patient.birthDate) return;
+            const key = `${patient.lastName.toLowerCase()}_${patient.birthDate}`;
+            
+            if (!patientMap.has(key)) {
+                patientMap.set(key, JSON.parse(JSON.stringify(patient)));
+            } else {
+                const existingPatient = patientMap.get(key);
+                if (Array.isArray(patient.t2Nodes)) {
+                    existingPatient.t2Nodes = [...(existingPatient.t2Nodes || []), ...patient.t2Nodes];
+                }
+                if (patient.notes && !existingPatient.notes.includes(patient.notes)) {
+                    existingPatient.notes = [existingPatient.notes, patient.notes].filter(Boolean).join('; ');
+                }
+                if (patient.id < existingPatient.id) {
+                    const { t2Nodes, notes, ...primaryFields } = patient;
+                    Object.assign(existingPatient, primaryFields, { t2Nodes: existingPatient.t2Nodes, notes: existingPatient.notes });
+                }
+            }
+        });
+
+        const uniquePatients = Array.from(patientMap.values());
+        uniquePatients.sort((a, b) => a.id - b.id);
+        return uniquePatients;
+    }
+
     function calculateAge(birthDateStr, examDateStr) {
         if (!birthDateStr || !examDateStr) return null;
         try {
@@ -58,7 +88,8 @@ window.dataProcessor = (() => {
     function processAllData(rawData) {
         if (!Array.isArray(rawData)) return [];
         if (typeof window.APP_CONFIG === 'undefined') return [];
-        return rawData.map((patient, index) => processSinglePatient(patient, index));
+        const deduplicatedData = _deduplicateRawData(rawData);
+        return deduplicatedData.map((patient, index) => processSinglePatient(patient, index));
     }
 
     function filterDataByCohort(data, cohortId) {
@@ -76,48 +107,9 @@ window.dataProcessor = (() => {
         return [];
     }
 
-    function calculateHeaderStats(data, cohortId) {
-        const n = data?.length ?? 0;
-        const cohortName = getCohortDisplayName(cohortId);
-        const placeholder = '--';
-
-        if (!Array.isArray(data) || n === 0) {
-            return { cohort: cohortName, patientCount: 0, statusN: placeholder, statusAS: placeholder, statusT2: placeholder, nPos: 0, nNeg: 0, asPos: 0, asNeg: 0, t2Pos: 0, t2Neg: 0 };
-        }
-
-        let nPos = 0, nNeg = 0, asPos = 0, asNeg = 0, t2Pos = 0, t2Neg = 0;
-        data.forEach(p => {
-            if (p) {
-                if (p.nStatus === '+') nPos++; else if (p.nStatus === '-') nNeg++;
-                if (p.asStatus === '+') asPos++; else if (p.asStatus === '-') asNeg++;
-                if (p.t2Status === '+') t2Pos++; else if (p.t2Status === '-') t2Neg++;
-            }
-        });
-
-        const formatStatus = (pos, neg) => {
-            const totalKnown = pos + neg;
-            return totalKnown > 0 ? `${formatPercent(pos / totalKnown, 0)} (+)` : placeholder;
-        };
-
-        return {
-            cohort: cohortName,
-            patientCount: n,
-            statusN: formatStatus(nPos, nNeg),
-            statusAS: formatStatus(asPos, asNeg),
-            statusT2: formatStatus(t2Pos, t2Neg),
-            nPos: nPos,
-            nNeg: nNeg,
-            asPos: asPos,
-            asNeg: asNeg,
-            t2Pos: t2Pos,
-            t2Neg: t2Neg
-        };
-    }
-
     return Object.freeze({
         processAllData,
-        filterDataByCohort,
-        calculateHeaderStats
+        filterDataByCohort
     });
 
 })();

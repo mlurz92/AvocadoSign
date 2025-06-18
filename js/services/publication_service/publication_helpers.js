@@ -1,53 +1,19 @@
 window.publicationHelpers = (() => {
 
     function formatPValueForPublication(pValue) {
-        const p = parseFloat(pValue);
-        if (p === null || p === undefined || isNaN(p) || !isFinite(p)) {
-            return 'N/A';
-        }
-
-        const prefix = 'P';
-
-        if (p < 0.001) return `${prefix} < .001`;
-        if (p > 0.99) return `${prefix} > .99`;
-
-        const pRoundedTo3 = parseFloat(p.toFixed(3));
-        
-        if (p < 0.01) {
-            return `${prefix} = .${pRoundedTo3.toFixed(3).substring(2)}`;
-        }
-        
-        const pRoundedTo2 = parseFloat(p.toFixed(2));
-        if (pRoundedTo2 === 0.05 && p.toPrecision(15) < (0.05).toPrecision(15)) {
-             return `${prefix} = .${pRoundedTo3.toFixed(3).substring(2)}`;
-        }
-
-        let formattedP = pRoundedTo2.toFixed(2);
-        if (formattedP.startsWith("0.")) {
-            formattedP = formattedP.substring(1);
-        } else if (formattedP === "1.00") {
-            return `${prefix} > .99`;
-        }
-        
-        return `${prefix} = ${formattedP}`;
+        return getPValueText(pValue, true);
     }
 
-    function formatValueForPublication(value, digits = 0, isPercent = false) {
+    function formatValueForPublication(value, digits = 0, isPercent = false, noLeadingZero = false) {
         const num = parseFloat(value);
         if (num === null || num === undefined || isNaN(num) || !isFinite(num)) {
             return 'N/A';
         }
 
         const finalValue = isPercent ? num * 100 : num;
-        let formattedString;
+        let formattedString = finalValue.toFixed(digits);
 
-        if (isPercent) {
-            formattedString = finalValue.toFixed(0);
-        } else {
-            formattedString = finalValue.toFixed(digits);
-        }
-
-        if (!isPercent && Math.abs(parseFloat(formattedString)) < 1 && (formattedString.startsWith('0.') || formattedString.startsWith('-0.'))) {
+        if (noLeadingZero && Math.abs(parseFloat(formattedString)) < 1 && (formattedString.startsWith('0.') || formattedString.startsWith('-0.'))) {
             return formattedString.replace('0.', '.');
         }
         
@@ -59,7 +25,7 @@ window.publicationHelpers = (() => {
             return 'N/A';
         }
 
-        let isPercent, digits;
+        let isPercent, digits, noLeadingZero;
         const metricLower = name.toLowerCase();
 
         switch (metricLower) {
@@ -70,6 +36,7 @@ window.publicationHelpers = (() => {
             case 'acc':
                 isPercent = true;
                 digits = 0;
+                noLeadingZero = false;
                 break;
             case 'auc':
             case 'kappa':
@@ -82,14 +49,16 @@ window.publicationHelpers = (() => {
             case 'rr':
                 isPercent = false;
                 digits = 2;
+                noLeadingZero = true;
                 break;
             default:
                 isPercent = false;
                 digits = 2;
+                noLeadingZero = false;
                 break;
         }
         
-        const valueStr = formatValueForPublication(metric.value, digits, isPercent);
+        const valueStr = formatValueForPublication(metric.value, digits, isPercent, noLeadingZero);
         let valueWithUnit = isPercent ? `${valueStr}%` : valueStr;
 
         if (showValueOnly) {
@@ -105,8 +74,8 @@ window.publicationHelpers = (() => {
             return `${valueWithUnit}${numeratorInfo}`;
         }
         
-        const lowerStr = formatValueForPublication(metric.ci.lower, digits, isPercent);
-        const upperStr = formatValueForPublication(metric.ci.upper, digits, isPercent);
+        const lowerStr = formatValueForPublication(metric.ci.lower, digits, isPercent, noLeadingZero);
+        const upperStr = formatValueForPublication(metric.ci.upper, digits, isPercent, noLeadingZero);
         
         const ciStr = isPercent ? `${lowerStr}%, ${upperStr}%` : `${lowerStr}, ${upperStr}`;
 
@@ -119,27 +88,65 @@ window.publicationHelpers = (() => {
         }
 
         const { id, caption, headers, rows, notes } = config;
+        const abbreviations = new Set();
+
+        const processCellContent = (content) => {
+            const contentStr = String(content ?? '');
+            const found = contentStr.match(/[A-Z]{2,}/g);
+            if (found) {
+                found.forEach(abbr => {
+                    if (abbr !== 'CI' && abbr !== 'SD' && abbr !== 'IQR') {
+                        abbreviations.add(abbr);
+                    }
+                });
+            }
+            return contentStr;
+        };
+
         let tableHtml = `<div class="table-responsive my-4" id="${id || generateUUID()}">`;
-        tableHtml += `<table class="table table-sm table-striped small">`;
+        tableHtml += `<table class="table table-sm table-bordered small">`;
         if (caption) {
-            tableHtml += `<caption><strong>${caption}</strong></caption>`;
+            tableHtml += `<caption style="caption-side: top; text-align: left; font-weight: bold; color: black;">${caption}</caption>`;
         }
-        tableHtml += `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+        tableHtml += `<thead><tr>${headers.map(h => `<th>${processCellContent(h)}</th>`).join('')}</tr></thead><tbody>`;
 
         rows.forEach(row => {
             tableHtml += `<tr>${row.map((cell, index) => {
-                const cellData = (cell === null || cell === undefined) ? '' : String(cell);
+                const cellData = processCellContent(cell);
                 const isIndented = cellData.startsWith('   ');
                 const tag = (index === 0 && !isIndented) ? 'th' : 'td';
-                const style = isIndented ? 'style="padding-left: 2em;"' : (tag === 'th' ? 'style="text-align: left;"' : '');
+                const style = isIndented ? 'style="padding-left: 2em;"' : (tag === 'th' ? 'style="text-align: left; font-weight: normal;"' : '');
                 const scope = (tag === 'th') ? 'scope="row"' : '';
                 return `<${tag} ${scope} ${style}>${cellData.trim()}</${tag}>`;
             }).join('')}</tr>`;
         });
         tableHtml += `</tbody>`;
 
+        let footerContent = '';
+        if (abbreviations.size > 0) {
+            const abbrDefinitions = {
+                'AS': 'Avocado Sign',
+                'AUC': 'Area under the receiver operating characteristic curve',
+                'BF': 'Brute-Force',
+                'ESGAR': 'European Society of Gastrointestinal and Abdominal Radiology',
+                'nRCT': 'neoadjuvant chemoradiotherapy',
+                'T2w': 'T2-weighted'
+            };
+            const definedAbbrs = Array.from(abbreviations)
+                .filter(abbr => abbrDefinitions[abbr])
+                .map(abbr => `${abbr} = ${abbrDefinitions[abbr]}`)
+                .join(', ');
+            
+            if (definedAbbrs) {
+                footerContent += `<em>Note.—</em>${definedAbbrs}. `;
+            }
+        }
         if (notes) {
-            tableHtml += `<tfoot><tr><td colspan="${headers.length}" class="text-muted small p-2" style="font-size: 8pt; text-align: left;">${notes}</td></tr></tfoot>`;
+            footerContent += notes;
+        }
+
+        if (footerContent) {
+            tableHtml += `<tfoot><tr><td colspan="${headers.length}" style="font-size: 9pt; text-align: left; border: none; padding-top: 0.5em;">${footerContent}</td></tr></tfoot>`;
         }
 
         tableHtml += `</table></div>`;
@@ -147,8 +154,8 @@ window.publicationHelpers = (() => {
     }
 
     function getReference(id) {
-        const ref = window.APP_CONFIG.REFERENCES_FOR_PUBLICATION[id];
-        return ref ? `[${id}]` : '[REF NOT FOUND]';
+        if (!id) return '[REF_KEY_MISSING]';
+        return `[${id}]`;
     }
 
     return Object.freeze({

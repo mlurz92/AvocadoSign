@@ -27,48 +27,54 @@ window.publicationTab = (() => {
                 countIndicator.textContent = `${currentCount} / ${section.limit}`;
                 
                 const ratio = currentCount / section.limit;
-                let bgColor = 'bg-success-subtle text-success-emphasis';
+                let bgColorClass = 'bg-success-subtle text-success-emphasis';
                 if (ratio > 1) {
-                    bgColor = 'bg-danger text-white';
+                    bgColorClass = 'bg-danger text-white';
                 } else if (ratio > 0.9) {
-                    bgColor = 'bg-warning-subtle text-warning-emphasis';
+                    bgColorClass = 'bg-warning-subtle text-warning-emphasis';
                 }
-                countIndicator.className = `badge rounded-pill ms-2 word-count-indicator ${bgColor}`;
+                countIndicator.className = `badge rounded-pill ms-2 word-count-indicator ${bgColorClass}`;
             }
         });
     }
 
-    function renderStardChecklist() {
-        const stardData = window.stardGenerator.generateStardChecklistData();
-        let html = `
-            <h2 id="stard_checklist">STARD 2015 Checklist</h2>
-            <p class="small text-muted">This checklist indicates where each of the 30 items from the Standards for Reporting of Diagnostic Accuracy Studies (STARD) is addressed within the generated manuscript.</p>
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered small">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 15%;">Section</th>
-                            <th style="width: 10%;">Item</th>
-                            <th>Description</th>
-                            <th style="width: 25%;">Reported in Section</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        stardData.forEach(item => {
-            html += `
-                <tr>
-                    <td>${item.section}</td>
-                    <td>${item.item}</td>
-                    <td>${item.label}</td>
-                    <td><em>${item.location}</em></td>
-                </tr>
-            `;
-        });
-        html += '</tbody></table></div>';
-        return html;
-    }
+    function generateAbbreviationsList(fullHtmlContent) {
+        const potentialAbbreviations = {
+            'AS': 'Avocado Sign',
+            'AUC': 'Area under the receiver operating characteristic curve',
+            'CI': 'Confidence interval',
+            'nCRT': 'neoadjuvant chemoradiotherapy',
+            'T2w': 'T2-weighted',
+            'VIBE': 'volumetric interpolated breath-hold examination',
+            'DWI': 'diffusion-weighted imaging',
+            'ESGAR': 'European Society of Gastrointestinal and Abdominal Radiology',
+            'STARD': 'Standards for Reporting of Diagnostic Accuracy Studies'
+        };
 
+        const textContent = fullHtmlContent.replace(/<[^>]+>/g, ' ');
+        const counts = {};
+
+        Object.keys(potentialAbbreviations).forEach(abbr => {
+            const regex = new RegExp(`\\b${abbr}\\b`, 'g');
+            const matches = textContent.match(regex);
+            counts[abbr] = matches ? matches.length : 0;
+        });
+
+        const validAbbreviations = Object.entries(counts)
+            .filter(([abbr, count]) => count >= 5)
+            .sort(([, countA], [, countB]) => countB - countA)
+            .slice(0, 10)
+            .map(([abbr]) => `<li><strong>${abbr}</strong> = ${potentialAbbreviations[abbr]}</li>`)
+            .join('');
+
+        if (validAbbreviations) {
+            return `<div id="abbreviations-list" style="margin-top: 1.5rem;">
+                        <h4 style="font-size: 1.1rem; font-weight: bold;">Abbreviations</h4>
+                        <ul style="padding-left: 20px; margin-top: 0.5rem; list-style-position: inside; text-align: left;">${validAbbreviations}</ul>
+                    </div>`;
+        }
+        return '';
+    }
 
     function render(data, currentSectionId) {
         const { rawData, allCohortStats, bruteForceResults, currentLanguage } = data;
@@ -98,9 +104,18 @@ window.publicationTab = (() => {
         
         let finalContentHTML = '';
         if (isChecklistActive) {
-            finalContentHTML = renderStardChecklist();
+            finalContentHTML = window.stardGenerator.renderStardChecklist();
         } else {
-            finalContentHTML = window.publicationService.generateFullPublicationHTML(allCohortStats, commonData);
+            const fullManuscriptHTML = window.publicationService.generateFullPublicationHTML(allCohortStats, commonData);
+            const abbreviationsHTML = generateAbbreviationsList(fullManuscriptHTML);
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = fullManuscriptHTML;
+            const titlePageElement = tempDiv.querySelector('#title_main');
+            if (titlePageElement) {
+                titlePageElement.innerHTML += abbreviationsHTML;
+            }
+            finalContentHTML = tempDiv.innerHTML;
         }
         
         const finalHTML = `
@@ -137,31 +152,14 @@ window.publicationTab = (() => {
                     window.flowchartRenderer.renderFlowchart(flowchartStats, flowchartContainerId);
                 }
             }
-
             renderWordCounts();
-            
-            if (typeof window.uiManager !== 'undefined') {
-                const contentArea = document.getElementById('publication-content-area');
-                if(contentArea) window.uiManager.initializeTooltips(contentArea);
-            }
         }, 50);
             
         return finalHTML;
     }
 
-    function getSectionContentForExport(sectionId, lang, allCohortStats, commonData) {
-        if (sectionId === 'stard_checklist') {
-            return renderStardChecklist();
-        }
-        if (typeof window.publicationService === 'undefined') {
-            return `Error: publicationService not available for section '${sectionId}'.`;
-        }
-        return window.publicationService.generateSectionHTML(sectionId, allCohortStats, commonData);
-    }
-
     return Object.freeze({
-        render,
-        getSectionContentForExport
+        render
     });
 
-})();
+})();  

@@ -188,8 +188,6 @@ window.comparisonTab = (() => {
             : _createASvsT2ComparisonViewHTML(comparisonData, selectedStudyIdFromState, currentGlobalCohort);
         
         setTimeout(() => {
-            window.uiManager.initializeTooltips(document.getElementById('comparison-content-area'));
-
             if (view === 'as-pur' && comparisonData?.statsCurrentCohort) {
                 const chartId = "comp-as-perf-chart";
                 const dataForROC = window.dataProcessor.filterDataByCohort(processedData, comparisonData.cohort);
@@ -212,4 +210,4 @@ window.comparisonTab = (() => {
     return Object.freeze({
         render
     });
-})();
+})(); 

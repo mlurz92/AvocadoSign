@@ -185,8 +185,40 @@ window.stardGenerator = (() => {
         ];
     }
 
+    function renderStardChecklist() {
+        const stardData = generateStardChecklistData();
+        let html = `
+            <h2 id="stard_checklist">STARD 2015 Checklist</h2>
+            <p class="small text-muted">This checklist indicates where each of the 30 items from the Standards for Reporting of Diagnostic Accuracy Studies (STARD) is addressed within the generated manuscript.</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 15%;">Section</th>
+                            <th style="width: 10%;">Item</th>
+                            <th>Description</th>
+                            <th style="width: 25%;">Reported in Section</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        stardData.forEach(item => {
+            html += `
+                <tr>
+                    <td>${item.section}</td>
+                    <td>${item.item}</td>
+                    <td>${item.label}</td>
+                    <td><em>${item.location}</em></td>
+                </tr>
+            `;
+        });
+        html += '</tbody></table></div>';
+        return html;
+    }
+
     return Object.freeze({
-        generateStardChecklistData
+        generateStardChecklistData,
+        renderStardChecklist
     });
 
 })();

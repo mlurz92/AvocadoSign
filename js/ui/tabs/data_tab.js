@@ -75,7 +75,6 @@ window.dataTab = (() => {
             const tableHeader = document.getElementById('data-table-header');
             if (tableBody && data.length > 0) window.uiManager.attachRowCollapseListeners(tableBody.id);
             if (tableHeader) window.uiManager.updateSortIcons(tableHeader.id, sortState);
-            window.uiManager.initializeTooltips(document.getElementById('data-pane'));
         }, 0);
 
         return finalHTML;

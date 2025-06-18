@@ -23,7 +23,7 @@ The application supports the entire research workflow, from data exploration and
 The user interface is designed to support an intuitive and efficient scientific workflow.
 
 ### 2.1. Application Layout
-*   **Header:** A fixed header contains the application title, global cohort selection, and dynamic meta-statistics for the currently selected data basis.
+*   **Header:** A fixed header contains the application title and the global cohort selection controls.
 *   **Navigation Bar (Tabs):** A horizontal tab navigation allows for quick switching between the six main modules of the application.
 *   **Content Area:** The central workspace where the specific content and tools of the currently active tab are displayed.
 
@@ -35,13 +35,7 @@ The global cohort selection is a central control concept. Three buttons in the h
 
 This selection is global and immediately affects all data, tables, charts, and statistical calculations in all tabs.
 
-### 2.3. Dynamic Header Statistics
-A section in the header provides a live summary of key figures for the active cohort:
-*   **Cohort:** Displays the name of the currently selected cohort.
-*   **Patients:** Shows the total number of patients in the active cohort.
-*   **N-Status, AS-Status, T2-Status:** Show the percentage of positive patients for the pathological N-status, the Avocado Sign, and the currently *interactively applied* T2 criteria, respectively.
-
-### 2.4. Interactive Help
+### 2.3. Interactive Help
 *   **Tooltips:** Nearly all UI elements are equipped with detailed tooltips that explain the element's function or the definition of a metric on mouse-over.
 *   **Quick Guide:** A **?** button in the header opens a modal window with a comprehensive quick guide to all features.
 
@@ -83,14 +77,15 @@ The application is divided into six main modules, accessible via the navigation 
 *   **Components & Workflow:**
     *   **View Selection:** Focuses on either the standalone performance of the AS ("AS Performance") or the direct comparison with T2 criteria ("AS vs. T2 Comparison").
     *   **T2 Comparison Basis:** In "AS vs. T2" mode, the user can choose to compare the AS against the interactively set criteria or one of the predefined literature criteria sets.
-    *   **Dynamic Content:** Automatically generates comparison tables, statistical tests, and a bar chart. All elements are exportable as CSV, Markdown, PNG, or SVG.
+    *   **Dynamic Content:** Automatically generates comparison tables, statistical tests, and a bar chart. All elements are exportable as CSV, Markdown, PNG, oder SVG.
+    *   **Automatic Cohort Switching:** When a literature-based criterion is selected for comparison, the application automatically switches the global cohort to the one most appropriate for that criterion (e.g., "Surgery alone" for ESGAR criteria) to ensure a methodologically sound comparison. The UI provides clear feedback about this automatic switch.
 
 ### 3.5. Publication Tab
 *   **Purpose:** An assistant for creating a scientific manuscript according to the style guidelines of the journal *Radiology*.
 *   **Components & Workflow:**
     *   **Title Page & Outline:** The view starts with a *Radiology*-compliant title page (including Key Results) and is clearly structured into main sections (Abstract, Introduction, etc.), which are navigable via a sticky sidebar.
     *   **Dynamic Text Generation:** The application generates professionally formulated, English-language text for each section, dynamically integrating the **latest analysis results** (from comparisons with literature and brute-force criteria) and correctly formatting all values and citations (e.g., *P* < .001).
-    *   **Embedded Content:** Tables and figures are generated directly within the text flow, including a rendered flowchart in the results section.
+    *   **Embedded Content:** Tables and figures are generated directly within the text flow, including a rendered flowchart in the results section and a STARD checklist.
     *   **BF Metric Selection:** A dropdown menu allows the user to select which brute-force optimization result should be cited in the text.
     *   **Word Count Monitoring:** The navigation sidebar displays a live word/item count for each section with a defined limit, providing color-coded feedback (green/orange/red) to aid in adhering to journal guidelines.
 

@@ -480,7 +480,7 @@ window.exportService = (() => {
                  if (window.PUBLICATION_CONFIG && window.state && window.publicationService && window.APP_CONFIG) {
                      const commonDataForPub = { appName: window.APP_CONFIG.APP_NAME, appVersion: window.APP_CONFIG.APP_VERSION, nOverall: data.length, nPositive: data.filter(p => p.nStatus === '+').length, nSurgeryAlone: data.filter(p => p.therapy === 'surgeryAlone').length, nNeoadjuvantTherapy: data.filter(p => p.therapy === 'neoadjuvantTherapy').length, references: window.APP_CONFIG.REFERENCES_FOR_PUBLICATION, bruteForceMetricForPublication: window.state.getPublicationBruteForceMetric(), currentLanguage: lang, rawData: data };
                      window.PUBLICATION_CONFIG.sections.forEach(mainSection => {
-                         const sectionContent = window.publicationService.generateSectionHTML(mainSection.id, statsDataForAllKollektive, commonData);
+                         const sectionContent = window.publicationService.generateSectionHTML(mainSection.id, statsDataForAllKollektive, commonDataForPub);
                          const typeKey = `PUBLICATION_SECTION_MD`;
                          const sectionName = mainSection.labelKey.replace(/_main$/, '').replace(/_/g, '-');
                          addFile(generateFilename(typeKey, kollektiv, 'md', {sectionName: sectionName}), `# ${window.APP_CONFIG.UI_TEXTS.publicationTab.sectionLabels[mainSection.labelKey]}\n\n${sectionContent.replace(/<[^>]*>/g, '')}`);

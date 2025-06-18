@@ -97,16 +97,19 @@ window.statisticsTab = (() => {
         const litSets = window.studyT2CriteriaManager.getAllStudyCriteriaSets();
         litSets.forEach(set => {
             const cohortForSet = set.applicableCohort || window.APP_CONFIG.COHORTS.OVERALL.id;
-            const perf = allStats[cohortForSet]?.performanceT2Literature?.[set.id];
-            const comp = allStats[cohortForSet]?.comparisonASvsT2Literature?.[set.id];
-            if (perf) {
-                results.push({
-                    name: set.name,
-                    cohort: getCohortDisplayName(cohortForSet),
-                    n: allStats[cohortForSet]?.descriptive?.patientCount || '?',
-                    pValue: comp?.delong?.pValue,
-                    ...perf
-                });
+            const statsForSet = allStats[cohortForSet];
+            if (statsForSet) {
+                const perf = statsForSet.performanceT2Literature?.[set.id];
+                const comp = statsForSet.comparisonASvsT2Literature?.[set.id];
+                 if (perf) {
+                    results.push({
+                        name: set.name,
+                        cohort: getCohortDisplayName(cohortForSet),
+                        n: statsForSet.descriptive?.patientCount || '?',
+                        pValue: comp?.delong?.pValue,
+                        ...perf
+                    });
+                }
             }
         });
         
@@ -338,7 +341,6 @@ window.statisticsTab = (() => {
                     }
                 }
             });
-            window.uiManager.initializeTooltips(outerRow);
         }, 50);
         return outerRow.outerHTML;
     }

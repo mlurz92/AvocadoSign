@@ -10,55 +10,6 @@ let startTime = 0;
 let t2SizeRange = { min: 0.1, max: 15.0, step: 0.1 };
 const reportIntervalFactor = 200;
 
-function formatNumberForWorker(num, digits = 1, placeholder = '--') {
-    const number = parseFloat(num);
-    if (num === null || num === undefined || isNaN(number) || !isFinite(number)) {
-        return placeholder;
-    }
-    return number.toFixed(digits);
-}
-
-function formatCriteriaForDisplay(criteria, logic = null) {
-    if (!criteria || typeof criteria !== 'object') return 'N/A';
-    const parts = [];
-    const activeKeys = Object.keys(criteria).filter(key => key !== 'logic' && criteria[key]?.active);
-    if (activeKeys.length === 0) return 'No active criteria';
-
-    const effectiveLogic = logic || criteria.logic || 'OR';
-    const separator = (effectiveLogic === 'AND') ? ' AND ' : ' OR ';
-
-    const formatValue = (key, criterion) => {
-        if (!criterion) return '?';
-        if (key === 'size') return `${criterion.condition || '>='}${formatNumberForWorker(criterion.threshold, 1)}mm`;
-        return criterion.value || '?';
-    };
-
-    const priorityOrder = ['size', 'border', 'homogeneity', 'shape', 'signal'];
-    const sortedActiveKeys = [...activeKeys].sort((a, b) => {
-        const indexA = priorityOrder.indexOf(a);
-        const indexB = priorityOrder.indexOf(b);
-        if (indexA === -1 && indexB === -1) return a.localeCompare(b);
-        if (indexA === -1) return 1;
-        if (indexB === -1) return -1;
-        return indexA - indexB;
-    });
-
-    sortedActiveKeys.forEach(key => {
-        const criterion = criteria[key];
-        let prefix = '';
-        switch (key) {
-            case 'size': prefix = 'Size '; break;
-            case 'shape': prefix = 'Shape='; break;
-            case 'border': prefix = 'Border='; break;
-            case 'homogeneity': prefix = 'Homog.='; break;
-            case 'signal': prefix = 'Signal='; break;
-            default: prefix = key + '=';
-        }
-        parts.push(`${prefix}${formatValue(key, criterion)}`);
-    });
-    return parts.join(separator);
-}
-
 function cloneDeep(obj) {
     if (obj === null || typeof obj !== 'object') return obj;
     try {
