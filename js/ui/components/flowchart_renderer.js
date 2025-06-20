@@ -15,10 +15,10 @@ window.flowchartRenderer = (() => {
 
         const width = 600;
         const height = 450;
-        const boxWidth = 260;
-        const boxHeight = 65;
-        const hSpacing = 320;
-        const vSpacing = 95;
+        const boxWidth = 280;
+        const boxHeight = 55;
+        const hSpacing = 300;
+        const vSpacing = 85;
 
         const svg = container.append('svg')
             .attr('viewBox', `0 0 ${width} ${height}`)
@@ -44,32 +44,28 @@ window.flowchartRenderer = (() => {
             .style('stroke', 'none');
 
         const nodes = [
-            { id: 'start', x: (width - boxWidth) / 2, y: 20, text: [`Patients with rectal cancer assessed`, `for eligibility (n = ${nOverall})`] },
-            { id: 'exclusion', x: (width + hSpacing / 2), y: 120, width: 200, height: 50, text: [`Excluded (n = 0)`, `• No exclusion criteria met`] },
-            { id: 'included', x: (width - boxWidth) / 2, y: 130, text: [`Included in final analysis`, `(n = ${nOverall})`] },
-            { id: 'surgeryAlone', x: (width - hSpacing - boxWidth) / 2, y: 260, text: [`Underwent primary surgery`, `(n = ${nSurgeryAlone})`] },
-            { id: 'neoadjuvant', x: (width + hSpacing - boxWidth) / 2, y: 260, text: [`Received neoadjuvant therapy`, `(n = ${nNeoadjuvantTherapy})`] }
+            { id: 'start', x: (width - boxWidth) / 2, y: 10, text: [`Records of patients with rectal cancer`, `assessed for eligibility (n = ${nOverall})`] },
+            { id: 'exclusion', x: (width - boxWidth) / 2, y: 10 + vSpacing, text: [`Excluded (n = 0)`, `(No additional exclusions for this analysis)`] },
+            { id: 'included', x: (width - boxWidth) / 2, y: 10 + 2 * vSpacing, text: [`Included in final analysis (n = ${nOverall})`] },
+            { id: 'surgeryAlone', x: (width - hSpacing - boxWidth) / 2, y: 10 + 3 * vSpacing, text: [`Underwent primary surgery`, `(n = ${nSurgeryAlone})`] },
+            { id: 'neoadjuvant', x: (width + hSpacing - boxWidth) / 2, y: 10 + 3 * vSpacing, text: [`Received neoadjuvant therapy`, `(n = ${nNeoadjuvantTherapy})`] }
         ];
         
         const lineGenerator = d3.line().x(d => d.x).y(d => d.y);
         
         const links = [
-            { path: [{x: nodes[0].x + boxWidth / 2, y: nodes[0].y + boxHeight}, {x: nodes[2].x + boxWidth / 2, y: nodes[2].y}] },
-            { path: [{x: nodes[0].x + boxWidth, y: nodes[0].y + boxHeight / 2}, {x: nodes[1].x, y: nodes[1].y + (nodes[1].height || boxHeight) / 2}] },
+            { path: [{x: nodes[0].x + boxWidth / 2, y: nodes[0].y + boxHeight}, {x: nodes[1].x + boxWidth / 2, y: nodes[1].y}] },
+            { path: [{x: nodes[1].x + boxWidth / 2, y: nodes[1].y + boxHeight}, {x: nodes[2].x + boxWidth / 2, y: nodes[2].y}] },
             { path: [
                 {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight},
-                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}
+                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 20}
             ]},
             { path: [
-                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35},
-                {x: nodes[3].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}
+                {x: nodes[3].x + boxWidth / 2, y: nodes[2].y + boxHeight + 20},
+                {x: nodes[4].x + boxWidth / 2, y: nodes[2].y + boxHeight + 20}
             ]},
-            { path: [
-                {x: nodes[2].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35},
-                {x: nodes[4].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}
-            ]},
-            { path: [{x: nodes[3].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}, {x: nodes[3].x + boxWidth / 2, y: nodes[3].y}] },
-            { path: [{x: nodes[4].x + boxWidth / 2, y: nodes[2].y + boxHeight + 35}, {x: nodes[4].x + boxWidth / 2, y: nodes[4].y}] }
+            { path: [{x: nodes[3].x + boxWidth / 2, y: nodes[2].y + boxHeight + 20}, {x: nodes[3].x + boxWidth / 2, y: nodes[3].y}] },
+            { path: [{x: nodes[4].x + boxWidth / 2, y: nodes[2].y + boxHeight + 20}, {x: nodes[4].x + boxWidth / 2, y: nodes[4].y}] }
         ];
 
         svg.selectAll('.flowchart-link')
@@ -80,7 +76,7 @@ window.flowchartRenderer = (() => {
             .attr('stroke', '#333')
             .attr('stroke-width', 1.5)
             .attr('fill', 'none')
-            .attr('marker-end', 'url(#arrowhead)');
+            .attr('marker-end', (d, i) => i !== 3 ? 'url(#arrowhead)' : 'none');
         
         const nodeGroups = svg.selectAll('.flowchart-node')
             .data(nodes)

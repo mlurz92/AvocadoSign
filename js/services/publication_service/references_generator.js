@@ -8,15 +8,20 @@ window.referencesGenerator = (() => {
             return { processedHtml: html || '', referencesHtml: '' };
         }
 
-        const processedHtml = html.replace(/\[([A-Za-z0-9_]+)\]/g, (match, refKey) => {
-            if (!allReferences[refKey]) {
-                return `[REF_NOT_FOUND: ${refKey}]`;
-            }
-            if (!citedRefKeys.has(refKey)) {
-                citedRefKeys.set(refKey, refCounter++);
-            }
-            const citationNumber = citedRefKeys.get(refKey);
-            return `(${citationNumber})`;
+        const processedHtml = html.replace(/(\[[A-Za-z0-9_]+\])+/g, (match) => {
+            const keys = match.match(/\[([A-Za-z0-9_]+)\]/g).map(k => k.slice(1, -1));
+            const numbers = keys.map(refKey => {
+                if (!allReferences[refKey]) {
+                    return `REF_NOT_FOUND: ${refKey}`;
+                }
+                if (!citedRefKeys.has(refKey)) {
+                    citedRefKeys.set(refKey, refCounter++);
+                }
+                return citedRefKeys.get(refKey);
+            });
+            
+            const uniqueNumbers = [...new Set(numbers)].sort((a, b) => a - b);
+            return `(${uniqueNumbers.join(', ')})`;
         });
 
         const sortedCitedRefs = Array.from(citedRefKeys.entries()).sort((a, b) => a[1] - b[1]);

@@ -8,10 +8,13 @@ window.methodsGenerator = (() => {
             return '<h3 id="methoden_studienanlage_ethik">Study Design and Patients</h3><p class="text-warning">Patient cohort data is missing.</p>';
         }
 
+        const regulatoryStatement = window.APP_CONFIG.UI_TEXTS.PUBLICATION_TEXTS.MIM_REGULATORY_STATEMENT
+            .replace('This retrospective, single-institution study was', 'This secondary analysis of a retrospective, single-institution study was');
+
         return `
             <h3 id="methoden_studienanlage_ethik">Study Design and Patients</h3>
-            <p>This retrospective, single-institution study was compliant with the Health Insurance Portability and Accountability Act and approved by our institutional review board, which waived the requirement for additional written informed consent for this secondary analysis. We analyzed a previously described cohort of ${helpers.formatValueForPublication(nOverall, 0)} consecutive patients with histologically confirmed rectal cancer who underwent pelvic MRI for primary staging or restaging between January 2020 and November 2023 ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p>While the patient cohort is identical to that of the initial study describing the Avocado Sign, the present study is based on a new, fully blinded re-evaluation of all imaging data to prevent recall bias and ensure a methodologically sound comparison. Inclusion criteria were the availability of high-quality T2-weighted and contrast-enhanced T1-weighted MRI sequences and a definitive histopathological reference standard from the subsequent total mesorectal excision specimen. Of the final cohort, ${helpers.formatValueForPublication(nSurgeryAlone, 0)} (${helpers.formatValueForPublication(nSurgeryAlone / nOverall, 0, true)}%) underwent primary surgery after initial staging, and ${helpers.formatValueForPublication(nNeoadjuvantTherapy, 0)} (${helpers.formatValueForPublication(nNeoadjuvantTherapy / nOverall, 0, true)}%) received neoadjuvant chemoradiotherapy followed by restaging MRI prior to surgery.</p>
+            <p>${regulatoryStatement} We analyzed a previously described cohort of ${helpers.formatValueForPublication(nOverall, 0)} consecutive patients with histologically confirmed rectal cancer who underwent pelvic MRI for primary staging or restaging between January 2020 and November 2023 ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
+            <p>While the patient cohort is identical to that of the initial study, the present study is based on a new, fully blinded re-evaluation of all imaging data to prevent recall bias and ensure a methodologically sound comparison. Inclusion criteria were the availability of high-quality T2-weighted and contrast-enhanced T1-weighted MRI sequences and a definitive histopathological reference standard from the subsequent total mesorectal excision specimen. Of the final cohort, ${helpers.formatValueForPublication(nSurgeryAlone, 0)} (${helpers.formatValueForPublication(nSurgeryAlone / nOverall, 0, true)}%) underwent primary surgery, and ${helpers.formatValueForPublication(nNeoadjuvantTherapy, 0)} (${helpers.formatValueForPublication(nNeoadjuvantTherapy / nOverall, 0, true)}%) received neoadjuvant chemoradiotherapy followed by restaging MRI prior to surgery.</p>
         `;
     }
 
@@ -20,8 +23,8 @@ window.methodsGenerator = (() => {
         return `
             <h3 id="methoden_mrt_protokoll_akquisition">MRI Protocol and Image Analysis</h3>
             <p>All MRI examinations were performed on a 3.0-T system (MAGNETOM Prisma Fit; Siemens Healthineers) with a phased-array body coil. To minimize bowel peristalsis, butylscopolamine was administered intravenously. The standardized protocol included high-resolution, multiplanar T2-weighted turbo spin-echo sequences and an axial diffusion-weighted sequence. Following the intravenous administration of a weight-based dose (0.2 mL/kg) of a macrocyclic gadolinium-based contrast agent (Gadoteridol; ProHance; Bracco), a fat-suppressed, T1-weighted volumetric interpolated breath-hold examination (VIBE) sequence was acquired. Key imaging parameters for the axial T2-weighted sequence were: repetition time 4400 msec, echo time 81 msec, slice thickness 2 mm. For the post-contrast VIBE sequence, parameters included: repetition time 5.8 msec, echo time 2.5/3.7 msec, slice thickness 1.5 mm.</p>
-            <p>Two board-certified radiologists (M.L. and A.S., with 7 and 29 years of experience in abdominal MRI, respectively), who were blinded to the histopathological outcomes and each other's findings, independently reviewed all MRI studies. To minimize recall bias, the T2-weighted sequences were evaluated in a separate reading session prior to the assessment of the contrast-enhanced sequences. Any discrepancies in final patient-level assessment were resolved by consensus with a third radiologist with 19 years of experience.</p>
-            <p><strong>Avocado Sign (AS) Assessment:</strong> On the contrast-enhanced T1-weighted VIBE images, all visible mesorectal lymph nodes were assessed for the presence of the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense lymph node, irrespective of node size or shape ${helpers.getReference('Lurz_Schaefer_2025')}. No minimum size threshold was applied. A patient was classified as AS-positive if at least one such node was identified.</p>
+            <p>Two board-certified radiologists (M.L. and A.S., with 7 and 29 years of experience in abdominal MRI, respectively), who were blinded to the histopathological outcomes and each other's findings, independently reviewed all MRI studies. To minimize recall bias and intra-reader variability, the T2-weighted sequences were evaluated in a separate reading session at least four weeks prior to the assessment of the contrast-enhanced sequences. Any discrepancies in final patient-level assessment were resolved by consensus with a third radiologist with 19 years of experience.</p>
+            <p><strong>Avocado Sign (AS) Assessment:</strong> On the contrast-enhanced T1-weighted VIBE images, all visible mesorectal lymph nodes were assessed for the presence of the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense lymph node, irrespective of node size or shape (Fig 2) ${helpers.getReference('Lurz_Schaefer_2025')}. No minimum size threshold was applied. A patient was classified as AS-positive if at least one such node was identified.</p>
             <p><strong>T2-weighted (T2w) Criteria Assessment:</strong> The same radiologists evaluated the T2w images for five standard morphological features: size (short-axis diameter), shape (round vs oval), border (sharp vs irregular), internal homogeneity (homogeneous vs heterogeneous), and signal intensity (low, intermediate, or high relative to muscle). A patient with no visible T2w nodes was considered T2-negative if any T2w criterion was active. This feature set formed the basis for all subsequent comparative analyses.</p>
         `;
     }
@@ -46,7 +49,7 @@ window.methodsGenerator = (() => {
             if (set && set.studyInfo) {
                 table2Config.rows.push([
                     set.name || 'N/A',
-                    set.studyInfo.reference || 'N/A',
+                    helpers.getReference(set.studyInfo.refKey) || 'N/A',
                     set.studyInfo.patientCohort || 'N/A',
                     set.studyInfo.keyCriteriaSummary || 'N/A',
                     set.logic === 'KOMBINIERT' ? 'Combined' : set.logic || 'N/A'
@@ -79,10 +82,13 @@ window.methodsGenerator = (() => {
         if (!statisticalSignificanceLevel || !nBootstrap || !appVersion) {
             return '<h3 id="methoden_statistische_analyse_methoden">Statistical Analysis</h3><p class="text-warning">Configuration for statistical analysis is missing.</p>';
         }
-
-        const methodsText = `Descriptive statistics were used to summarize patient characteristics. Diagnostic performance metrics—including sensitivity, specificity, positive and negative predictive values, and accuracy—were calculated for each diagnostic method. The Wilson score method was used for 95% confidence intervals (CIs) of proportions, and the bootstrap percentile method (${helpers.formatValueForPublication(nBootstrap, 0)} replications) was used for CIs of the area under the receiver operating characteristic curve (AUC).`;
-
-        const comparisonText = `The primary comparison between the AUC of the Avocado Sign and other criteria was performed using the method described by DeLong et al. for correlated ROC curves. McNemar’s test was used to compare accuracies. For associations between individual categorical features and N-status, Fisher's exact test was used. All statistical analyses were performed using custom scripts developed in JavaScript (ES2020) and integrated within a dedicated web-based analysis tool (AvocadoSign-Radiology, Version ${appVersion}). These computations were validated against established libraries in Python (e.g., statsmodels, scikit-learn). A two-sided ${helpers.formatPValueForPublication(statisticalSignificanceLevel)} was considered to indicate statistical significance.`;
+        
+        const methodsText = window.APP_CONFIG.UI_TEXTS.PUBLICATION_TEXTS.STATISTICAL_ANALYSIS_METHODS
+            .replace('[N_BOOTSTRAP]', helpers.formatValueForPublication(nBootstrap, 0));
+            
+        const comparisonText = window.APP_CONFIG.UI_TEXTS.PUBLICATION_TEXTS.STATISTICAL_ANALYSIS_COMPARISON
+            .replace('[APP_VERSION]', appVersion)
+            .replace('[P_LEVEL]', helpers.formatPValueForPublication(statisticalSignificanceLevel).replace(/<em/g, '').replace(/<\/em>/g, ''));
 
         return `
             <h3 id="methoden_statistische_analyse_methoden">Statistical Analysis</h3>

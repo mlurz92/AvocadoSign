@@ -15,6 +15,44 @@ window.publicationService = (() => {
         'stard_checklist': window.stardGenerator.renderStardChecklist
     };
 
+    function _generateAbbreviationsHTML(fullHtmlContent) {
+        const potentialAbbreviations = {
+            'AS': 'Avocado Sign',
+            'AUC': 'Area under the receiver operating characteristic curve',
+            'CI': 'Confidence interval',
+            'nCRT': 'neoadjuvant chemoradiotherapy',
+            'T2w': 'T2-weighted',
+            'VIBE': 'volumetric interpolated breath-hold examination',
+            'DWI': 'diffusion-weighted imaging',
+            'ESGAR': 'European Society of Gastrointestinal and Abdominal Radiology',
+            'STARD': 'Standards for Reporting of Diagnostic Accuracy Studies'
+        };
+
+        const textContent = fullHtmlContent.replace(/<[^>]+>/g, ' ');
+        const counts = {};
+
+        Object.keys(potentialAbbreviations).forEach(abbr => {
+            const regex = new RegExp(`\\b${abbr}\\b`, 'g');
+            const matches = textContent.match(regex);
+            counts[abbr] = matches ? matches.length : 0;
+        });
+
+        const validAbbreviations = Object.entries(counts)
+            .filter(([abbr, count]) => count >= 5)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([abbr]) => `<li><strong>${abbr}</strong> = ${potentialAbbreviations[abbr]}</li>`)
+            .join('');
+
+        if (validAbbreviations) {
+            return `<div id="abbreviations-list" style="margin-top: 1.5rem;">
+                        <h4 style="font-size: 1.1rem; font-weight: bold;">Abbreviations</h4>
+                        <ul style="padding-left: 20px; margin-top: 0.5rem; list-style-position: inside; text-align: left;">${validAbbreviations}</ul>
+                    </div>`;
+        }
+        return '';
+    }
+
     function generateSectionHTML(sectionId, stats, commonData) {
         const generator = contentGenerators[sectionId];
         if (typeof generator === 'function') {
@@ -55,7 +93,8 @@ window.publicationService = (() => {
             return '<div class="alert alert-warning">Statistical data or common configuration is missing for publication generation.</div>';
         }
 
-        let rawContentHTML = generateSectionHTML('title_main', allCohortStats, commonData);
+        let titlePageHTML = generateSectionHTML('title_main', allCohortStats, commonData);
+        let mainContentHTML = '';
 
         window.PUBLICATION_CONFIG.sections.forEach(section => {
             if (section.id === 'references_main' || section.id === 'title_main' || section.id === 'stard_checklist') {
@@ -64,16 +103,27 @@ window.publicationService = (() => {
 
             const sectionLabel = window.APP_CONFIG.UI_TEXTS.publicationTab.sectionLabels[section.labelKey] || section.labelKey;
             
-            rawContentHTML += `<section id="${section.id}">`;
-            rawContentHTML += `<h2>${sectionLabel}</h2>`;
-            rawContentHTML += generateSectionHTML(section.id, allCohortStats, commonData);
-            rawContentHTML += `</section>`;
+            mainContentHTML += `<section id="${section.id}">`;
+            mainContentHTML += `<h2>${sectionLabel}</h2>`;
+            mainContentHTML += generateSectionHTML(section.id, allCohortStats, commonData);
+            mainContentHTML += `</section>`;
         });
         
-        const allReferences = commonData?.references || {};
-        const { processedHtml, referencesHtml } = window.referencesGenerator.processAndNumberReferences(rawContentHTML, allReferences);
+        const fullRawContent = titlePageHTML + mainContentHTML;
+        const abbreviationsHTML = _generateAbbreviationsHTML(fullRawContent);
         
-        return processedHtml + referencesHtml;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = titlePageHTML;
+        const titlePageElement = tempDiv.querySelector('#title_main');
+        if (titlePageElement) {
+            titlePageElement.innerHTML += abbreviationsHTML;
+        }
+        titlePageHTML = tempDiv.innerHTML;
+
+        const allReferences = commonData?.references || {};
+        const { processedHtml, referencesHtml } = window.referencesGenerator.processAndNumberReferences(mainContentHTML, allReferences);
+        
+        return titlePageHTML + processedHtml + referencesHtml;
     }
 
     return Object.freeze({

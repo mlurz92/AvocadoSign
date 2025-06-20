@@ -1,6 +1,7 @@
 window.state = (() => {
     let currentState = {};
     let defaultState = {};
+    let analysisContext = null;
 
     function init() {
         defaultState = {
@@ -35,6 +36,7 @@ window.state = (() => {
             analysisTableSort: cloneDeep(defaultState.analysisTableSort),
             activeTabId: defaultState.activeTabId
         };
+        analysisContext = null;
     }
 
     function _setter(key, storageKey, newValue) {
@@ -50,6 +52,22 @@ window.state = (() => {
 
     function getCurrentCohort() { return currentState.currentCohort; }
     function setCurrentCohort(newCohort) { return _setter('currentCohort', window.APP_CONFIG.STORAGE_KEYS.CURRENT_COHORT, newCohort); }
+
+    function getActiveCohortId() {
+        return analysisContext?.cohortId ?? currentState.currentCohort;
+    }
+
+    function getAnalysisContext() {
+        return analysisContext ? cloneDeep(analysisContext) : null;
+    }
+
+    function setAnalysisContext(context) {
+        analysisContext = context ? cloneDeep(context) : null;
+    }
+
+    function clearAnalysisContext() {
+        analysisContext = null;
+    }
 
     function getDataTableSort() { return cloneDeep(currentState.dataTableSort); }
     function updateDataTableSort(key, subKey = null) {
@@ -116,9 +134,20 @@ window.state = (() => {
 
         if (newView === 'as-pur') {
             studyIdChanged = _setter('comparisonStudyId', window.APP_CONFIG.STORAGE_KEYS.COMPARISON_STUDY_ID, null);
+            clearAnalysisContext();
         } else if (newView === 'as-vs-t2') {
             if (currentState.comparisonStudyId === null) {
-                studyIdChanged = _setter('comparisonStudyId', window.APP_CONFIG.STORAGE_KEYS.COMPARISON_STUDY_ID, window.APP_CONFIG.DEFAULT_SETTINGS.COMPARISON_STUDY_ID);
+                const defaultStudyId = window.APP_CONFIG.DEFAULT_SETTINGS.COMPARISON_STUDY_ID;
+                studyIdChanged = _setter('comparisonStudyId', window.APP_CONFIG.STORAGE_KEYS.COMPARISON_STUDY_ID, defaultStudyId);
+                const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(defaultStudyId);
+                if (studySet?.applicableCohort) {
+                    setAnalysisContext({ cohortId: studySet.applicableCohort, criteriaName: studySet.name });
+                }
+            } else {
+                const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(currentState.comparisonStudyId);
+                 if (studySet?.applicableCohort) {
+                    setAnalysisContext({ cohortId: studySet.applicableCohort, criteriaName: studySet.name });
+                }
             }
         }
         
@@ -127,13 +156,29 @@ window.state = (() => {
 
     function getComparisonStudyId() { return currentState.comparisonStudyId; }
     function setComparisonStudyId(newStudyId) {
-        return _setter('comparisonStudyId', window.APP_CONFIG.STORAGE_KEYS.COMPARISON_STUDY_ID, newStudyId ?? null);
+        const studyIdChanged = _setter('comparisonStudyId', window.APP_CONFIG.STORAGE_KEYS.COMPARISON_STUDY_ID, newStudyId ?? null);
+        if (studyIdChanged) {
+            if (newStudyId && newStudyId !== window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_STUDY_ID) {
+                const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(newStudyId);
+                if (studySet?.applicableCohort) {
+                    setAnalysisContext({ cohortId: studySet.applicableCohort, criteriaName: studySet.name });
+                } else {
+                    clearAnalysisContext();
+                }
+            } else {
+                clearAnalysisContext();
+            }
+        }
+        return studyIdChanged;
     }
 
     function getActiveTabId() { return currentState.activeTabId; }
     function setActiveTabId(newTabId) {
         if (typeof newTabId === 'string' && currentState.activeTabId !== newTabId) {
             currentState.activeTabId = newTabId;
+            if (newTabId !== 'comparison') {
+                clearAnalysisContext();
+            }
             return true;
         }
         return false;
@@ -143,6 +188,10 @@ window.state = (() => {
         init,
         getCurrentCohort,
         setCurrentCohort,
+        getActiveCohortId,
+        getAnalysisContext,
+        setAnalysisContext,
+        clearAnalysisContext,
         getDataTableSort,
         updateDataTableSort,
         getAnalysisTableSort,
@@ -166,4 +215,4 @@ window.state = (() => {
         getActiveTabId,
         setActiveTabId
     });
-})(); 
+})();

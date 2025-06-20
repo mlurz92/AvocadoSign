@@ -1,7 +1,37 @@
 window.publicationHelpers = (() => {
 
+    function _formatPValueForRadiology(pValue) {
+        const p = parseFloat(pValue);
+        if (p === null || p === undefined || isNaN(p) || !isFinite(p)) {
+            return 'N/A';
+        }
+
+        const prefix = '<em>P</em>';
+
+        if (p < 0.001) return `${prefix} < .001`;
+        if (p > 0.99) return `${prefix} > .99`;
+        
+        if (p < 0.01) {
+            return `${prefix} = .${p.toFixed(3).substring(2)}`;
+        }
+        
+        const pRoundedTo2 = parseFloat(p.toFixed(2));
+        if (pRoundedTo2 === 0.05 && p.toPrecision(15) < (0.05).toPrecision(15)) {
+             return `${prefix} = .${p.toFixed(3).substring(2)}`;
+        }
+
+        let formattedP = pRoundedTo2.toFixed(2);
+        if (formattedP.startsWith("0.")) {
+            formattedP = formattedP.substring(1);
+        } else if (formattedP === "1.00") {
+            return `${prefix} > .99`;
+        }
+        
+        return `${prefix} = ${formattedP}`;
+    }
+
     function formatPValueForPublication(pValue) {
-        return getPValueText(pValue, true);
+        return _formatPValueForRadiology(pValue);
     }
 
     function formatValueForPublication(value, digits = 0, isPercent = false, noLeadingZero = false) {
@@ -35,14 +65,13 @@ window.publicationHelpers = (() => {
             case 'npv':
             case 'acc':
                 isPercent = true;
-                digits = 0;
+                digits = 1;
                 noLeadingZero = false;
                 break;
             case 'auc':
             case 'kappa':
             case 'icc':
             case 'f1':
-            case 'balacc':
             case 'youden':
             case 'or':
             case 'hr':
@@ -65,21 +94,26 @@ window.publicationHelpers = (() => {
             return valueWithUnit;
         }
 
-        let numeratorInfo = '';
+        let detailsStr = '';
         if (isPercent && metric.n_success !== undefined && metric.n_trials !== undefined && metric.n_trials > 0) {
-            numeratorInfo = ` (${metric.n_success} of ${metric.n_trials})`;
+            detailsStr += ` (${metric.n_success} of ${metric.n_trials}`;
         }
 
-        if (!metric.ci || typeof metric.ci.lower !== 'number' || typeof metric.ci.upper !== 'number' || isNaN(metric.ci.lower) || isNaN(metric.ci.upper)) {
-            return `${valueWithUnit}${numeratorInfo}`;
+        if (metric.ci && typeof metric.ci.lower === 'number' && typeof metric.ci.upper === 'number' && !isNaN(metric.ci.lower) && !isNaN(metric.ci.upper)) {
+            const lowerStr = formatValueForPublication(metric.ci.lower, digits, isPercent, noLeadingZero);
+            const upperStr = formatValueForPublication(metric.ci.upper, digits, isPercent, noLeadingZero);
+            const ciStr = isPercent ? `${lowerStr}%, ${upperStr}%` : `${lowerStr}, ${upperStr}`;
+            
+            if (detailsStr) {
+                detailsStr += `; 95% CI: ${ciStr})`;
+            } else {
+                detailsStr = ` (95% CI: ${ciStr})`;
+            }
+        } else if (detailsStr) {
+            detailsStr += ')';
         }
-        
-        const lowerStr = formatValueForPublication(metric.ci.lower, digits, isPercent, noLeadingZero);
-        const upperStr = formatValueForPublication(metric.ci.upper, digits, isPercent, noLeadingZero);
-        
-        const ciStr = isPercent ? `${lowerStr}%, ${upperStr}%` : `${lowerStr}, ${upperStr}`;
 
-        return `${valueWithUnit}${numeratorInfo} (95% CI: ${ciStr})`;
+        return `${valueWithUnit}${detailsStr}`;
     }
 
     function createPublicationTableHTML(config) {

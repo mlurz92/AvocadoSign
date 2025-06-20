@@ -27,7 +27,7 @@ window.dataTab = (() => {
                 return `<span class="sortable-sub-header" data-sub-key="${sk.key}" style="cursor: pointer; ${style}" data-tippy-content="Sort by Status ${sk.label}">${sk.label}</span>`;
             }).join(' / ') : '';
             
-            const mainTooltip = col.subKeys ? `${baseTooltipContent} Click on N, AS, or T2 for sub-sorting.` : `Sort by ${col.label}. ${baseTooltipContent}`;
+            const mainTooltip = col.subKeys ? `${baseTooltipContent}` : `Sort by ${col.label}. ${baseTooltipContent}`;
             const sortAttributes = `data-sort-key="${col.key}" ${col.subKeys || col.key === 'details' ? '' : 'style="cursor: pointer;"'}`;
             
             if (col.subKeys) {

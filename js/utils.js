@@ -301,9 +301,17 @@ function getORInterpretation(orValue) {
 }
 
 function escapeHTML(text) {
-    if (typeof text !== 'string') return text === null ? '' : String(text);
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return text.replace(/[&<>"']/g, match => map[match]);
+    const str = String(text ?? '');
+
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+
+    return str.replace(/[&<>"']/g, match => map[match]);
 }
 
 function getDefinitionTooltip(metricKey) {

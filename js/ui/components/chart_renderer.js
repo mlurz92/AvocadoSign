@@ -313,7 +313,7 @@ window.chartRenderer = (() => {
             .attr("x", innerWidth - 5)
             .attr("y", innerHeight - 5)
             .attr("text-anchor", "end")
-            .style("font-size", "11px")
+            .style("font-size", "12px")
             .style("font-weight", "bold")
             .style("opacity", 0)
             .text(`AUC: ${formatNumber(auc, 2)}`)

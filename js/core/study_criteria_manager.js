@@ -48,11 +48,11 @@ window.studyT2CriteriaManager = (() => {
 
         const effectiveLogic = logic || criteria.logic || 'OR';
         if (effectiveLogic === 'KOMBINIERT') {
-             const studySet = window.PUBLICATION_CONFIG.literatureCriteriaSets.find(s => s.logic === 'KOMBINIERT' && s.id === 'rutegard_et_al_esgar');
+             const studySet = window.PUBLICATION_CONFIG.literatureCriteriaSets.find(s => s.logic === 'KOMBINIERT');
              if (studySet?.studyInfo?.keyCriteriaSummary) {
                  return shortFormat ? (studySet.displayShortName || studySet.name) : studySet.studyInfo.keyCriteriaSummary;
              }
-             return criteria.note || 'Combined ESGAR Logic (see original publication for details)';
+             return 'Combined ESGAR Logic (see original publication for details)';
         }
         
         sortedActiveKeys.forEach(key => {
@@ -173,7 +173,7 @@ window.studyT2CriteriaManager = (() => {
             let isNodePositive = false;
             let checkResult = {};
 
-            if (logic === 'KOMBINIERT' && studyCriteriaSet.id === 'rutegard_et_al_esgar') {
+            if (logic === 'KOMBINIERT') {
                 checkResult = _checkSingleNodeESGAR(lk, criteria);
                 isNodePositive = checkResult.isPositive;
             } else {

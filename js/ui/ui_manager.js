@@ -4,6 +4,21 @@ window.uiManager = (() => {
 
     function updateCohortButtonsUI(currentCohortId, isLocked) {
         if (!window.APP_CONFIG) return;
+        const cohortButtonGroup = document.querySelector('.btn-group[aria-label="Cohort Selection"]');
+        
+        if (cohortButtonGroup) {
+            const tooltipContent = isLocked 
+                ? "Cohort selection is locked because a specific analysis context (e.g., literature comparison) or view (e.g., statistics comparison) is active." 
+                : "Select the patient cohort for analysis.";
+            
+            let tippyInstance = cohortButtonGroup._tippy;
+            if (tippyInstance) {
+                tippyInstance.setContent(tooltipContent);
+            } else {
+                tippy(cohortButtonGroup, { content: tooltipContent });
+            }
+        }
+
         Object.values(window.APP_CONFIG.COHORTS).forEach(cohort => {
             const button = document.getElementById(`btn-cohort-${cohort.id}`);
             if (button) {
@@ -308,80 +323,6 @@ window.uiManager = (() => {
         
         updateElementHTML(runnerCardContainer.id, runnerCardHTML);
     }
-    
-    function updateExportButtonStates(currentTabId, hasBruteForceResults, hasPatientData) {
-        if (!window.APP_CONFIG) return;
-        const exportPane = document.getElementById('export-pane');
-        if (!exportPane) return;
-
-        const isExportTab = currentTabId === 'export-tab';
-        const buttons = exportPane.querySelectorAll('button[id^="export-"]');
-
-        buttons.forEach(button => {
-            const exportType = button.dataset.exportType;
-            let shouldBeEnabled = false;
-
-            switch (exportType) {
-                case 'stats-csv':
-                case 'filtered-data-csv':
-                case 'comprehensivereport-html':
-                case 'datatable-md':
-                case 'analysistable-md':
-                case 'all-zip':
-                case 'csv-zip':
-                case 'md-zip':
-                case 'png-zip':
-                case 'svg-zip':
-                case 'radiology-submission-zip':
-                    shouldBeEnabled = hasPatientData;
-                    break;
-                case 'bruteforce-txt':
-                    shouldBeEnabled = hasBruteForceResults;
-                    break;
-                default:
-                    shouldBeEnabled = hasPatientData;
-                    break;
-            }
-            button.disabled = !shouldBeEnabled;
-
-            if (isExportTab) {
-                const tooltipInstance = button._tippy;
-                if (tooltipInstance) {
-                    if (!shouldBeEnabled) tooltipInstance.disable();
-                    else tooltipInstance.enable();
-                }
-            }
-        });
-    }
-
-    function updateStatisticsSelectorsUI(layout, cohort1, cohort2) {
-        if (!window.APP_CONFIG || !window.utils) return;
-        
-        const singleViewBtn = document.getElementById('statistics-toggle-single');
-        const comparisonViewBtn = document.getElementById('statistics-toggle-comparison');
-        const cohortSelect1 = document.getElementById('statistics-cohort-select-1');
-        const cohortSelect2 = document.getElementById('statistics-cohort-select-2');
-        const cohortSelectContainer2 = document.getElementById('statistics-cohort-select-2-container');
-
-        if (singleViewBtn) singleViewBtn.classList.toggle('active', layout === 'einzel');
-        if (comparisonViewBtn) comparisonViewBtn.classList.toggle('active', layout === 'vergleich');
-
-        const allCohorts = Object.values(window.APP_CONFIG.COHORTS);
-
-        const populateSelect = (selectElement, selectedValue) => {
-            if (!selectElement) return;
-            selectElement.innerHTML = allCohorts.map(c =>
-                `<option value="${c.id}" ${c.id === selectedValue ? 'selected' : ''}>${c.displayName}</option>`
-            ).join('');
-        };
-
-        if (cohortSelect1) populateSelect(cohortSelect1, cohort1);
-        if (cohortSelect2) populateSelect(cohortSelect2, cohort2);
-
-        if (cohortSelectContainer2) {
-            cohortSelectContainer2.style.display = layout === 'vergleich' ? 'block' : 'none';
-        }
-    }
 
     function updateComparisonViewUI(view, selectedStudyId) {
         if (!window.APP_CONFIG || !window.utils || !window.studyT2CriteriaManager) return;
@@ -395,10 +336,6 @@ window.uiManager = (() => {
 
         if (compStudySelect) {
             compStudySelect.disabled = (view === 'as-pur');
-            const allStudySets = window.studyT2CriteriaManager.getAllStudyCriteriaSets();
-            const appliedOptionHTML = `<option value="${window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_STUDY_ID}" ${selectedStudyId === window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_STUDY_ID ? 'selected' : ''}>-- ${window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_DISPLAY_NAME} --</option>`;
-            const studyOptionsHTML = allStudySets.map(set => `<option value="${set.id}" ${selectedStudyId === set.id ? 'selected' : ''}>${set.name || set.id}</option>`).join('');
-            compStudySelect.innerHTML = `<option value="" ${!selectedStudyId ? 'selected' : ''} disabled>-- Please select --</option>${appliedOptionHTML}<option value="" disabled>--- Published Criteria ---</option>${studyOptionsHTML}`;
         }
     }
 
@@ -461,12 +398,10 @@ window.uiManager = (() => {
         updateT2CriteriaControlsUI,
         markCriteriaSavedIndicator,
         updateBruteForceUI,
-        updateExportButtonStates,
-        updateStatisticsSelectorsUI,
         updateComparisonViewUI,
         updatePublicationUI,
         showQuickGuide,
         updateElementHTML,
         highlightElement
     });
-})(); 
+})();

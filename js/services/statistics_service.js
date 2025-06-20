@@ -441,14 +441,14 @@ window.statisticsService = (() => {
         const { tp, fp, fn, tn } = matrix;
         const total = tp + fp + fn + tn;
         const nullMetric = { value: NaN, ci: null, method: null, se: NaN };
-        if (total === 0) return { matrix, sens: nullMetric, spec: nullMetric, ppv: nullMetric, npv: nullMetric, acc: nullMetric, balAcc: nullMetric, f1: nullMetric, auc: nullMetric, youden: nullMetric };
+        if (total === 0) return { matrix, sens: nullMetric, spec: nullMetric, ppv: nullMetric, npv: nullMetric, acc: nullMetric, auc: nullMetric, f1: nullMetric, youden: nullMetric };
 
         const sens_val = (tp + fn) > 0 ? tp / (tp + fn) : NaN;
         const spec_val = (fp + tn) > 0 ? tn / (fp + tn) : NaN;
         const ppv_val = (tp + fp) > 0 ? tp / (tp + fp) : NaN;
         const npv_val = (fn + tn) > 0 ? tn / (fn + tn) : NaN;
         const acc_val = (tp + tn) / total;
-        const balAcc_val = (!isNaN(sens_val) && !isNaN(spec_val)) ? (sens_val + spec_val) / 2.0 : NaN;
+        const auc_val = (!isNaN(sens_val) && !isNaN(spec_val)) ? (sens_val + spec_val) / 2.0 : NaN;
         const f1_val = (!isNaN(ppv_val) && !isNaN(sens_val) && (ppv_val + sens_val) > 0) ? 2 * (ppv_val * sens_val) / (ppv_val + sens_val) : NaN;
         const youden_val = (!isNaN(sens_val) && !isNaN(spec_val)) ? (sens_val + spec_val - 1) : NaN;
 
@@ -461,7 +461,6 @@ window.statisticsService = (() => {
             switch (metric) {
                 case 'f1':
                     return (isNaN(p) || isNaN(s) || (p + s) <= 0) ? NaN : 2 * (p * s) / (p + s);
-                case 'balAcc':
                 case 'auc':
                     return (isNaN(s) || isNaN(sp)) ? NaN : (s + sp) / 2.0;
                 case 'youden':
@@ -478,9 +477,8 @@ window.statisticsService = (() => {
             ppv: { value: ppv_val, ci: calculateWilsonScoreCI(tp, tp + fp), n_success: tp, n_trials: tp + fp, method: window.APP_CONFIG.STATISTICAL_CONSTANTS.DEFAULT_CI_METHOD_PROPORTION },
             npv: { value: npv_val, ci: calculateWilsonScoreCI(tn, fn + tn), n_success: tn, n_trials: fn + tn, method: window.APP_CONFIG.STATISTICAL_CONSTANTS.DEFAULT_CI_METHOD_PROPORTION },
             acc: { value: acc_val, ci: calculateWilsonScoreCI(tp + tn, total), n_success: tp + tn, n_trials: total, method: window.APP_CONFIG.STATISTICAL_CONSTANTS.DEFAULT_CI_METHOD_PROPORTION },
-            balAcc: { value: balAcc_val, ...bootstrapCI(data, bootstrapFactory(predictionKey, referenceKey, 'balAcc')), matrix_components: {tp, fp, fn, tn, total} },
+            auc: { value: auc_val, ...bootstrapCI(data, bootstrapFactory(predictionKey, referenceKey, 'auc')), matrix_components: {tp, fp, fn, tn, total} },
             f1: { value: f1_val, ...bootstrapCI(data, bootstrapFactory(predictionKey, referenceKey, 'f1')), matrix_components: {tp, fp, fn, tn, total} },
-            auc: { value: balAcc_val, ...bootstrapCI(data, bootstrapFactory(predictionKey, referenceKey, 'auc')), matrix_components: {tp, fp, fn, tn, total} },
             youden: { value: youden_val, ...bootstrapCI(data, bootstrapFactory(predictionKey, referenceKey, 'youden')), matrix_components: {tp, fp, fn, tn, total} }
         };
     }
@@ -586,12 +584,13 @@ window.statisticsService = (() => {
             const se_diff = Math.sqrt((sd1 * sd1 / n1) + (sd2 * sd2 / n2));
             if (se_diff > 0) {
                 const t = (mean1 - mean2) / se_diff;
-                res.age = { pValue: 2 * (1 - normalCDF(Math.abs(t))), test: "Welch's t-test" };
+                const df_welch = Math.pow(se_diff, 4) / (Math.pow(sd1*sd1/n1, 2)/(n1-1) + Math.pow(sd2*sd2/n2, 2)/(n2-1));
+                res.age = { pValue: 2 * (1 - normalCDF(Math.abs(t))), test: "Welch's t-test", statistic: t, df: df_welch };
             } else {
-                res.age = { pValue: 1.0, test: "Welch's t-test (Zero Variance)" };
+                res.age = { pValue: 1.0, test: "Welch's t-test (Zero Variance)", statistic: 0, df: n1+n2-2 };
             }
         } else {
-            res.age = { pValue: NaN, test: "Welch's t-test (Insufficient Data)" };
+            res.age = { pValue: NaN, test: "Welch's t-test (Insufficient Data)", statistic: NaN, df: NaN };
         }
         
         const sex1_m = data1.filter(p => p.sex === 'm').length;

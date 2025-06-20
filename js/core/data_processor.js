@@ -3,6 +3,7 @@ window.dataProcessor = (() => {
     function _deduplicateRawData(rawData) {
         if (!Array.isArray(rawData)) return [];
         const patientMap = new Map();
+        const mergedPatientIDs = new Set();
 
         rawData.forEach(patient => {
             if (!patient || !patient.lastName || !patient.birthDate) return;
@@ -12,6 +13,8 @@ window.dataProcessor = (() => {
                 patientMap.set(key, JSON.parse(JSON.stringify(patient)));
             } else {
                 const existingPatient = patientMap.get(key);
+                mergedPatientIDs.add(existingPatient.id).add(patient.id);
+
                 if (Array.isArray(patient.t2Nodes)) {
                     existingPatient.t2Nodes = [...(existingPatient.t2Nodes || []), ...patient.t2Nodes];
                 }
@@ -24,6 +27,10 @@ window.dataProcessor = (() => {
                 }
             }
         });
+
+        if (mergedPatientIDs.size > 0) {
+            console.warn(`Data Integrity Warning: Potential duplicate patient entries were detected and merged. Affected original IDs: ${Array.from(mergedPatientIDs).sort((a,b) => a-b).join(', ')}. Please verify data source if this is unexpected.`);
+        }
 
         const uniquePatients = Array.from(patientMap.values());
         uniquePatients.sort((a, b) => a.id - b.id);

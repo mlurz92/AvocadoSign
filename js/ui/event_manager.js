@@ -28,36 +28,11 @@ window.eventManager = (() => {
         }
     }
 
-    function handleExportClick(button) {
-        const exportType = button.id.replace('export-', '');
-        if (exportType.endsWith('-zip')) {
-            const category = exportType.replace('-zip', '');
-            if (category === 'radiology-submission') {
-                window.exportService.exportRadiologySubmissionPackage(
-                    app.getProcessedData(),
-                    app.allPublicationStats,
-                    window.bruteForceManager.getAllResults()
-                );
-            } else {
-                window.exportService.exportCategoryZip(
-                    category, 
-                    app.getProcessedData(), 
-                    window.bruteForceManager.getAllResults(), 
-                    window.state.getCurrentCohort(), 
-                    window.t2CriteriaManager.getAppliedCriteria(), 
-                    window.t2CriteriaManager.getAppliedLogic()
-                );
-            }
-        } else {
-            app.handleSingleExport(exportType);
-        }
-    }
-
     function handleBodyClick(event) {
         const target = event.target;
         const button = target.closest('button');
 
-        if (button?.dataset.cohort) {
+        if (button?.dataset.cohort && !button.disabled) {
             app.handleCohortChange(button.dataset.cohort, "user");
             return;
         }
@@ -71,7 +46,7 @@ window.eventManager = (() => {
 
         if (target.closest('.publication-section-link')) {
             event.preventDefault();
-            handlePublicationSectionChange(target.closest('.publication-section-link').dataset.sectionId);
+            app.handlePublicationSectionChange(target.closest('.publication-section-link').dataset.sectionId);
             return;
         }
 
@@ -104,15 +79,8 @@ window.eventManager = (() => {
                  const metricSelect = document.getElementById('brute-force-metric');
                  if (metricSelect) app.showBruteForceDetails(metricSelect.value);
             },
-            'statistics-toggle-comparison': () => handleStatsLayoutToggle(button),
-            'export-bruteforce-modal-txt': () => {
-                const metric = button.dataset.metric;
-                if (metric) {
-                    const cohortId = window.state.getCurrentCohort();
-                    const resultData = window.bruteForceManager.getResultsForCohortAndMetric(cohortId, metric);
-                    window.exportService.exportBruteForceReport(resultData);
-                }
-            }
+            'statistics-toggle-single': () => handleStatsLayoutToggle('einzel'),
+            'statistics-toggle-comparison': () => handleStatsLayoutToggle('vergleich')
         };
 
         if (singleClickActions[button.id]) {
@@ -125,31 +93,6 @@ window.eventManager = (() => {
                 window.uiManager.updateT2CriteriaControlsUI(window.t2CriteriaManager.getCurrentCriteria(), window.t2CriteriaManager.getCurrentLogic());
                 window.uiManager.markCriteriaSavedIndicator(window.t2CriteriaManager.isUnsaved());
             }
-            return;
-        }
-
-        if (button.classList.contains('chart-download-btn')) {
-            window.exportService.exportSingleChart(
-                button.dataset.chartId, 
-                button.dataset.format, 
-                window.state.getCurrentCohort(), 
-                { chartName: button.dataset.chartName || button.dataset.defaultName }
-            );
-            return;
-        }
-
-        if (button.classList.contains('table-download-png-btn')) {
-            window.exportService.exportTablePNG(button.dataset.tableId, window.state.getCurrentCohort(), 'TABLE_PNG_EXPORT', button.dataset.tableName);
-            return;
-        }
-
-        if (button.closest('#export-pane') && button.id.startsWith('export-')) {
-            handleExportClick(button);
-            return;
-        }
-
-        if (button.closest('#comparison-tab-pane') && button.id.startsWith('download-')) {
-            window.exportService.exportComparisonData(button.id, app.getComparisonDataForExport(), window.state.getCurrentCohort());
             return;
         }
     }
@@ -224,11 +167,9 @@ window.eventManager = (() => {
         }
     }
 
-    function handleStatsLayoutToggle(button) {
-        const newLayout = button.classList.contains('active') ? 'einzel' : 'vergleich';
+    function handleStatsLayoutToggle(newLayout) {
         if (window.state.setStatsLayout(newLayout)) {
-            app.updateUI();
-            if (window.state.getActiveTabId() === 'statistics') app.refreshCurrentTab();
+            app.refreshCurrentTab();
         }
     }
 
@@ -240,50 +181,26 @@ window.eventManager = (() => {
         } else if (selectElement.id === 'statistics-cohort-select-2') {
             needsRender = window.state.setStatsCohort2(newValue);
         }
-        if (needsRender && window.state.getStatsLayout() === 'vergleich' && window.state.getActiveTabId() === 'statistics') {
+        if (needsRender && window.state.getStatsLayout() === 'vergleich') {
             app.refreshCurrentTab();
         }
     }
 
     function handleComparisonViewChange(view) {
         if (window.state.setComparisonView(view)) {
-            app.updateUI();
-            if (window.state.getActiveTabId() === 'comparison') app.refreshCurrentTab();
-        }
-    }
-
-    function handleComparisonStudyChange(studyId) {
-        if (window.state.getComparisonStudyId() === studyId) return;
-        
-        const stateNeedsRefresh = window.state.setComparisonStudyId(studyId);
-        const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(studyId);
-        
-        if (studySet?.applicableCohort && window.state.getCurrentCohort() !== studySet.applicableCohort) {
-            app.handleCohortChange(studySet.applicableCohort, "auto_comparison");
-        } else if (stateNeedsRefresh) {
             app.refreshCurrentTab();
         }
     }
 
-    function handlePublicationSectionChange(sectionId) {
-        if (window.state.setPublicationSection(sectionId)) {
-            app.updateUI();
-            const contentArea = document.getElementById('publication-content-area');
-            const element = document.getElementById(sectionId);
-            if (contentArea && element) {
-                const offsetTop = element.offsetTop - contentArea.offsetTop;
-                contentArea.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
-                });
-            }
+    function handleComparisonStudyChange(studyId) {
+        if (window.state.setComparisonStudyId(studyId)) {
+            app.refreshCurrentTab();
         }
     }
 
     function handlePublicationBfMetricChange(newMetric) {
         if (window.state.setPublicationBruteForceMetric(newMetric)) {
-            app.updateUI();
-            if (window.state.getActiveTabId() === 'publication') app.refreshCurrentTab();
+            app.refreshCurrentTab();
         }
     }
 

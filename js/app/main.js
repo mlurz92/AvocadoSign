@@ -6,20 +6,20 @@ class App {
         this.allPublicationStats = null;
         this.comparisonDataForExport = null;
         this.bruteForceModal = null;
+        this.libraryStatus = {};
+        this.preRenderedPublicationHTML = null;
     }
 
-    init() {
+    async init() {
         try {
-            if (typeof window.uiManager === 'undefined' || window.uiManager === null) {
-                const appContainer = document.getElementById('app-container');
-                if (appContainer) {
-                    appContainer.innerHTML = `<div class="alert alert-danger m-5"><strong>Initialization Error:</strong> The 'uiManager' module could not be loaded. Please ensure all JavaScript files are linked correctly and contain no critical errors.</div>`;
-                }
-                throw new Error("UI Manager (uiManager.js) is not available. Check script loading order or module integrity.");
-            }
-
-            this.checkDependencies();
+            this.libraryStatus = await this.checkDependencies();
             
+            Object.entries(this.libraryStatus).forEach(([lib, status]) => {
+                if (!status && ['JSZip', 'htmlToDocx', 'html2canvas'].includes(lib)) {
+                     window.uiManager.showToast(`Warning: Library '${lib}' failed to load. Some features may be unavailable.`, 'warning', 5000);
+                }
+            });
+
             window.state.init();
             window.t2CriteriaManager.init();
             this.initializeBruteForceManager();
@@ -37,6 +37,7 @@ class App {
             
             this.filterAndPrepareData();
             this.recalculateAllStats();
+            this._preRenderPublicationTab();
             this.updateUI();
             this.renderCurrentTab();
             
@@ -60,47 +61,57 @@ class App {
     }
 
     checkDependencies() {
-        const dependencies = { 
-            state: window.state, 
-            t2CriteriaManager: window.t2CriteriaManager, 
-            studyT2CriteriaManager: window.studyT2CriteriaManager, 
-            dataProcessor: window.dataProcessor, 
-            statisticsService: window.statisticsService, 
-            bruteForceManager: window.bruteForceManager, 
-            exportService: window.exportService, 
-            publicationHelpers: window.publicationHelpers, 
-            titlePageGenerator: window.titlePageGenerator, 
-            abstractGenerator: window.abstractGenerator, 
-            introductionGenerator: window.introductionGenerator, 
-            methodsGenerator: window.methodsGenerator, 
-            resultsGenerator: window.resultsGenerator, 
-            discussionGenerator: window.discussionGenerator, 
-            referencesGenerator: window.referencesGenerator, 
-            stardGenerator: window.stardGenerator, 
-            publicationService: window.publicationService,
-            uiManager: window.uiManager, 
-            uiComponents: window.uiComponents, 
-            tableRenderer: window.tableRenderer, 
-            chartRenderer: window.chartRenderer, 
-            flowchartRenderer: window.flowchartRenderer, 
-            dataTab: window.dataTab, 
-            analysisTab: window.analysisTab, 
-            statisticsTab: window.statisticsTab, 
-            comparisonTab: window.comparisonTab, 
-            publicationTab: window.publicationTab, 
-            exportTab: window.exportTab, 
-            eventManager: window.eventManager, 
-            APP_CONFIG: window.APP_CONFIG, 
-            PUBLICATION_CONFIG: window.PUBLICATION_CONFIG
-        };
-        for (const dep in dependencies) {
-            if (typeof dependencies[dep] === 'undefined' || dependencies[dep] === null) {
-                throw new Error(`Core module or dependency '${dep}' is not available.`);
+        return new Promise((resolve) => {
+            const internalModules = { 
+                state: window.state, t2CriteriaManager: window.t2CriteriaManager, studyT2CriteriaManager: window.studyT2CriteriaManager, 
+                dataProcessor: window.dataProcessor, statisticsService: window.statisticsService, bruteForceManager: window.bruteForceManager, 
+                publicationHelpers: window.publicationHelpers, titlePageGenerator: window.titlePageGenerator, 
+                abstractGenerator: window.abstractGenerator, introductionGenerator: window.introductionGenerator, methodsGenerator: window.methodsGenerator, 
+                resultsGenerator: window.resultsGenerator, discussionGenerator: window.discussionGenerator, referencesGenerator: window.referencesGenerator, 
+                stardGenerator: window.stardGenerator, publicationService: window.publicationService, uiManager: window.uiManager, 
+                uiComponents: window.uiComponents, tableRenderer: window.tableRenderer, chartRenderer: window.chartRenderer, 
+                flowchartRenderer: window.flowchartRenderer, dataTab: window.dataTab, analysisTab: window.analysisTab, 
+                statisticsTab: window.statisticsTab, comparisonTab: window.comparisonTab, publicationTab: window.publicationTab, 
+                eventManager: window.eventManager, APP_CONFIG: window.APP_CONFIG, 
+                PUBLICATION_CONFIG: window.PUBLICATION_CONFIG
+            };
+            for (const dep in internalModules) {
+                if (typeof internalModules[dep] === 'undefined' || internalModules[dep] === null) {
+                    throw new Error(`Core module or dependency '${dep}' is not available.`);
+                }
             }
-        }
-        if (typeof window.patientDataRaw === 'undefined' || window.patientDataRaw === null) {
-            throw new Error("Global 'patientDataRaw' is not available.");
-        }
+            if (typeof window.patientDataRaw === 'undefined' || window.patientDataRaw === null) {
+                throw new Error("Global 'patientDataRaw' is not available.");
+            }
+
+            const librariesToWaitFor = {
+                d3: () => !!window.d3,
+                tippy: () => !!window.tippy
+            };
+
+            const pollInterval = 100;
+            const timeout = 5000;
+            let elapsedTime = 0;
+
+            const intervalId = setInterval(() => {
+                const allLoaded = Object.values(librariesToWaitFor).every(checkFn => checkFn());
+
+                if (allLoaded) {
+                    clearInterval(intervalId);
+                    const finalStatus = {};
+                    Object.keys(librariesToWaitFor).forEach(lib => finalStatus[lib] = true);
+                    resolve(finalStatus);
+                } else {
+                    elapsedTime += pollInterval;
+                    if (elapsedTime >= timeout) {
+                        clearInterval(intervalId);
+                        const finalStatus = {};
+                        Object.keys(librariesToWaitFor).forEach(lib => finalStatus[lib] = librariesToWaitFor[lib]());
+                        resolve(finalStatus);
+                    }
+                }
+            }, pollInterval);
+        });
     }
 
     initializeBruteForceManager() {
@@ -112,9 +123,10 @@ class App {
                 const cohortBfResults = bfResults[payload.cohort] || {};
                 window.uiManager.updateBruteForceUI('result', cohortBfResults[payload.metric], true, payload.cohort);
                 if (payload?.results?.length > 0) {
-                    this.showBruteForceDetails(payload.metric);
+                    this.showBruteForceDetails(payload.metric, payload.cohort);
                     window.uiManager.showToast('Optimization finished.', 'success');
                     this.recalculateAllStats();
+                    this._preRenderPublicationTab();
                     this.refreshCurrentTab();
                 } else {
                     window.uiManager.showToast('Optimization finished with no valid results.', 'warning');
@@ -137,8 +149,8 @@ class App {
     
     filterAndPrepareData() {
         try {
-            const currentCohort = window.state.getCurrentCohort();
-            const filteredByCohort = window.dataProcessor.filterDataByCohort(this.processedData, currentCohort);
+            const activeCohortId = window.state.getActiveCohortId();
+            const filteredByCohort = window.dataProcessor.filterDataByCohort(this.processedData, activeCohortId);
             const appliedCriteria = window.t2CriteriaManager.getAppliedCriteria();
             const appliedLogic = window.t2CriteriaManager.getAppliedLogic();
             const evaluatedData = window.t2CriteriaManager.evaluateDataset(filteredByCohort, appliedCriteria, appliedLogic);
@@ -160,6 +172,26 @@ class App {
         const logic = window.t2CriteriaManager.getAppliedLogic();
         const bruteForceResults = window.bruteForceManager.getAllResults();
         this.allPublicationStats = window.statisticsService.calculateAllPublicationStats(this.processedData, criteria, logic, bruteForceResults);
+    }
+
+    _preRenderPublicationTab() {
+        if (!this.allPublicationStats) {
+            this.preRenderedPublicationHTML = '<div class="alert alert-warning">Statistics not available. Cannot generate publication content.</div>';
+            return;
+        }
+        const commonData = {
+            appName: window.APP_CONFIG.APP_NAME,
+            appVersion: window.APP_CONFIG.APP_VERSION,
+            nOverall: this.allPublicationStats?.[window.APP_CONFIG.COHORTS.OVERALL.id]?.descriptive?.patientCount || 0,
+            nPositive: this.allPublicationStats?.[window.APP_CONFIG.COHORTS.OVERALL.id]?.descriptive?.nStatus?.plus || 0,
+            nSurgeryAlone: this.allPublicationStats?.[window.APP_CONFIG.COHORTS.SURGERY_ALONE.id]?.descriptive?.patientCount || 0,
+            nNeoadjuvantTherapy: this.allPublicationStats?.[window.APP_CONFIG.COHORTS.NEOADJUVANT.id]?.descriptive?.patientCount || 0,
+            references: window.APP_CONFIG.REFERENCES_FOR_PUBLICATION || {},
+            bruteForceMetricForPublication: window.state.getPublicationBruteForceMetric(),
+            currentLanguage: window.state.getCurrentPublikationLang(),
+            rawData: this.rawData
+        };
+        this.preRenderedPublicationHTML = window.publicationService.generateFullPublicationHTML(this.allPublicationStats, commonData);
     }
     
     _prepareComparisonData() {
@@ -206,7 +238,7 @@ class App {
         }
 
         return {
-            cohort: globalCohort, patientCount: this.currentCohortData.length,
+            globalCohort, patientCount: this.currentCohortData.length,
             statsGesamt: statsOverall, statsSurgeryAlone, statsNeoadjuvantTherapy,
             statsCurrentCohort: this.allPublicationStats[globalCohort],
             performanceAS, performanceT2, comparison: comparisonASvsT2,
@@ -217,28 +249,16 @@ class App {
     updateUI() {
         const currentCohort = window.state.getCurrentCohort();
         const activeTabId = window.state.getActiveTabId();
-        let isCohortSelectionLocked = false;
-        if (activeTabId === 'comparison' && window.state.getComparisonView() === 'as-vs-t2') {
-            const studyId = window.state.getComparisonStudyId();
-            if (studyId && studyId !== window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_STUDY_ID) {
-                const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(studyId);
-                if (studySet?.applicableCohort) {
-                    isCohortSelectionLocked = true;
-                }
-            }
-        }
-        window.uiManager.updateCohortButtonsUI(currentCohort, isCohortSelectionLocked);
+        const analysisContext = window.state.getAnalysisContext();
         
-        if (activeTabId === 'statistics') {
-            window.uiManager.updateStatisticsSelectorsUI(window.state.getStatsLayout(), window.state.getStatsCohort1(), window.state.getStatsCohort2());
-        } else if (activeTabId === 'comparison') {
+        const isLocked = !!analysisContext || (activeTabId === 'statistics' && window.state.getStatsLayout() === 'vergleich');
+        window.uiManager.updateCohortButtonsUI(currentCohort, isLocked);
+        
+        if (activeTabId === 'comparison') {
             window.uiManager.updateComparisonViewUI(window.state.getComparisonView(), window.state.getComparisonStudyId());
         } else if (activeTabId === 'publication') {
             window.uiManager.updatePublicationUI(window.state.getPublicationSection(), window.state.getPublicationBruteForceMetric());
         }
-        
-        const bfResults = window.bruteForceManager.getAllResults();
-        window.uiManager.updateExportButtonStates(activeTabId, !!bfResults && Object.keys(bfResults).length > 0, this.currentCohortData.length > 0);
     }
 
     processTabChange(tabId) {
@@ -249,14 +269,16 @@ class App {
 
     renderCurrentTab() {
         const tabId = window.state.getActiveTabId();
-        const cohort = window.state.getCurrentCohort();
+        const globalCohort = window.state.getCurrentCohort();
+        const activeCohort = window.state.getActiveCohortId();
         const criteria = window.t2CriteriaManager.getAppliedCriteria();
         const logic = window.t2CriteriaManager.getAppliedLogic();
         const allBruteForceResults = window.bruteForceManager.getAllResults();
         
         const publicationData = {
-            rawData: this.rawData, allCohortStats: this.allPublicationStats, bruteForceResults: allBruteForceResults,
-            currentLanguage: window.state.getCurrentPublikationLang()
+            preRenderedHTML: this.getPreRenderedPublicationHTML(),
+            allCohortStats: this.allPublicationStats,
+            bruteForceMetricForPublication: window.state.getPublicationBruteForceMetric()
         };
 
         let currentComparisonData = null;
@@ -267,16 +289,16 @@ class App {
 
         switch (tabId) {
             case 'data': window.uiManager.renderTabContent('data', () => window.dataTab.render(this.currentCohortData, window.state.getDataTableSort())); break;
-            case 'analysis': window.uiManager.renderTabContent('analysis', () => window.analysisTab.render(this.currentCohortData, window.t2CriteriaManager.getCurrentCriteria(), window.t2CriteriaManager.getCurrentLogic(), window.state.getAnalysisTableSort(), cohort, window.bruteForceManager.isWorkerAvailable(), this.allPublicationStats[cohort], allBruteForceResults)); break;
-            case 'statistics': window.uiManager.renderTabContent('statistics', () => window.statisticsTab.render(this.processedData, criteria, logic, window.state.getStatsLayout(), window.state.getStatsCohort1(), window.state.getStatsCohort2(), cohort)); break;
-            case 'comparison': window.uiManager.renderTabContent('comparison', () => window.comparisonTab.render(window.state.getComparisonView(), currentComparisonData, window.state.getComparisonStudyId(), cohort, this.processedData, criteria, logic)); break;
+            case 'analysis': window.uiManager.renderTabContent('analysis', () => window.analysisTab.render(this.currentCohortData, window.t2CriteriaManager.getCurrentCriteria(), window.t2CriteriaManager.getCurrentLogic(), window.state.getAnalysisTableSort(), activeCohort, window.bruteForceManager.isWorkerAvailable(), this.allPublicationStats[activeCohort], allBruteForceResults)); break;
+            case 'statistics': window.uiManager.renderTabContent('statistics', () => window.statisticsTab.render(this.processedData, criteria, logic, window.state.getStatsLayout(), window.state.getStatsCohort1(), window.state.getStatsCohort2(), globalCohort)); break;
+            case 'comparison': window.uiManager.renderTabContent('comparison', () => window.comparisonTab.render(window.state.getComparisonView(), currentComparisonData, window.state.getComparisonStudyId(), globalCohort, this.processedData, criteria, logic)); break;
             case 'publication': window.uiManager.renderTabContent('publication', () => window.publicationTab.render(publicationData, window.state.getPublicationSection())); break;
-            case 'export': window.uiManager.renderTabContent('export', () => window.exportTab.render(cohort)); break;
         }
     }
 
     handleCohortChange(newCohort, source = "user") {
         if (window.state.setCurrentCohort(newCohort)) {
+            window.state.clearAnalysisContext();
             this.refreshCurrentTab();
             if (source === "user") {
                 window.uiManager.showToast(`Cohort '${getCohortDisplayName(newCohort)}' selected.`, 'info');
@@ -296,6 +318,7 @@ class App {
     applyAndRefreshAll() {
         window.t2CriteriaManager.applyCriteria();
         this.recalculateAllStats();
+        this._preRenderPublicationTab();
         this.refreshCurrentTab();
         window.uiManager.markCriteriaSavedIndicator(false);
         window.uiManager.showToast('T2 criteria applied & saved.', 'success');
@@ -303,7 +326,7 @@ class App {
 
     startBruteForceAnalysis() {
         const metric = document.getElementById('brute-force-metric')?.value || 'Balanced Accuracy';
-        const cohortId = window.state.getCurrentCohort();
+        const cohortId = window.state.getActiveCohortId();
         const dataForWorker = window.dataProcessor.filterDataByCohort(this.processedData, cohortId).map(p => ({
             id: p.id, nStatus: p.nStatus, t2Nodes: p.t2Nodes
         }));
@@ -316,7 +339,7 @@ class App {
     }
 
     applyBestBruteForceCriteria(metric, cohortId = null) {
-        const targetCohort = cohortId || window.state.getCurrentCohort();
+        const targetCohort = cohortId || window.state.getActiveCohortId();
         const bfResult = window.bruteForceManager.getResultsForCohortAndMetric(targetCohort, metric);
         
         if (!bfResult?.bestResult?.criteria) {
@@ -344,48 +367,37 @@ class App {
         window.uiManager.showToast(`Best brute-force criteria for '${metric}' applied & saved.`, 'success');
     }
 
-    showBruteForceDetails(metric) {
-        const cohortId = window.state.getCurrentCohort();
-        const resultData = window.bruteForceManager.getResultsForCohortAndMetric(cohortId, metric);
+    showBruteForceDetails(metric, cohortId = null) {
+        const targetCohortId = cohortId || window.state.getActiveCohortId();
+        const resultData = window.bruteForceManager.getResultsForCohortAndMetric(targetCohortId, metric);
         window.uiManager.updateElementHTML('brute-force-modal-body', window.uiComponents.createBruteForceModalContent(resultData));
+        const exportButton = document.getElementById('export-bruteforce-modal-txt');
+        if(exportButton) {
+            if (resultData) {
+                exportButton.dataset.metric = metric;
+                exportButton.disabled = false;
+            } else {
+                exportButton.disabled = true;
+            }
+        }
         window.uiManager.initializeTooltips(document.getElementById('brute-force-modal-body'));
         if (this.bruteForceModal) {
             this.bruteForceModal.show();
         }
     }
-    
-    handleSingleExport(exportType) {
-        const cohort = window.state.getCurrentCohort();
-        const data = this.processedData;
-        const bfResults = window.bruteForceManager.getAllResults();
-        const criteria = window.t2CriteriaManager.getAppliedCriteria();
-        const logic = window.t2CriteriaManager.getAppliedLogic();
-        
-        const currentFilteredData = window.dataProcessor.filterDataByCohort(data, cohort);
-        const evaluatedCurrentFilteredData = window.t2CriteriaManager.evaluateDataset(currentFilteredData, criteria, logic);
-        
-        const exporter = {
-            'stats-csv': () => window.exportService.exportStatistikCSV(this.allPublicationStats[cohort], cohort, criteria, logic),
-            'bruteforce-txt': () => {
-                const metric = document.getElementById('brute-force-metric')?.value;
-                window.exportService.exportBruteForceReport(bfResults[cohort] ? bfResults[cohort][metric] : null)
-            },
-            'datatable-md': () => window.exportService.exportTableMarkdown(currentFilteredData, 'daten', cohort),
-            'analysistable-md': () => window.exportService.exportTableMarkdown(evaluatedCurrentFilteredData, 'auswertung', cohort, criteria, logic),
-            'filtered-data-csv': () => window.exportService.exportFilteredDataCSV(currentFilteredData, cohort),
-            'comprehensive-report-html': () => window.exportService.exportComprehensiveReportHTML(data, bfResults, cohort, criteria, logic)
-        };
 
-        if (exporter[exportType]) {
-            exporter[exportType]();
-        } else {
-            window.uiManager.showToast(`Export type '${exportType}' not recognized.`, 'warning');
+    handlePublicationSectionChange(sectionId) {
+        if (window.state.setPublicationSection(sectionId)) {
+            this.refreshCurrentTab();
         }
     }
 
     refreshCurrentTab() {
         this.filterAndPrepareData();
-        this.recalculateAllStats();
+        if (window.state.getActiveTabId() !== 'publication') {
+            this.recalculateAllStats();
+            this._preRenderPublicationTab();
+        }
         this.renderCurrentTab();
         this.updateUI();
     }
@@ -393,4 +405,5 @@ class App {
     getRawData() { return this.rawData; }
     getProcessedData() { return this.processedData; }
     getComparisonDataForExport() { return this.comparisonDataForExport; }
+    getPreRenderedPublicationHTML() { return this.preRenderedPublicationHTML; }
 }
