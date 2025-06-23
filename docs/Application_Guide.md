@@ -1,4 +1,4 @@
-# Nodal Staging Analysis Tool: Application Guide (Version 4.2.0)
+# Nodal Staging Analysis Tool: Application Guide (Version 4.3.0)
 
 ## 1. Introduction
 
@@ -9,7 +9,7 @@ The scientific focus of the application is the rigorous evaluation of the innova
 * Established, literature-based T2-weighted (T2w) morphological criteria.
 * Data-driven, cohort-optimized T2w criteria, determined via an integrated brute-force analysis.
 
-The application supports the entire research workflow, from data exploration and detailed statistical analysis to the generation of manuscript drafts formatted according to the publication requirements of medical imaging journals (e.g., *Radiology*).
+The application supports the entire research workflow, from data exploration and detailed statistical analysis to the generation of a manuscript draft formatted according to the publication requirements of a high-impact medical imaging journal (*Radiology*).
 
 ### 1.2. Important Notice: Research Instrument
 **Disclaimer:** This application is designed exclusively for **research and educational purposes**. The data, statistics, and generated texts are based on a static, pseudonymized research dataset. **The results must not be used for clinical diagnostics, direct treatment decisions, or other primary medical applications.** The scientific and clinical responsibility for the interpretation and use of the generated results lies solely with the user.
@@ -32,9 +32,9 @@ The application utilizes a dual-context system to ensure both user flexibility a
 
 * **Global Cohort Selection:** Three buttons in the header (`Overall`, `Surgery alone`, `Neoadjuvant therapy`) filter the dataset for general exploration in the `Data`, `Analysis`, and `Statistics` tabs. This selection represents the primary, user-defined view of the data.
 
-* **Analysis Context (Methodological Lock):** For specific, scientifically valid comparisons, the application automatically activates a temporary **Analysis Context**. This is a core feature of the `Comparison` tab.
+* **Analysis Context (Methodological Lock):** For specific, scientifically valid comparisons, the application automatically activates a temporary **Analysis Context**. This is a core feature of the `Comparison` tab and parts of the `Statistics` tab.
     * **Activation:** When a literature-based T2 criterion is selected for comparison (e.g., ESGAR 2016), the application automatically sets the context to the methodologically correct patient cohort (e.g., "Surgery alone").
-    * **Effect:** While an Analysis Context is active, the Global Cohort Selection buttons in the header are **disabled (locked)** to prevent invalid comparisons. All statistical calculations and charts within that context (e.g., the comparison table and chart) are performed exclusively on the locked cohort. A banner within the tab clearly indicates which context is active.
+    * **Effect:** While an Analysis Context is active, the Global Cohort Selection buttons in the header are **disabled (locked)** to prevent invalid comparisons. All statistical calculations and charts within that context are performed exclusively on the locked cohort. A banner within the tab clearly indicates which context is active.
     * **Deactivation:** The context is automatically cleared when you switch to another main tab (like `Data` or `Publication`) or change the comparison view back to a non-context-specific option.
     * **Transparency:** The UI provides clear feedback to inform you which context is currently active, ensuring you are always aware of the exact patient group being analyzed.
 
@@ -62,13 +62,12 @@ The application is divided into five main modules, accessible via the navigation
     * **Dashboard:** Provides a graphical overview of age, sex, therapy, and status marker distributions in the current global cohort.
     * **"Define T2 Malignancy Criteria" Card:** The interactive tool for defining T2 criteria.
         * **Criteria Configuration:** Features (size, shape, etc.) can be enabled/disabled via checkboxes, and their values (e.g., size threshold) can be adjusted via sliders or button clicks.
-        * **Logic Switch:** Toggles the logical combination of active criteria between **AND** (all criteria must be met) and **OR** (at least one criterion must be met).
+        * **Logic Switch:** Toggles the logical combination of active criteria between **AND** and **OR**.
         * **"Apply & Save" Button:** Applies the configured T2 criteria globally to the entire application and saves them for future sessions. An unsaved state is indicated by a dashed card border.
     * **"Diagnostic Performance (Current T2)" Card:** Displays the diagnostic performance (Sensitivity, Specificity, PPV, NPV, Accuracy, AUC) of the currently defined (but not yet necessarily applied) T2 settings in real-time.
     * **Brute-Force Optimization:** This section is twofold:
         1.  **"Criteria Optimization (Brute-Force)" Card (Runner):** A new optimization analysis can be started here. The user selects a target metric (e.g., "Balanced Accuracy") and starts the process. A progress bar indicates the status. After completion, the best-found criteria can be applied directly ("Apply Best") or the top-10 results can be viewed in a detail window ("Top 10").
-        2.  **"Brute-Force Optima (Saved Results)" Card (Overview):** This table provides a persistent overview of the **best saved results** for each cohort and each target metric that has already been run. This data is preserved even after closing the browser.
-    * **Analysis Table:** Visualizes the impact of the *currently applied* criteria at the patient level. Expandable rows show which criteria are met for each individual lymph node.
+        2.  **"Brute-Force Optima (Saved Results)" Card (Overview):** This table provides a persistent overview of the **best saved results** for each cohort and each target metric that has already been run. Each result can be loaded into the "Define T2 Malignancy Criteria" panel by clicking its "Apply" button, streamlining the workflow.
 
 ### 3.3. Statistics Tab
 * **Purpose:** Provides a formal and comprehensive statistical evaluation of diagnostic performance.
@@ -79,7 +78,7 @@ The application is divided into five main modules, accessible via the navigation
         * **Diagnostic Performance:** Detailed metrics with 95% CIs for both the Avocado Sign and the applied T2 criteria.
         * **Statistical Comparison:** McNemar and DeLong tests comparing AS vs. applied T2 criteria.
         * **Association Analysis:** Odds Ratios and Risk Differences for individual features.
-        * **Added Diagnostic Value (in 'Surgery alone' cohort):** A special analysis showing how well the Avocado Sign performs in cases where the ESGAR 2016 T2 criteria failed.
+        * **Added Diagnostic Value:** When viewing the 'Surgery alone' cohort, this special analysis card shows how well the Avocado Sign performs in cases where the standard ESGAR 2016 T2 criteria failed.
     * **Criteria Comparison Table (in "Single View" only):** This table compares the performance of the Avocado Sign against the applied T2 criteria and predefined criteria sets from the literature. For literature-based criteria, the application automatically pulls the performance data calculated on the **methodologically correct cohort**, and transparently labels this in the table (e.g., "ESGAR 2016 (Surgery alone, n=29)"), even if it differs from the currently selected Global Cohort.
 
 ### 3.4. Comparison Tab
@@ -93,9 +92,9 @@ The application is divided into five main modules, accessible via the navigation
 ### 3.5. Publication Tab
 * **Purpose:** An assistant for creating a scientific manuscript according to the style guidelines of the journal *Radiology*.
 * **Components & Workflow:**
-    * **Title Page & Outline:** The view starts with a *Radiology*-compliant title page (including Key Results and Abbreviations) and is clearly structured into main sections (Abstract, Introduction, etc.), which are navigable via a sticky sidebar.
+    * **Title Page & Outline:** The view starts with a *Radiology*-compliant title page (including Key Results and an auto-generated Abbreviations list) and is clearly structured into main sections (Abstract, Introduction, etc.), which are navigable via a sticky sidebar.
     * **Dynamic Text Generation:** The application generates professionally formulated, English-language text for each section, dynamically integrating the **latest analysis results** (from comparisons with literature and brute-force criteria) and correctly formatting all values and citations (e.g., *P* < .001).
-    * **Embedded Content:** Tables and figures are generated directly within the text flow, including a rendered flowchart in the results section and a STARD checklist.
+    * **Embedded Content:** Tables and figures are generated directly within the text flow, including a rendered flowchart in the results section and a STARD checklist at the end.
     * **BF Metric Selection:** A dropdown menu allows the user to select which brute-force optimization result should be cited in the text.
     * **Word Count Monitoring:** The navigation sidebar displays a live word/item count for each section with a defined limit, providing color-coded feedback (green/orange/red) to aid in adhering to journal guidelines.
 
@@ -183,3 +182,4 @@ The application follows a modular architecture that separates data logic, servic
 * **PPV:** Positive Predictive Value
 * **RD:** Risk Difference
 * **T2w:** T2-weighted
+* **TNT:** Total Neoadjuvant Therapy

@@ -1,4 +1,4 @@
-# Nodal Staging Analysis Tool (v4.2.0)
+# Nodal Staging Analysis Tool (v4.3.0)
 
 This repository contains the source code for the "Nodal Staging: Avocado Sign vs. T2 Criteria" analysis tool, a client-side web application for advanced research in medical imaging.
 
@@ -36,14 +36,7 @@ No installation or server-side setup is required. The application runs entirely 
 ## 3. Technical Overview
 
 ### 3.1. Application Architecture
-The application follows a modular architecture that separates data logic, service functions, and UI rendering:
-
-1.  **Event Handler (`event_manager.js`):** Captures user interactions and dispatches them to the App Controller.
-2.  **State Manager (`state.js`):** Manages the global application state (e.g., active cohort, sort order) and a temporary `analysisContext` to ensure methodologically sound comparisons.
-3.  **App Controller (`main.js`):** Orchestrates the data flow. Upon state changes, it triggers data filtering, recalculation of all statistics, and re-rendering of the UI, passing the correct data context to each module.
-4.  **Core Modules (`core/`):** Process the raw data (`data_processor.js`), manage interactive T2 criteria (`t2_criteria_manager.js`), and manage literature-based criteria (`study_criteria_manager.js`).
-5.  **Service Layer (`services/`):** Contains the complex business logic for statistics, brute-force optimization, and publication generation. The `publication_service.js` module specifically orchestrates a suite of sub-modules within `services/publication_service/` to assemble the manuscript.
-6.  **UI Layer (`ui/`):** Responsible for rendering all data and components based on the data provided by the App Controller.
+The application follows a modular architecture that separates data logic, service functions, and UI rendering. It consists of a state manager, an event handler, a central app controller, core data processing modules, a service layer for complex calculations, and a UI layer for rendering components and tabs.
 
 ### 3.2. Directory Structure
 <details>
@@ -69,30 +62,15 @@ The application follows a modular architecture that separates data logic, servic
 │   │   └── t2\_criteria\_manager.js
 │   ├── services/
 │   │   ├── publication\_service/
-│   │   │   ├── abstract\_generator.js
-│   │   │   ├── discussion\_generator.js
-│   │   │   ├── introduction\_generator.js
-│   │   │   ├── methods\_generator.js
-│   │   │   ├── publication\_helpers.js
-│   │   │   ├── references\_generator.js
-│   │   │   ├── results\_generator.js
-│   │   │   ├── stard\_generator.js
-│   │   │   └── title\_page\_generator.js
+│   │   │   ├── ... (text and table generators)
 │   │   ├── brute\_force\_manager.js
 │   │   ├── publication\_service.js
 │   │   └── statistics\_service.js
 │   ├── ui/
 │   │   ├── components/
-│   │   │   ├── chart\_renderer.js
-│   │   │   ├── flowchart\_renderer.js
-│   │   │   ├── table\_renderer.js
-│   │   │   └── ui\_components.js
+│   │   │   ├── ... (reusable UI components)
 │   │   ├── tabs/
-│   │   │   ├── analysis\_tab.js
-│   │   │   ├── comparison\_tab.js
-│   │   │   ├── data\_tab.js
-│   │   │   ├── publication\_tab.js
-│   │   │   └── statistics\_tab.js
+│   │   │   ├── ... (logic for each main tab)
 │   │   ├── event\_manager.js
 │   │   └── ui\_manager.js
 │   ├── config.js
@@ -109,11 +87,9 @@ The application follows a modular architecture that separates data logic, servic
 ### 3.3. Glossary
 * **AS:** Avocado Sign
 * **AUC:** Area Under the Curve
-* **BF:** Brute-Force
 * **CI:** Confidence Interval
 * **nCRT:** Neoadjuvant Chemoradiotherapy
 * **NPV:** Negative Predictive Value
-* **OR:** Odds Ratio
 * **PPV:** Positive Predictive Value
-* **RD:** Risk Difference
 * **T2w:** T2-weighted
+* **TNT:** Total Neoadjuvant Therapy
