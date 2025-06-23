@@ -475,6 +475,54 @@ window.uiComponents = (() => {
             </div>`;
     }
 
+    function createExportTabContentHTML() {
+        const exportText = window.APP_CONFIG.UI_TEXTS.exportTab;
+        return `
+            <div class="p-4">
+                <h3 class="mb-4">Export Publication Content</h3>
+                <p class="text-muted mb-4">Generate exportable files from the current publication content and charts. Please ensure you have navigated through the "Publication" tab first to fully render all content before exporting.</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body d-flex flex-column align-items-center justify-content-center p-4">
+                                <i class="fas fa-file-alt fa-3x mb-3 text-primary"></i>
+                                <h5 class="card-title text-center">${exportText.exportManuscript}</h5>
+                                <p class="card-text text-center small text-muted">Exports the complete manuscript (text, tables, and figures as text descriptions) in Markdown format.</p>
+                                <button class="btn btn-primary mt-3" id="btn-export-manuscript-md">
+                                    <i class="fas fa-file-download me-2"></i> Download Markdown
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body d-flex flex-column align-items-center justify-content-center p-4">
+                                <i class="fas fa-table fa-3x mb-3 text-success"></i>
+                                <h5 class="card-title text-center">${exportText.exportTables}</h5>
+                                <p class="card-text text-center small text-muted">Extracts and exports all tables from the manuscript as separate Markdown files.</p>
+                                <button class="btn btn-success mt-3" id="btn-export-tables-md">
+                                    <i class="fas fa-file-csv me-2"></i> Download Tables
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body d-flex flex-column align-items-center justify-content-center p-4">
+                                <i class="fas fa-chart-area fa-3x mb-3 text-info"></i>
+                                <h5 class="card-title text-center">${exportText.exportCharts}</h5>
+                                <p class="card-text text-center small text-muted">Exports all generated charts (ROC, Bar, Pie, Histogram, Flowchart) as individual SVG files.</p>
+                                <button class="btn btn-info mt-3" id="btn-export-charts-svg">
+                                    <i class="fas fa-chart-pie me-2"></i> Download Charts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     return Object.freeze({
         createDashboardCard,
         createT2CriteriaControls,
@@ -484,6 +532,7 @@ window.uiComponents = (() => {
         createBruteForceOverviewTableHTML,
         createBruteForceRunnerCardHTML,
         createAnalysisContextBannerHTML,
-        createAddedValueCardHTML
+        createAddedValueCardHTML,
+        createExportTabContentHTML
     });
 })();

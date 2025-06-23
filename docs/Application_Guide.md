@@ -24,7 +24,7 @@ The user interface is designed to support an intuitive and efficient scientific 
 
 ### 2.1. Application Layout
 * **Header:** A fixed header at the top of the page contains the application title, a "Quick Guide" button, and the global cohort selection controls.
-* **Navigation Bar (Tabs):** A horizontal tab navigation bar is positioned below the header, allowing for quick switching between the five main modules of the application.
+* **Navigation Bar (Tabs):** A horizontal tab navigation bar is positioned below the header, allowing for quick switching between the six main modules of the application.
 * **Content Area:** The central workspace where the specific content and tools of the currently active tab are displayed.
 
 ### 2.2. Global Cohort Selection vs. Analysis Context
@@ -46,7 +46,7 @@ This system ensures that direct statistical tests (like DeLong or McNemar) are a
 
 ## 3. The Application Modules in Detail (Tabs)
 
-The application is divided into five main modules, accessible via the navigation bar.
+The application is divided into six main modules, accessible via the navigation bar.
 
 ### 3.1. Data Tab
 * **Purpose:** To display and explore the underlying patient dataset based on the **Global Cohort Selection**.
@@ -98,6 +98,14 @@ The application is divided into five main modules, accessible via the navigation
     * **BF Metric Selection:** A dropdown menu allows the user to select which brute-force optimization result should be cited in the text.
     * **Word Count Monitoring:** The navigation sidebar displays a live word/item count for each section with a defined limit, providing color-coded feedback (green/orange/red) to aid in adhering to journal guidelines.
 
+### 3.6. Export Tab
+* **Purpose:** To provide functionalities for exporting various components of the generated publication and analysis results.
+* **Components & Workflow:**
+    * **"Export Full Manuscript as Markdown" Button:** Initiates the download of the entire generated manuscript, including all text and formatted tables (but figures as text descriptions, as Markdown does not embed images directly), as a single Markdown (`.md`) file.
+    * **"Export Tables as Markdown" Button:** Extracts all tables embedded within the generated manuscript content, converts each into Markdown table format, and downloads them as individual Markdown (`.md`) files. Each file is named based on its table caption.
+    * **"Export Charts as SVG" Button:** Collects all dynamically rendered charts (e.g., histograms, pie charts, bar charts, ROC curves, flowcharts) from across the application, extracts their underlying SVG (Scalable Vector Graphics) code, and downloads each as a separate SVG (`.svg`) file. These files are ideal for high-quality graphics in publications.
+    * **Preparation for Export:** For optimal results, it is recommended to visit the "Publication" tab and other relevant tabs (Analysis, Statistics, Comparison) at least once before initiating an export from this tab, as charts and some text elements are dynamically rendered upon tab activation. The system attempts to ensure data readiness, but a prior rendering helps guarantee all visual elements are in the DOM for extraction.
+
 ## 4. Technical Overview
 
 ### 4.1. Application Architecture
@@ -105,10 +113,10 @@ The application follows a modular architecture that separates data logic, servic
 
 1.  **Event Handler (`event_manager.js`):** Captures user interactions and dispatches them to the App Controller.
 2.  **State Manager (`state.js`):** Manages the global application state (e.g., active cohort, sort order) and a temporary `analysisContext` to ensure methodologically sound comparisons.
-3.  **App Controller (`main.js`):** Orchestrates the data flow. Upon state changes, it triggers data filtering, recalculation of all statistics, and re-rendering of the UI, passing the correct data context to each module.
+3.  **App Controller (`main.js`):** Orchestrates the data flow. Upon state changes, it triggers data filtering, recalculation of all statistics, and re-rendering of the UI, passing the correct data context to each module. It also houses the high-level export functions that interact with the `exportService`.
 4.  **Core Modules (`core/`):** Process the raw data (`data_processor.js`), manage interactive T2 criteria (`t2_criteria_manager.js`), and manage literature-based criteria (`study_criteria_manager.js`).
-5.  **Service Layer (`services/`):** Contains the complex business logic for statistics, brute-force optimization, and publication generation. The `publication_service.js` module specifically orchestrates a suite of sub-modules within `services/publication_service/` to assemble the manuscript.
-6.  **UI Layer (`ui/`):** Responsible for rendering all data and components based on the data provided by the App Controller.
+5.  **Service Layer (`services/`):** Contains the complex business logic for statistics (`statistics_service.js`), brute-force optimization (`brute_force_manager.js`), and publication generation (`publication_service.js` which orchestrates sub-modules like `abstract_generator.js`, `methods_generator.js`, `results_generator.js`, `discussion_generator.js`, `references_generator.js`, `stard_generator.js`, `title_page_generator.js`, `publication_helpers.js`). Crucially, the `export_service.js` module provides the robust HTML to Markdown and SVG extraction capabilities.
+6.  **UI Layer (`ui/`):** Responsible for rendering all data and components based on the data provided by the App Controller. This includes reusable components (`components/` like `ui_components.js`, `table_renderer.js`, `chart_renderer.js`, `flowchart_renderer.js`) and tab-specific rendering logic (`tabs/` like `data_tab.js`, `analysis_tab.js`, `statistics_tab.js`, `comparison_tab.js`, `publication_tab.js`, and `export_tab.js`).
 
 ### 4.2. Directory Structure
 <details>
@@ -122,8 +130,34 @@ The application follows a modular architecture that separates data logic, servic
 ├── data/
 │   └── data.js
 ├── docs/
-│   ├── ... (summary files)
-│   └── Application\_Guide.md
+│   ├── ACR\_Appropriateness\_Criteria\_2021\_summary.txt
+│   ├── Al-Sukhni\_2012\_summary.txt
+│   ├── Application\_Guide.md
+│   ├── Barbaro\_2024\_summary.txt
+│   ├── Bates\_2022\_summary.txt
+│   ├── Beets-Tan\_2018\_summary.txt
+│   ├── Borgheresi\_2022\_summary.txt
+│   ├── Garcia-Aguilar\_2022\_summary.txt
+│   ├── Hao\_2025\_summary.txt
+│   ├── Heijnen\_2016\_summary.txt
+│   ├── Horvat\_2019\_summary.txt
+│   ├── Horvat\_2023\_summary.txt
+│   ├── Kim\_2019\_summary.txt
+│   ├── Koh\_2008\_summary.txt
+│   ├── Kreis\_2021\_summary.txt
+│   ├── Lambregts\_2012\_summary.txt
+│   ├── Lord\_2019\_summary.txt
+│   ├── Lurz\_Schaefer\_AvocadoSign\_2025.pdf.txt
+│   ├── Lurz\_Schaefer\_AvocadoSign\_2025\_summary.txt
+│   ├── Pangarkar\_2021\_summary.txt
+│   ├── Radiology\_Publication\_Instructions\_for\_Authors.md
+│   ├── Radiology\_Scientific\_Style\_Guide.md
+│   ├── Rutegard\_2025\_summary.txt
+│   ├── Sauer\_2004\_summary.txt
+│   ├── Schrag\_2023\_summary.txt
+│   ├── Stelzner\_2022\_summary.txt
+│   ├── Zhang\_2023\_summary.txt
+│   └── Zhuang\_2021\_summary.txt
 ├── js/
 │   ├── app/
 │   │   ├── main.js
@@ -144,6 +178,7 @@ The application follows a modular architecture that separates data logic, servic
 │   │   │   ├── stard\_generator.js
 │   │   │   └── title\_page\_generator.js
 │   │   ├── brute\_force\_manager.js
+│   │   ├── export\_service.js
 │   │   ├── publication\_service.js
 │   │   └── statistics\_service.js
 │   ├── ui/
@@ -156,6 +191,7 @@ The application follows a modular architecture that separates data logic, servic
 │   │   │   ├── analysis\_tab.js
 │   │   │   ├── comparison\_tab.js
 │   │   │   ├── data\_tab.js
+│   │   │   ├── export\_tab.js
 │   │   │   ├── publication\_tab.js
 │   │   │   └── statistics\_tab.js
 │   │   ├── event\_manager.js
@@ -181,5 +217,6 @@ The application follows a modular architecture that separates data logic, servic
 * **OR:** Odds Ratio
 * **PPV:** Positive Predictive Value
 * **RD:** Risk Difference
+* **SVG:** Scalable Vector Graphics
 * **T2w:** T2-weighted
 * **TNT:** Total Neoadjuvant Therapy

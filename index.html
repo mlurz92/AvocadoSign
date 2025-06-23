@@ -39,6 +39,7 @@
                 <li class="nav-item" role="presentation"><button class="nav-link" id="statistics-tab" data-bs-toggle="tab" data-bs-target="#statistics-pane" type="button" role="tab"><i class="fas fa-chart-bar fa-fw me-1"></i>Statistics</button></li>
                 <li class="nav-item" role="presentation"><button class="nav-link" id="comparison-tab" data-bs-toggle="tab" data-bs-target="#comparison-pane" type="button" role="tab"><i class="fas fa-chart-line fa-fw me-1"></i>Comparison</button></li>
                 <li class="nav-item" role="presentation"><button class="nav-link active" id="publication-tab" data-bs-toggle="tab" data-bs-target="#publication-pane" type="button" role="tab"><i class="fas fa-feather-alt fa-fw me-1"></i>Publication</button></li>
+                <li class="nav-item" role="presentation"><button class="nav-link" id="export-tab" data-bs-toggle="tab" data-bs-target="#export-pane" type="button" role="tab"><i class="fas fa-download fa-fw me-1"></i>Export</button></li>
             </ul>
         </div>
     </nav>
@@ -50,6 +51,7 @@
             <section class="tab-pane fade" id="statistics-pane" role="tabpanel" aria-labelledby="statistics-tab" tabindex="0"><p class="text-center p-5 text-muted">Loading Statistics...</p></section>
             <section class="tab-pane fade" id="comparison-pane" role="tabpanel" aria-labelledby="comparison-tab" tabindex="0"><p class="text-center p-5 text-muted">Loading Comparison View...</p></section>
             <section class="tab-pane fade show active" id="publication-pane" role="tabpanel" aria-labelledby="publication-tab" tabindex="0"><p class="text-center p-5 text-muted">Loading Publication Tools...</p></section>
+            <section class="tab-pane fade" id="export-pane" role="tabpanel" aria-labelledby="export-tab" tabindex="0"><p class="text-center p-5 text-muted">Loading Export Tools...</p></section>
         </div>
     </main>
 
@@ -115,6 +117,7 @@
 
     <script src="js/services/statistics_service.js"></script>
     <script src="js/services/brute_force_manager.js"></script>
+    <script src="js/services/export_service.js"></script>
     
     <script src="js/services/publication_service/publication_helpers.js"></script>
     <script src="js/services/publication_service/title_page_generator.js"></script>
@@ -137,6 +140,7 @@
     <script src="js/ui/tabs/statistics_tab.js"></script>
     <script src="js/ui/tabs/comparison_tab.js"></script>
     <script src="js/ui/tabs/publication_tab.js"></script>
+    <script src="js/ui/tabs/export_tab.js"></script>
 
     <script src="js/ui/ui_manager.js"></script>
     

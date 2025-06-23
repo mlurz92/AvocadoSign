@@ -90,7 +90,8 @@ window.APP_CONFIG = Object.freeze({
         TOAST_DURATION_MS: 1500,
         TRANSITION_DURATION_MS: 350,
         STICKY_HEADER_OFFSET: '111px',
-        HIDDEN_CHART_CONTAINER_ID: 'hidden-chart-export-container'
+        HIDDEN_CHART_CONTAINER_ID: 'hidden-chart-export-container',
+        EXPORT_DOWNLOAD_DELAY_MS: 100 // Delay before triggering download to allow DOM updates
     }),
     CHART_SETTINGS: Object.freeze({
         DEFAULT_WIDTH: 450,
@@ -153,6 +154,14 @@ window.APP_CONFIG = Object.freeze({
                 references_main: 'References',
                 stard_checklist: 'STARD Checklist'
             }
+        },
+        exportTab: {
+            exportManuscript: 'Export Full Manuscript as Markdown',
+            exportTables: 'Export Tables as Markdown',
+            exportCharts: 'Export Charts as SVG',
+            exportSuccess: 'Export successful!',
+            exportFailed: 'Export failed. Please try again.',
+            exportNotAvailable: 'Export function not available.'
         },
         PUBLICATION_TEXTS: Object.freeze({
             MIM_REGULATORY_STATEMENT: "This secondary analysis of a retrospective, single-institution study was compliant with the Health Insurance Portability and Accountability Act and approved by our institutional review board, which waived the requirement for additional written informed consent.",

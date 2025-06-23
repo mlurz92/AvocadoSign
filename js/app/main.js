@@ -260,6 +260,8 @@ class App {
             window.uiManager.updateComparisonViewUI(window.state.getComparisonView(), window.state.getComparisonStudyId());
         } else if (activeTabId === 'publication') {
             window.uiManager.updatePublicationUI(window.state.getPublicationSection(), window.state.getPublicationBruteForceMetric());
+        } else if (activeTabId === 'export') {
+            window.uiManager.updateExportUI(); // Call a new function to update export specific UI
         }
     }
 
@@ -295,6 +297,7 @@ class App {
             case 'statistics': window.uiManager.renderTabContent('statistics', () => window.statisticsTab.render(this.processedData, criteria, logic, window.state.getStatsLayout(), window.state.getStatsCohort1(), window.state.getStatsCohort2(), globalCohort)); break;
             case 'comparison': window.uiManager.renderTabContent('comparison', () => window.comparisonTab.render(window.state.getComparisonView(), currentComparisonData, window.state.getComparisonStudyId(), globalCohort, this.processedData, criteria, logic)); break;
             case 'publication': window.uiManager.renderTabContent('publication', () => window.publicationTab.render(publicationData, window.state.getPublicationSection())); break;
+            case 'export': window.uiManager.renderTabContent('export', () => window.exportTab.render()); break; // New export tab render call
         }
     }
 
@@ -391,6 +394,39 @@ class App {
         this.updateUI();
     }
     
+    // New export functions
+    exportManuscript() {
+        this._preRenderPublicationTab(); // Ensure the latest publication HTML is generated
+        window.exportService.exportManuscriptAsMarkdown(this.preRenderedPublicationHTML);
+    }
+
+    exportTables() {
+        this._preRenderPublicationTab(); // Ensure the latest publication HTML is generated
+        window.exportService.exportTablesAsMarkdown(this.preRenderedPublicationHTML);
+    }
+
+    exportCharts() {
+        // Collect all chart container IDs that might hold SVGs
+        const chartContainerIds = [
+            'figure-1-flowchart-container',
+            // Dashboard charts from Analysis Tab
+            'chart-dash-age', 'chart-dash-gender', 'chart-dash-therapy', 
+            'chart-dash-status-n', 'chart-dash-status-as', 'chart-dash-status-t2',
+            // ROC chart from Comparison Tab
+            'comp-as-perf-chart',
+            // Comparison bar chart from Comparison Tab
+            'comp-chart-container',
+            // Charts from Statistics Tab
+            'chart-stat-age-0', 'chart-stat-gender-0', // for first cohort in single view/comparison
+            'chart-stat-age-1', 'chart-stat-gender-1'  // for second cohort in comparison
+        ];
+        // Note: Chart rendering functions are generally called on `renderCurrentTab`.
+        // To ensure charts are available for export, the user would typically need to
+        // have visited the respective tabs or ensured charts are rendered by other means.
+        // The export service's `exportChartsAsSvg` attempts to find already rendered SVGs.
+        window.exportService.exportChartsAsSvg(chartContainerIds);
+    }
+
     getRawData() { return this.rawData; }
     getProcessedData() { return this.processedData; }
     getPreRenderedPublicationHTML() { return this.preRenderedPublicationHTML; }

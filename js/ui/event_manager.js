@@ -80,7 +80,10 @@ window.eventManager = (() => {
                  if (metricSelect) app.showBruteForceDetails(metricSelect.value);
             },
             'statistics-toggle-single': () => handleStatsLayoutToggle('einzel'),
-            'statistics-toggle-comparison': () => handleStatsLayoutToggle('vergleich')
+            'statistics-toggle-comparison': () => handleStatsLayoutToggle('vergleich'),
+            'btn-export-manuscript-md': () => app.exportManuscript(),
+            'btn-export-tables-md': () => app.exportTables(),
+            'btn-export-charts-svg': () => app.exportCharts()
         };
 
         if (singleClickActions[button.id]) {

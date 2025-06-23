@@ -16,6 +16,7 @@ This application is a specialized research instrument designed for the in-depth,
 * **Automated Criteria Optimization:** An integrated brute-force algorithm, running in a dedicated Web Worker, to systematically identify the mathematically optimal criteria combination for a user-selected diagnostic metric.
 * **Comprehensive Statistical Analysis:** Automated calculation of all relevant diagnostic performance metrics (Sensitivity, Specificity, PPV, NPV, Accuracy, AUC) including 95% confidence intervals and statistical comparison tests (e.g., DeLong, McNemar).
 * **Publication Assistant:** A dedicated module that generates formatted, English-language text, tables, and figures for a scientific manuscript, precisely adhering to the style guidelines of the journal *Radiology*.
+* **Export Functionality:** Enables export of the full generated manuscript as Markdown, individual tables as Markdown, and all rendered charts as Scalable Vector Graphics (SVG) files.
 
 ### 1.3. Disclaimer: Research Instrument Only
 **This application is designed exclusively for research and educational purposes.** The presented data, statistics, and generated texts are based on a static, pseudonymized research dataset. **The results must not, under any circumstances, be used for clinical diagnosis, direct treatment decisions, or any other primary medical applications.** The scientific and clinical responsibility for the interpretation and use of the generated results lies solely with the user.
@@ -50,8 +51,34 @@ The application follows a modular architecture that separates data logic, servic
 ├── data/
 │   └── data.js
 ├── docs/
-│   ├── ... (summary files)
-│   └── Application\_Guide.md
+│   ├── ACR\_Appropriateness\_Criteria\_2021\_summary.txt
+│   ├── Al-Sukhni\_2012\_summary.txt
+│   ├── Application\_Guide.md
+│   ├── Barbaro\_2024\_summary.txt
+│   ├── Bates\_2022\_summary.txt
+│   ├── Beets-Tan\_2018\_summary.txt
+│   ├── Borgheresi\_2022\_summary.txt
+│   ├── Garcia-Aguilar\_2022\_summary.txt
+│   ├── Hao\_2025\_summary.txt
+│   ├── Heijnen\_2016\_summary.txt
+│   ├── Horvat\_2019\_summary.txt
+│   ├── Horvat\_2023\_summary.txt
+│   ├── Kim\_2019\_summary.txt
+│   ├── Koh\_2008\_summary.txt
+│   ├── Kreis\_2021\_summary.txt
+│   ├── Lambregts\_2012\_summary.txt
+│   ├── Lord\_2019\_summary.txt
+│   ├── Lurz\_Schaefer\_AvocadoSign\_2025.pdf.txt
+│   ├── Lurz\_Schaefer\_AvocadoSign\_2025\_summary.txt
+│   ├── Pangarkar\_2021\_summary.txt
+│   ├── Radiology\_Publication\_Instructions\_for\_Authors.md
+│   ├── Radiology\_Scientific\_Style\_Guide.md
+│   ├── Rutegard\_2025\_summary.txt
+│   ├── Sauer\_2004\_summary.txt
+│   ├── Schrag\_2023\_summary.txt
+│   ├── Stelzner\_2022\_summary.txt
+│   ├── Zhang\_2023\_summary.txt
+│   └── Zhuang\_2021\_summary.txt
 ├── js/
 │   ├── app/
 │   │   ├── main.js
@@ -62,15 +89,32 @@ The application follows a modular architecture that separates data logic, servic
 │   │   └── t2\_criteria\_manager.js
 │   ├── services/
 │   │   ├── publication\_service/
-│   │   │   ├── ... (text and table generators)
+│   │   │   ├── abstract\_generator.js
+│   │   │   ├── discussion\_generator.js
+│   │   │   ├── introduction\_generator.js
+│   │   │   ├── methods\_generator.js
+│   │   │   ├── publication\_helpers.js
+│   │   │   ├── references\_generator.js
+│   │   │   ├── results\_generator.js
+│   │   │   ├── stard\_generator.js
+│   │   │   └── title\_page\_generator.js
 │   │   ├── brute\_force\_manager.js
+│   │   ├── export\_service.js
 │   │   ├── publication\_service.js
 │   │   └── statistics\_service.js
 │   ├── ui/
 │   │   ├── components/
-│   │   │   ├── ... (reusable UI components)
+│   │   │   ├── chart\_renderer.js
+│   │   │   ├── flowchart\_renderer.js
+│   │   │   ├── table\_renderer.js
+│   │   │   └── ui\_components.js
 │   │   ├── tabs/
-│   │   │   ├── ... (logic for each main tab)
+│   │   │   ├── analysis\_tab.js
+│   │   │   ├── comparison\_tab.js
+│   │   │   ├── data\_tab.js
+│   │   │   ├── export\_tab.js
+│   │   │   ├── publication\_tab.js
+│   │   │   └── statistics\_tab.js
 │   │   ├── event\_manager.js
 │   │   └── ui\_manager.js
 │   ├── config.js
@@ -87,9 +131,13 @@ The application follows a modular architecture that separates data logic, servic
 ### 3.3. Glossary
 * **AS:** Avocado Sign
 * **AUC:** Area Under the Curve
+* **BF:** Brute-Force
 * **CI:** Confidence Interval
 * **nCRT:** Neoadjuvant Chemoradiotherapy
 * **NPV:** Negative Predictive Value
+* **OR:** Odds Ratio
 * **PPV:** Positive Predictive Value
+* **RD:** Risk Difference
+* **SVG:** Scalable Vector Graphics
 * **T2w:** T2-weighted
 * **TNT:** Total Neoadjuvant Therapy
