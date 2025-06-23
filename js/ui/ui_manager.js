@@ -151,16 +151,16 @@ window.uiManager = (() => {
                         }
                     });
                     if (subKeyMatched) {
-                        sortIcon.classList.add(sortState.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
                         sortIcon.classList.remove('text-muted', 'opacity-50', 'fa-sort');
+                        sortIcon.classList.add(sortState.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
                         sortIcon.classList.add('text-primary');
                     } else {
                         sortIcon.classList.add('fa-sort', 'text-muted', 'opacity-50');
                         sortIcon.classList.remove('text-primary', 'fa-sort-up', 'fa-sort-down');
                     }
                 } else {
-                    sortIcon.classList.add(sortState.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
                     sortIcon.classList.remove('text-muted', 'opacity-50', 'fa-sort');
+                    sortIcon.classList.add(sortState.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
                     sortIcon.classList.add('text-primary');
                 }
             } else {

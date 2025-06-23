@@ -7,9 +7,13 @@
     --accent-color-rgb: 233, 216, 166;
     --secondary-color: #6c757d;
     --success-color: #2a9d8f;
+    --success-color-rgb: 42, 157, 143;
     --danger-color: #e76f51;
+    --danger-color-rgb: 231, 111, 81;
     --warning-color: #f4a261;
+    --warning-color-rgb: 244, 162, 97;
     --info-color: #94d2bd;
+    --info-color-rgb: 148, 210, 189;
     --text-dark: #212529;
     --text-medium: #6c757d;
     --text-light: #f8f9fa;
@@ -30,6 +34,9 @@
     --nav-height: 50px;
     --sticky-header-offset: 111px;
     --transition-duration: 0.25s;
+    --toast-opacity: 0.85; /* Neue Variable für Toast-Transparenz */
+    --modal-bg-opacity: 0.8; /* Neue Variable für Modal-Hintergrundtransparenz */
+    --modal-backdrop-blur: 10px; /* Stärkerer Blur für Milchglaseffekt */
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -105,7 +112,32 @@ tr[aria-expanded="true"] .row-toggle-icon { transform: rotate(180deg); }
     border-color: var(--warning-color); 
 }
 
-.modal-glass .modal-content { background-color: rgba(255, 255, 255, 0.9); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+/* Toast styling for semitransparent look */
+.toast.bg-info {
+    background-color: rgba(var(--info-color-rgb), var(--toast-opacity)) !important;
+}
+
+.toast.bg-warning {
+    background-color: rgba(var(--warning-color-rgb), var(--toast-opacity)) !important;
+}
+
+.toast.bg-success {
+    background-color: rgba(var(--success-color-rgb), var(--toast-opacity)) !important;
+}
+
+.toast.bg-danger {
+    background-color: rgba(var(--danger-color-rgb), var(--toast-opacity)) !important;
+}
+
+/* Modal styling for semitransparent milky glass look */
+.modal-glass .modal-content { 
+    background-color: rgba(255, 255, 255, var(--modal-bg-opacity)) !important; /* Use new variable for background opacity */
+    backdrop-filter: blur(var(--modal-backdrop-blur)) !important; /* Use new variable for blur strength */
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) !important; /* For Safari support */
+    border: 1px solid rgba(0, 0, 0, 0.1) !important; /* Subtle border */
+    box-shadow: var(--shadow-md); /* Keep existing shadow */
+}
+
 .comp-chart-container { min-height: 280px; }
 .comparison-row .card { height: 100%; }
 

@@ -87,7 +87,7 @@ window.APP_CONFIG = Object.freeze({
         ICON_STROKE_WIDTH: 1.5,
         ICON_COLOR: 'var(--text-dark)',
         TOOLTIP_DELAY: Object.freeze([300, 100]),
-        TOAST_DURATION_MS: 4500,
+        TOAST_DURATION_MS: 1500,
         TRANSITION_DURATION_MS: 350,
         STICKY_HEADER_OFFSET: '111px',
         HIDDEN_CHART_CONTAINER_ID: 'hidden-chart-export-container'
