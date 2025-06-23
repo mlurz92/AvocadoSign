@@ -122,6 +122,10 @@ tr[aria-expanded="true"] .row-toggle-icon { transform: rotate(180deg); }
     margin: 1rem auto;
 }
 
+#figure-2-examples-container {
+    max-width: 800px;
+}
+
 @media (max-width: 1200px) { body { --base-font-size: 13px; } }
 @media (max-width: 991.98px) {
     body { padding-top: 0; }

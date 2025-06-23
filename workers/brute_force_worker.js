@@ -7,7 +7,7 @@ let allResults = [];
 let combinationsTested = 0;
 let totalCombinations = 0;
 let startTime = 0;
-let t2SizeRange = { min: 0.1, max: 15.0, step: 0.1 };
+let t2SizeRange = { min: 0.1, max: 25.0, step: 0.1 };
 const reportIntervalFactor = 200;
 
 function cloneDeep(obj) {
@@ -173,7 +173,7 @@ function generateCriteriaCombinations() {
     }
     
     if (VALUE_OPTIONS.size.length === 0) {
-        VALUE_OPTIONS.size = Array.from({ length: Math.round((15.0 - 1.0)/0.1) + 1 }, (_, i) => 1.0 + i * 0.1);
+        VALUE_OPTIONS.size = Array.from({ length: Math.round((25.0 - 0.1)/0.1) + 1 }, (_, i) => 0.1 + i * 0.1);
     }
     
     const combinations = [];
