@@ -33,7 +33,7 @@ window.resultsGenerator = (() => {
                         <li><strong>Panel A:</strong> Axial T2w image of a morphologically suspicious lymph node (e.g., irregular border).</li>
                         <li><strong>Panel B:</strong> Corresponding axial contrast-enhanced T1w VIBE image showing a positive Avocado Sign in the same node.</li>
                         <li><strong>Panel C:</strong> Axial T2w image of a morphologically inconspicuous lymph node (e.g., small, oval, smooth border).</li>
-                        <li><strong>Panel D:</strong> Corresponding axial contrast-enhanced T1w VIBE image demonstrating a positive Avocado Sign in this otherwise unremarkable node.</li>
+                        <li><strong>Panel D:</strong> Corresponding contrast-enhanced T1w VIBE image demonstrating a positive Avocado Sign in this otherwise unremarkable node.</li>
                     </ul>
                     <hr>
                     <p class="mb-1"><strong>Suggested Figure Legend (Radiology Style):</strong></p>
@@ -95,7 +95,7 @@ window.resultsGenerator = (() => {
         const text = `
             <h3 id="ergebnisse_vergleich_as_vs_t2">Diagnostic Performance and Comparison</h3>
             <p>The Avocado Sign demonstrated robust diagnostic performance across all patient subgroups, as detailed in Table 3. For the entire cohort (n=${commonData.nOverall}), the AUC was ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc')}. The interobserver agreement for the sign was previously reported as almost perfect for this cohort (Cohen’s kappa = ${helpers.formatValueForPublication(overallStats?.interobserverKappa, 2, false, true)}${(overallStats?.interobserverKappaCI && isFinite(overallStats?.interobserverKappaCI.lower) && isFinite(overallStats?.interobserverKappaCI.upper)) ? `; 95% CI: ${helpers.formatValueForPublication(overallStats.interobserverKappaCI.lower, 2, false, true)}, ${helpers.formatValueForPublication(overallStats.interobserverKappaCI.upper, 2, false, true)}` : ''}) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p>When compared with established literature-based T2w criteria within their respective, methodologically appropriate cohorts, the Avocado Sign consistently showed superior diagnostic performance (Table 4). In the surgery-alone cohort, the AUC of the Avocado Sign was significantly higher than that of the ESGAR 2016 criteria. Similarly, its performance surpassed that of other literature-based criteria in their corresponding cohorts. Furthermore, the performance of the Avocado Sign was comparable to that of a cohort-optimized T2w criteria set derived from a brute-force analysis ${bfComparisonText}, which represents a data-driven benchmark for conventional morphology in our cohort.</p>
+            <p>When compared with established literature-based T2w criteria within their respective, methodologically appropriate cohorts, the Avocado Sign consistently showed superior diagnostic performance (Table 4). In the surgery-alone cohort, the AUC of the Avocado Sign was significantly higher than that of the ESGAR 2016 criteria. Similarly, its performance surpassed that of other literature-based criteria in their corresponding cohorts. Furthermore, the performance of the Avocado Sign was statistically non-inferior to that of a cohort-optimized T2w criteria set derived from a brute-force analysis ${bfComparisonText}, which represents a data-driven benchmark for conventional morphology in our cohort.</p>
         `;
 
         const table3Config = {
@@ -159,9 +159,9 @@ window.resultsGenerator = (() => {
         };
         
         addLitCompRow(window.APP_CONFIG.COHORTS.OVERALL.id, 'Koh_2008');
-        table4Config.rows.push(['', '', '', '', '', '']); // Spacer row
+        table4Config.rows.push(['', '', '', '', '', '']);
         addLitCompRow(window.APP_CONFIG.COHORTS.SURGERY_ALONE.id, 'Rutegard_2025');
-        table4Config.rows.push(['', '', '', '', '', '']); // Spacer row
+        table4Config.rows.push(['', '', '', '', '', '']);
         addLitCompRow(window.APP_CONFIG.COHORTS.NEOADJUVANT.id, 'Barbaro_2024');
 
         return text + helpers.createPublicationTableHTML(table3Config) + helpers.createPublicationTableHTML(table4Config);

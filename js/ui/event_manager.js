@@ -32,7 +32,7 @@ window.eventManager = (() => {
         const target = event.target;
         const button = target.closest('button');
 
-        if (button?.dataset.cohort && !button.disabled) {
+        if (button?.dataset.cohort && !button.disabled && !button.dataset.action) {
             app.handleCohortChange(button.dataset.cohort, "user");
             return;
         }

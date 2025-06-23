@@ -8,7 +8,7 @@ window.studyT2CriteriaManager = (() => {
             logic: 'KOMBINIERT',
             applicableCohort: 'surgeryAlone',
             criteria: {
-                size: { active: true }, // Placeholder, logic is custom
+                size: { active: true },
                 shape: { active: true, value: 'round' },
                 border: { active: true, value: 'irregular' },
                 homogeneity: { active: true, value: 'heterogeneous' },
@@ -164,7 +164,7 @@ window.studyT2CriteriaManager = (() => {
         checkResult.shape = hasRoundShape;
         checkResult.border = hasIrregularBorder;
         checkResult.homogeneity = hasHeterogeneousHomogeneity;
-        checkResult.signal = null; // Signal not part of ESGAR criteria
+        checkResult.signal = null;
         checkResult.esgarMorphologyCount = morphologyCount;
 
         if (nodeSize >= 9.0) {
@@ -186,82 +186,43 @@ window.studyT2CriteriaManager = (() => {
         return checkResult;
     }
 
-    function _checkSingleNodeSimple(lymphNode, criteria) {
-        const checkResult = { size: null, shape: null, border: null, homogeneity: null, signal: null };
-        if (!lymphNode || !criteria) return checkResult;
-
-        if (criteria.size?.active) {
-            const threshold = criteria.size.threshold;
-            const nodeSize = lymphNode.size;
-            const condition = criteria.size.condition || '>=';
-            if (typeof nodeSize === 'number' && !isNaN(nodeSize) && typeof threshold === 'number' && !isNaN(threshold)) {
-                switch (condition) {
-                    case '>=': checkResult.size = nodeSize >= threshold; break;
-                    case '>': checkResult.size = nodeSize > threshold; break;
-                    case '<=': checkResult.size = nodeSize <= threshold; break;
-                    case '<': checkResult.size = nodeSize < threshold; break;
-                    case '==': checkResult.size = nodeSize === threshold; break;
-                    default: checkResult.size = false;
-                }
-            } else { checkResult.size = false; }
-        }
-        if (criteria.shape?.active) checkResult.shape = (lymphNode.shape === criteria.shape.value);
-        if (criteria.border?.active) checkResult.border = (lymphNode.border === criteria.border.value);
-        if (criteria.homogeneity?.active) checkResult.homogeneity = (lymphNode.homogeneity === criteria.homogeneity.value);
-        if (criteria.signal?.active) checkResult.signal = (lymphNode.signal !== null && lymphNode.signal === criteria.signal.value);
-
-        return checkResult;
-    }
-
     function evaluatePatientWithStudyCriteria(patient, studyCriteriaSet) {
-        const defaultReturn = { t2Status: null, positiveNodeCount: 0, evaluatedNodes: [] };
-        if (!patient || !studyCriteriaSet) return defaultReturn;
-        
-        const lymphNodes = patient.t2Nodes;
-        const criteria = studyCriteriaSet.criteria;
-        const logic = studyCriteriaSet.logic;
-        const activeKeys = Object.keys(criteria).filter(key => key !== 'logic' && criteria[key]?.active);
-        const criteriaAreActive = activeKeys.length > 0 || logic === 'KOMBINIERT';
-
-        if (!criteriaAreActive) {
+        if (!patient || !studyCriteriaSet) {
             return { t2Status: null, positiveNodeCount: 0, evaluatedNodes: [] };
         }
-
-        if (!Array.isArray(lymphNodes) || lymphNodes.length === 0) {
-            return { t2Status: '-', positiveNodeCount: 0, evaluatedNodes: [] };
+        
+        const logic = studyCriteriaSet.logic;
+        if (logic === 'OR' || logic === 'AND') {
+            return window.t2CriteriaManager.evaluatePatient(patient, studyCriteriaSet.criteria, logic);
         }
 
-        let patientIsPositive = false;
-        let positiveNodeCount = 0;
-        
-        const evaluatedNodes = lymphNodes.map(lk => {
-            if (!lk) return null;
-            let isNodePositive = false;
-            let checkResult = {};
-
-            if (logic === 'KOMBINIERT') {
-                checkResult = _checkSingleNodeESGAR(lk, criteria);
-                isNodePositive = checkResult.isPositive;
-            } else {
-                checkResult = _checkSingleNodeSimple(lk, criteria);
-                if (activeKeys.length > 0) {
-                    isNodePositive = (logic === 'AND')
-                        ? activeKeys.every(key => checkResult[key] === true)
-                        : activeKeys.some(key => checkResult[key] === true);
+        if (logic === 'KOMBINIERT') {
+            const lymphNodes = patient.t2Nodes;
+            if (!Array.isArray(lymphNodes) || lymphNodes.length === 0) {
+                return { t2Status: '-', positiveNodeCount: 0, evaluatedNodes: [] };
+            }
+            
+            let patientIsPositive = false;
+            let positiveNodeCount = 0;
+            const evaluatedNodes = lymphNodes.map(lk => {
+                if (!lk) return null;
+                const checkResult = _checkSingleNodeESGAR(lk, studyCriteriaSet.criteria);
+                const isNodePositive = checkResult.isPositive;
+                if (isNodePositive) {
+                    patientIsPositive = true;
+                    positiveNodeCount++;
                 }
-            }
-            if (isNodePositive) {
-                patientIsPositive = true;
-                positiveNodeCount++;
-            }
-            return { ...lk, isPositive: isNodePositive, checkResult };
-        }).filter(node => node !== null);
-
-        return {
-            t2Status: patientIsPositive ? '+' : '-',
-            positiveNodeCount,
-            evaluatedNodes
-        };
+                return { ...lk, isPositive: isNodePositive, checkResult };
+            }).filter(node => node !== null);
+    
+            return {
+                t2Status: patientIsPositive ? '+' : '-',
+                positiveNodeCount,
+                evaluatedNodes
+            };
+        }
+        
+        return { t2Status: null, positiveNodeCount: 0, evaluatedNodes: [] };
     }
 
     function evaluateDatasetWithStudyCriteria(dataset, studyCriteriaSet) {
