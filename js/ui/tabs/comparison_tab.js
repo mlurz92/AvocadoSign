@@ -17,7 +17,7 @@ window.comparisonTab = (() => {
         const createPerfTableRow = (stats, cohortKey) => {
             const cohortDisplayName = getCohortDisplayName(cohortKey);
             const fCI_p = (m, k) => { 
-                const d = (k === 'auc' || k === 'f1' || k ==='youden' || k === 'balAcc') ? 3 : 1; 
+                const d = (k === 'auc' || k === 'f1' || k ==='youden' || k === 'balAcc') ? 3 : 0; 
                 const p = !(k === 'auc' || k === 'f1' || k ==='youden' || k === 'balAcc'); 
                 return formatCI(m?.value, m?.ci?.lower, m?.ci?.upper, d, p, na); 
             };
@@ -98,7 +98,7 @@ window.comparisonTab = (() => {
             let comparisonTableHTML = `<div class="table-responsive"><table class="table table-sm table-striped small mb-0" id="comp-as-vs-t2-comp-table"><thead class="small"><tr><th>Metric</th><th>AS (Value, 95% CI)</th><th>${t2ShortNameEffective} (Value, 95% CI)</th></tr></thead><tbody>`;
             metrics.forEach(key => {
                 const isRate = !(key === 'f1' || key === 'auc' || key === 'balAcc'); 
-                const digits = (key === 'auc' || key === 'f1' || key === 'balAcc') ? 3 : 1;
+                const digits = (key === 'auc' || key === 'f1' || key === 'balAcc') ? 3 : 0;
                 const valAS = formatCI(performanceAS[key]?.value, performanceAS[key]?.ci?.lower, performanceAS[key]?.ci?.upper, digits, isRate, na_stat);
                 const valT2 = formatCI(performanceT2[key]?.value, performanceT2[key]?.ci?.lower, performanceT2[key]?.ci?.upper, digits, isRate, na_stat);
                 comparisonTableHTML += `<tr><td data-tippy-content="${getDefinitionTooltip(key)}">${metricNames[key]}</td><td data-tippy-content="${getInterpretationTooltip(key, performanceAS[key])}">${valAS}</td><td data-tippy-content="${getInterpretationTooltip(key, performanceT2[key])}">${valT2}</td></tr>`;
@@ -125,7 +125,7 @@ window.comparisonTab = (() => {
                         </div>
                     </div>
                     <div class="col-lg-5 col-xl-5 comparison-col-right d-flex flex-column">
-                         <div class="card mb-3 flex-shrink-0" id="comp-t2-basis-info-card"><div class="card-header card-header-sm">T2 Comparison Basis Details</div><div class="card-body p-2">${comparisonInfoHTML}</div></div>
+                         <div class="card mb-3 flex-shrink-0" id="comp-t2-basis-info-card"><div class="card-header card-header-sm">T2 Criteria Comparison Basis</div><div class="card-body p-2">${comparisonInfoHTML}</div></div>
                          <div class="card mb-3 flex-grow-0">${comparisonTableCardHTML}</div>
                          <div class="card flex-grow-1">${testsCardHTML}</div>
                     </div>

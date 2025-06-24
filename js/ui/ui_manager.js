@@ -159,8 +159,9 @@ window.uiManager = (() => {
                         sortIcon.classList.remove('text-primary', 'fa-sort-up', 'fa-sort-down');
                     }
                 } else {
-                    sortIcon.classList.add('fa-sort', 'text-muted', 'opacity-50');
-                    sortIcon.classList.remove('text-primary', 'fa-sort-up', 'fa-sort-down');
+                     sortIcon.classList.remove('text-muted', 'opacity-50', 'fa-sort');
+                     sortIcon.classList.add(sortState.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+                     sortIcon.classList.add('text-primary');
                 }
             } else {
                 sortIcon.classList.add('fa-sort', 'text-muted', 'opacity-50');
@@ -353,9 +354,6 @@ window.uiManager = (() => {
     }
 
     function updateExportUI() {
-        // This function can be expanded later if the export tab needs dynamic updates
-        // based on app state, e.g., enabling/disabling buttons if content is not ready.
-        // For now, it simply ensures the content is rendered as created by ui_components.js
     }
 
     function showQuickGuide() {
@@ -402,7 +400,7 @@ window.uiManager = (() => {
         updateBruteForceUI,
         updateComparisonViewUI,
         updatePublicationUI,
-        updateExportUI, // Added new function to return object
+        updateExportUI,
         showQuickGuide,
         updateElementHTML,
         highlightElement

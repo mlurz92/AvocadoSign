@@ -91,7 +91,7 @@ window.APP_CONFIG = Object.freeze({
         TRANSITION_DURATION_MS: 350,
         STICKY_HEADER_OFFSET: '111px',
         HIDDEN_CHART_CONTAINER_ID: 'hidden-chart-export-container',
-        EXPORT_DOWNLOAD_DELAY_MS: 100 // Delay before triggering download to allow DOM updates
+        EXPORT_DOWNLOAD_DELAY_MS: 100
     }),
     CHART_SETTINGS: Object.freeze({
         DEFAULT_WIDTH: 450,
@@ -274,8 +274,8 @@ window.APP_CONFIG = Object.freeze({
                 therapy: "Therapy administered before surgery (Neoadjuvant therapy, Surgery alone).",
                 n_as_t2: "Direct status comparison: N (Histopathology reference), AS (Avocado Sign prediction), T2 (current criteria prediction). Click N, AS, or T2 in the column header for sub-sorting.",
                 notes: "Additional clinical or radiological notes on the case, if available.",
-                expandAll: "Expand or collapse the detail view of T2-weighted lymph node features for all patients in the current table view.",
-                expandRow: "Click here or the arrow button to show/hide details on the morphological properties of this patient's T2-weighted lymph nodes. Only available if T2 node data exists."
+                expandAll: "Expand or collapse the detail view of T2 lymph node features for all patients in the current table view.",
+                expandRow: "Click here or the arrow button to show/hide details on the morphological properties of this patient's T2 lymph nodes. Only available if T2 node data exists."
             },
             analysisTab: {
                 nr: "Patient's sequential ID number.",
@@ -285,8 +285,8 @@ window.APP_CONFIG = Object.freeze({
                 n_counts: "Number of pathologically positive (N+) lymph nodes / Total number of histopathologically examined lymph nodes for this patient.",
                 as_counts: "Number of Avocado Sign positive (AS+) lymph nodes / Total number of lymph nodes visible on T1-CE MRI for this patient.",
                 t2_counts: "Number of T2-positive lymph nodes (based on current criteria) / Total number of lymph nodes visible on T2-MRI for this patient.",
-                expandAll: "Expand or collapse the detail view of the evaluated T2-weighted lymph nodes and the fulfilled criteria for all patients in the current table view.",
-                expandRow: "Click here or the arrow button to show/hide the detailed evaluation of this patient's individual T2-weighted lymph nodes according to the currently applied criteria. Fulfilled positive criteria are highlighted."
+                expandAll: "Expand or collapse the detail view of the evaluated T2 lymph nodes and the fulfilled criteria for all patients in the current table view.",
+                expandRow: "Click here or the arrow button to show/hide the detailed evaluation of this patient's individual T2 lymph nodes according to the currently applied criteria. Fulfilled positive criteria are highlighted."
             },
             descriptiveStatistics: {
                 'age': { description: 'Distribution of patient ages in the [COHORT] cohort.' },
@@ -294,15 +294,15 @@ window.APP_CONFIG = Object.freeze({
                 'therapy': { description: 'Distribution of pre-surgical therapy in the [COHORT] cohort.' },
                 'status-n': { description: 'Distribution of final histopathological N-Status in the [COHORT] cohort.' },
                 'status-as': { description: 'Distribution of Avocado Sign status in the [COHORT] cohort.' },
-                'status-t2': { description: 'Distribution of T2-weighted criteria status in the [COHORT] cohort.' },
-                'criteriaComparisonTable': { cardTitle: 'Comparison of diagnostic performance between the Avocado Sign and various T2-weighted criteria sets for the [COHORT] cohort. P-values represent the statistical comparison of each set\'s AUC against the Avocado Sign\'s AUC.' },
+                'status-t2': { description: 'Distribution of T2 criteria status in the [COHORT] cohort.' },
+                'criteriaComparisonTable': { cardTitle: 'Comparison of diagnostic performance between the Avocado Sign and various T2 criteria sets for the [COHORT] cohort. P-values represent the statistical comparison of each set\'s AUC against the Avocado Sign\'s AUC.' },
                 'addedValue': { cardTitle: 'Added Diagnostic Value of AS (vs. ESGAR 2016)' }
             },
             t2Logic: { description: "Logical operator for active T2 criteria: <strong>AND</strong> (A lymph node is positive only if ALL active criteria are met). <strong>OR</strong> (A lymph node is positive if AT LEAST ONE active criterion is met). The choice affects the T2 status calculation." },
             t2Size: { description: "Size criterion (short axis): Lymph nodes with a diameter <strong>greater than or equal to (≥)</strong> the set threshold are considered suspicious. Adjustable range: [MIN] - [MAX] mm (step: [STEP] mm). Enable/disable with checkbox." },
             t2Shape: { description: "Shape criterion: Select which shape ('round' or 'oval') is considered suspicious. Enable/disable with checkbox." },
             t2Border: { description: "Border criterion: Select which border ('sharp' or 'irregular') is considered suspicious. Enable/disable with checkbox." },
-            t2Homogeneity: { description: "Homogeneity criterion: Select whether 'homogeneous' or 'heterogeneous' internal signal on T2w is considered suspicious. Nodes with non-assessable signal (value 'null') never fulfill this criterion. Enable/disable with checkbox." },
+            t2Homogeneity: { description: "Homogeneity criterion: Select whether 'homogeneous' or 'heterogeneous' internal signal on T2 is considered suspicious. Nodes with non-assessable signal (value 'null') never fulfill this criterion. Enable/disable with checkbox." },
             t2Signal: { description: "Signal criterion: Select which T2 signal intensity ('low', 'intermediate', or 'high') relative to surrounding muscle is considered suspicious. Nodes with non-assessable signal (value 'null') never fulfill this criterion. Enable/disable with checkbox." },
             t2Actions: {
                 reset: "Resets the logic and all criteria to their default settings. The changes are not yet applied.",
@@ -362,7 +362,7 @@ window.PUBLICATION_CONFIG = Object.freeze({
             id: 'methoden_main', labelKey: 'methoden_main', countType: 'word', limit: 800, subSections: [
                 { id: 'methoden_studienanlage_ethik', label: 'Study Design and Patients' },
                 { id: 'methoden_mrt_protokoll_akquisition', label: 'MRI Protocol and Image Analysis' },
-                { id: 'methoden_vergleichskriterien_t2', label: 'Comparative T2w Criteria Sets' },
+                { id: 'methoden_vergleichskriterien_t2', label: 'Comparative T2 Criteria Sets' },
                 { id: 'methoden_referenzstandard_histopathologie', label: 'Reference Standard' },
                 { id: 'methoden_statistische_analyse_methoden', label: 'Statistical Analysis' }
             ]

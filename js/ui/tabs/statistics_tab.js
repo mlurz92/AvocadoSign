@@ -11,22 +11,11 @@ window.statisticsTab = (() => {
         const appliedCriteria = window.t2CriteriaManager.getAppliedCriteria();
         const appliedLogic = window.t2CriteriaManager.getAppliedLogic();
         const formattedAppliedT2 = window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true);
+        const tooltips = window.APP_CONFIG.UI_TEXTS.tooltips.descriptiveStatistics;
 
-        const tooltips = {
-            age: "Patient age in years (Median, Min–Max, Mean ± Standard Deviation).",
-            sex: "Distribution of male and female patients.",
-            therapy: "Distribution of treatment approaches before surgery.",
-            nStatus: "Distribution of final histopathological N-Status (N+/N-).",
-            asStatus: "Distribution of Avocado Sign status (AS+/AS-).",
-            t2Status: `Distribution of T2-weighted criteria status (T2+/T2-) based on applied settings: ${formattedAppliedT2}.`,
-            lnCounts_n_total: "Number of histopathologically examined lymph nodes per patient.",
-            lnCounts_n_plus: `Number of pathologically positive lymph nodes per patient, evaluated only in N+ patients (n=${d.nStatus?.plus ?? 0}).`,
-            lnCounts_as_total: "Total number of lymph nodes visible on T1-CE MRI per patient.",
-            lnCounts_as_plus: `Number of Avocado Sign positive lymph nodes per patient, evaluated only in AS+ patients (n=${d.asStatus?.plus ?? 0}).`,
-            lnCounts_t2_total: "Total number of lymph nodes visible on T2-MRI per patient.",
-            lnCounts_t2_plus: `Number of T2-positive lymph nodes (based on applied criteria) per patient, evaluated only in T2+ patients (n=${d.t2Status?.plus ?? 0}).`,
-            chartAge: `Histogram showing the distribution of patient ages in the <strong>${getCohortDisplayName(cohortId)}</strong> cohort.`,
-            chartGender: `Pie chart illustrating the distribution of male and female patients in the <strong>${getCohortDisplayName(cohortId)}</strong> cohort.`
+        const getTooltip = (key, cohortId) => {
+            let content = tooltips[key]?.description || '';
+            return content.replace('[COHORT]', `<strong>${getCohortDisplayName(cohortId)}</strong>`);
         };
 
         return `
@@ -37,12 +26,12 @@ window.statisticsTab = (() => {
                             <caption>Demographics & Status (N=${total})</caption>
                             <thead class="visually-hidden"><tr><th>Metric</th><th>Value</th></tr></thead>
                             <tbody>
-                                <tr data-tippy-content="${tooltips.age}"><td>Age, Median (Min–Max) [Mean ± SD]</td><td>${fv(d.age?.median,1)} (${fv(d.age?.min,0)}–${fv(d.age?.max,0)}) [${fv(d.age?.mean,1)} ± ${fv(d.age?.sd,1)}]</td></tr>
-                                <tr data-tippy-content="${tooltips.sex}"><td>Sex (male / female) (n / %)</td><td>${d.sex?.m ?? 0} / ${d.sex?.f ?? 0} (${fP((d.sex?.m ?? 0) / total, 1)} / ${fP((d.sex?.f ?? 0) / total, 1)})</td></tr>
-                                <tr data-tippy-content="${tooltips.therapy}"><td>Therapy (Surgery alone / Neoadjuvant therapy) (n / %)</td><td>${d.therapy?.surgeryAlone ?? 0} / ${d.therapy?.neoadjuvantTherapy ?? 0} (${fP((d.therapy?.surgeryAlone ?? 0) / total, 1)} / ${fP((d.therapy?.neoadjuvantTherapy ?? 0) / total, 1)})</td></tr>
-                                <tr data-tippy-content="${tooltips.nStatus}"><td>N Status (+ / -) (n / %)</td><td>${d.nStatus?.plus ?? 0} / ${d.nStatus?.minus ?? 0} (${fP((d.nStatus?.plus ?? 0) / total, 1)} / ${fP((d.nStatus?.minus ?? 0) / total, 1)})</td></tr>
-                                <tr data-tippy-content="${tooltips.asStatus}"><td>AS Status (+ / -) (n / %)</td><td>${d.asStatus?.plus ?? 0} / ${d.asStatus?.minus ?? 0} (${fP((d.asStatus?.plus ?? 0) / total, 1)} / ${fP((d.asStatus?.minus ?? 0) / total, 1)})</td></tr>
-                                <tr data-tippy-content="${tooltips.t2Status}"><td>T2 Status (+ / -)</td><td>${d.t2Status?.plus ?? 0} / ${d.t2Status?.minus ?? 0} (${fP((d.t2Status?.plus ?? 0) / total, 1)} / ${fP((d.t2Status?.minus ?? 0) / total, 1)})</td></tr>
+                                <tr data-tippy-content="Patient age in years (Median, Min–Max, Mean ± Standard Deviation)."><td>Age, Median (Min–Max) [Mean ± SD]</td><td>${fv(d.age?.median,1)} (${fv(d.age?.min,0)}–${fv(d.age?.max,0)}) [${fv(d.age?.mean,1)} ± ${fv(d.age?.sd,1)}]</td></tr>
+                                <tr data-tippy-content="Distribution of male and female patients."><td>Sex (male / female) (n / %)</td><td>${d.sex?.m ?? 0} / ${d.sex?.f ?? 0} (${fP((d.sex?.m ?? 0) / total, 1)} / ${fP((d.sex?.f ?? 0) / total, 1)})</td></tr>
+                                <tr data-tippy-content="Distribution of treatment approaches before surgery."><td>Therapy (Surgery alone / Neoadjuvant therapy) (n / %)</td><td>${d.therapy?.surgeryAlone ?? 0} / ${d.therapy?.neoadjuvantTherapy ?? 0} (${fP((d.therapy?.surgeryAlone ?? 0) / total, 1)} / ${fP((d.therapy?.neoadjuvantTherapy ?? 0) / total, 1)})</td></tr>
+                                <tr data-tippy-content="Distribution of final histopathological N-Status (N+/N-)."><td>N Status (+ / -) (n / %)</td><td>${d.nStatus?.plus ?? 0} / ${d.nStatus?.minus ?? 0} (${fP((d.nStatus?.plus ?? 0) / total, 1)} / ${fP((d.nStatus?.minus ?? 0) / total, 1)})</td></tr>
+                                <tr data-tippy-content="Distribution of Avocado Sign status (AS+/AS-)."><td>AS Status (+ / -) (n / %)</td><td>${d.asStatus?.plus ?? 0} / ${d.asStatus?.minus ?? 0} (${fP((d.asStatus?.plus ?? 0) / total, 1)} / ${fP((d.asStatus?.minus ?? 0) / total, 1)})</td></tr>
+                                <tr data-tippy-content="Distribution of T2 criteria status (T2+/T2-) based on applied settings: ${formattedAppliedT2}."><td>T2 Status (+ / -)</td><td>${d.t2Status?.plus ?? 0} / ${d.t2Status?.minus ?? 0} (${fP((d.t2Status?.plus ?? 0) / total, 1)} / ${fP((d.t2Status?.minus ?? 0) / total, 1)})</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -51,20 +40,20 @@ window.statisticsTab = (() => {
                              <caption>Lymph Node Counts (Median (Min–Max) [Mean ± SD])</caption>
                              <thead class="visually-hidden"><tr><th>Metric</th><th>Value</th></tr></thead>
                              <tbody>
-                                <tr data-tippy-content="${tooltips.lnCounts_n_total}"><td>LN N total</td><td>${fLK(d.lnCounts?.n?.total)}</td></tr>
-                                <tr data-tippy-content="${tooltips.lnCounts_n_plus}"><td>LN N+ <sup>*</sup></td><td>${fLK(d.lnCounts?.n?.plus)}</td></tr>
-                                <tr data-tippy-content="${tooltips.lnCounts_as_total}"><td>LN AS total</td><td>${fLK(d.lnCounts?.as?.total)}</td></tr>
-                                <tr data-tippy-content="${tooltips.lnCounts_as_plus}"><td>LN AS+ <sup>**</sup></td><td>${fLK(d.lnCounts?.as?.plus)}</td></tr>
-                                <tr data-tippy-content="${tooltips.lnCounts_t2_total}"><td>LN T2 total</td><td>${fLK(d.lnCounts?.t2?.total)}</td></tr>
-                                <tr data-tippy-content="${tooltips.lnCounts_t2_plus}"><td>LN T2+ <sup>***</sup></td><td>${fLK(d.lnCounts?.t2?.plus)}</td></tr>
+                                <tr data-tippy-content="Number of histopathologically examined lymph nodes per patient."><td>LN N total</td><td>${fLK(d.lnCounts?.n?.total)}</td></tr>
+                                <tr data-tippy-content="Number of pathologically positive lymph nodes per patient, evaluated only in N+ patients (n=${d.nStatus?.plus ?? 0})."><td>LN N+ <sup>*</sup></td><td>${fLK(d.lnCounts?.n?.plus)}</td></tr>
+                                <tr data-tippy-content="Total number of lymph nodes visible on T1-CE MRI per patient."><td>LN AS total</td><td>${fLK(d.lnCounts?.as?.total)}</td></tr>
+                                <tr data-tippy-content="Number of Avocado Sign positive lymph nodes per patient, evaluated only in AS+ patients (n=${d.asStatus?.plus ?? 0})."><td>LN AS+ <sup>**</sup></td><td>${fLK(d.lnCounts?.as?.plus)}</td></tr>
+                                <tr data-tippy-content="Total number of lymph nodes visible on T2-based images per patient."><td>LN T2 total</td><td>${fLK(d.lnCounts?.t2?.total)}</td></tr>
+                                <tr data-tippy-content="Number of T2-positive lymph nodes (based on applied criteria) per patient, evaluated only in T2+ patients (n=${d.t2Status?.plus ?? 0})."><td>LN T2+ <sup>***</sup></td><td>${fLK(d.lnCounts?.t2?.plus)}</td></tr>
                              </tbody>
                         </table>
                      </div>
                     <p class="small text-muted mt-1 mb-0"><sup>*</sup> Only in N+ patients (n=${d.nStatus?.plus ?? 0}); <sup>**</sup> Only in AS+ patients (n=${d.asStatus?.plus ?? 0}); <sup>***</sup> Only in T2+ patients (n=${d.t2Status?.plus ?? 0}).</p>
                 </div>
                 <div class="col-md-6 d-flex flex-column">
-                    <div class="mb-2 flex-grow-1" id="chart-stat-age-${indexSuffix}" data-tippy-content="${tooltips.chartAge}"></div>
-                    <div class="flex-grow-1" id="chart-stat-gender-${indexSuffix}" data-tippy-content="${tooltips.chartGender}"></div>
+                    <div class="mb-2 flex-grow-1" id="chart-stat-age-${indexSuffix}" data-tippy-content="${getTooltip('age', cohortId)}"></div>
+                    <div class="flex-grow-1" id="chart-stat-gender-${indexSuffix}" data-tippy-content="${getTooltip('gender', cohortId)}"></div>
                 </div>
             </div>`;
     }
@@ -86,7 +75,7 @@ window.statisticsTab = (() => {
         const appliedComp = allStats[globalCoh]?.comparisonASvsT2Applied;
         if(appliedPerf) {
             results.push({
-                name: `Applied T2 (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true)})`,
+                name: `Applied T2 Criteria (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true)})`,
                 cohort: getCohortDisplayName(globalCoh),
                 n: allStats[globalCoh]?.descriptive?.patientCount || '?',
                 pValue: appliedComp?.delong?.pValue,
@@ -151,11 +140,11 @@ window.statisticsTab = (() => {
 
             tableHtml += `<tr>
                 <td>${r.name}${cohortInfo}</td>
-                <td>${formatPercent(r.sens?.value, 1, na_stat)}</td>
-                <td>${formatPercent(r.spec?.value, 1, na_stat)}</td>
-                <td>${formatPercent(r.ppv?.value, 1, na_stat)}</td>
-                <td>${formatPercent(r.npv?.value, 1, na_stat)}</td>
-                <td>${formatPercent(r.acc?.value, 1, na_stat)}</td>
+                <td>${formatPercent(r.sens?.value, 0, na_stat)}</td>
+                <td>${formatPercent(r.spec?.value, 0, na_stat)}</td>
+                <td>${formatPercent(r.ppv?.value, 0, na_stat)}</td>
+                <td>${formatPercent(r.npv?.value, 0, na_stat)}</td>
+                <td>${formatPercent(r.acc?.value, 0, na_stat)}</td>
                 <td>${formatNumber(r.auc?.value, 3, na_stat, true)}</td>
                 <td data-tippy-content="${pValueTooltip}">${pValueCellContent}</td>
             </tr>`;
@@ -193,8 +182,8 @@ window.statisticsTab = (() => {
         
         const outerRow = document.createElement('div');
         outerRow.className = 'row g-4';
-        const formattedAppliedT2Short = `Applied T2 (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true)})`;
-        const formattedAppliedT2Long = `Applied T2 (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, false)})`;
+        const formattedAppliedT2Short = `Applied T2 Criteria (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true)})`;
+        const formattedAppliedT2Long = `Applied T2 Criteria (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, false)})`;
 
         cohortIdsToShow.forEach((cohortId, i) => {
             const stats = allCohortStats[cohortId];
@@ -209,7 +198,7 @@ window.statisticsTab = (() => {
 
                 innerContainer.innerHTML += window.uiComponents.createStatisticsCard(`descriptive-stats-${i}`, 'Descriptive Statistics', createDescriptiveStatsContentHTML(stats, i, cohortId), true, 'descriptiveStatistics', cohortId);
 
-                const fCI_p_stat = (m, k) => { const d = (k === 'auc' || k ==='f1' || k==='youden' || k === 'balAcc') ? 3 : 1; const p = !(k === 'auc'||k==='f1'||k==='youden' || k === 'balAcc'); return formatCI(m?.value, m?.ci?.lower, m?.ci?.upper, d, p, na_stat); };
+                const fCI_p_stat = (m, k) => { const d = (k === 'auc' || k ==='f1' || k==='youden' || k === 'balAcc') ? 3 : 0; const p = !(k === 'auc'||k==='f1'||k==='youden' || k === 'balAcc'); return formatCI(m?.value, m?.ci?.lower, m?.ci?.upper, d, p, na_stat); };
                 
                 const createPerfTableHTML = (perfStats) => {
                     if (!perfStats || typeof perfStats.matrix !== 'object') return '<p class="text-muted small p-2">No diagnostic performance data.</p>';
@@ -229,8 +218,8 @@ window.statisticsTab = (() => {
 
                 const createCompTableHTML = (compStats) => {
                     if (!compStats) return '<p class="text-muted small p-2">No comparison data.</p>';
-                    const mcnemarTooltip = getInterpretationTooltip('pValue', {value: compStats.mcnemar?.pValue, testName: 'McNemar'}, { method1: 'AS', method2: formattedAppliedT2Short, metricName: 'Accuracy'});
-                    const delongTooltip = getInterpretationTooltip('pValue', {value: compStats.delong?.pValue, testName: 'DeLong'}, { method1: 'AS', method2: formattedAppliedT2Short, metricName: 'AUC'});
+                    const mcnemarTooltip = getInterpretationTooltip('pValue', {value: compStats.mcnemar?.pValue, testName: 'McNemar'}, { method1: 'AS', method2: 'T2 Criteria', metricName: 'Accuracy'});
+                    const delongTooltip = getInterpretationTooltip('pValue', {value: compStats.delong?.pValue, testName: 'DeLong'}, { method1: 'AS', method2: 'T2 Criteria', metricName: 'AUC'});
                     
                     return `<div class="table-responsive"><table class="table table-sm table-striped small mb-0"><thead><tr>
                         <th data-tippy-content="Statistical test used to compare the two methods.">Test</th>
@@ -286,7 +275,7 @@ window.statisticsTab = (() => {
 
                 innerContainer.innerHTML += window.uiComponents.createStatisticsCard(`performance-as-${i}`, 'Diagnostic Performance: Avocado Sign (vs. N)', createPerfTableHTML(stats.performanceAS), false, null, cohortId);
                 innerContainer.innerHTML += window.uiComponents.createStatisticsCard(`performance-t2-${i}`, `Diagnostic Performance: ${formattedAppliedT2Long} vs. N`, createPerfTableHTML(stats.performanceT2Applied), false, null, cohortId);
-                innerContainer.innerHTML += window.uiComponents.createStatisticsCard(`comparison-as-t2-${i}`, `Statistical Comparison: AS vs. ${formattedAppliedT2Short}`, createCompTableHTML(stats.comparisonASvsT2Applied), false, null, cohortId);
+                innerContainer.innerHTML += window.uiComponents.createStatisticsCard(`comparison-as-t2-${i}`, `Statistical Comparison: AS vs. Applied T2 Criteria`, createCompTableHTML(stats.comparisonASvsT2Applied), false, null, cohortId);
                 innerContainer.innerHTML += window.uiComponents.createStatisticsCard(`associations-${i}`, 'Association with N-Status', createAssocTableHTML(stats.associationsApplied, appliedCriteria), false, null, cohortId);
                 if (cohortId === 'surgeryAlone') {
                     innerContainer.innerHTML += window.uiComponents.createStatisticsCard(`added-value-${i}`, 'Added Diagnostic Value of AS (vs. ESGAR 2016)', addedValueContent, false, 'addedValue', cohortId);

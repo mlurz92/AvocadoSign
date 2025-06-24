@@ -34,6 +34,7 @@ window.uiComponents = (() => {
         const sizeThreshold = initialCriteria.size?.threshold ?? defaultCriteria.size.threshold;
         const { min, max, step } = window.APP_CONFIG.T2_CRITERIA_SETTINGS.SIZE_RANGE;
         const formattedThresholdForInput = formatNumber(sizeThreshold, 1, '5.0', true);
+        const tooltips = window.APP_CONFIG.UI_TEXTS.tooltips;
 
         const createButtonOptions = (key, isChecked, criterionLabel) => {
             const valuesKey = key.toUpperCase() + '_VALUES';
@@ -52,7 +53,7 @@ window.uiComponents = (() => {
 
         const createCriteriaGroup = (key, label, tooltipKey, contentGenerator) => {
             const isChecked = initialCriteria[key]?.active === true;
-            let tooltip = window.APP_CONFIG.UI_TEXTS.tooltips[tooltipKey]?.description || label;
+            let tooltip = tooltips[tooltipKey]?.description || label;
             if (tooltipKey === 't2Size') {
                 tooltip = tooltip.replace('[MIN]', min).replace('[MAX]', max).replace('[STEP]', step);
             }
@@ -72,8 +73,8 @@ window.uiComponents = (() => {
         return `
             <div class="card criteria-card" id="t2-criteria-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Define T2 Malignancy Criteria</span>
-                    <div class="form-check form-switch" data-tippy-content="${window.APP_CONFIG.UI_TEXTS.tooltips.t2Logic.description}">
+                    <span>Define T2 Criteria</span>
+                    <div class="form-check form-switch" data-tippy-content="${tooltips.t2Logic.description}">
                          <label class="form-check-label small me-2" for="t2-logic-switch" id="t2-logic-label-prefix">Logic:</label>
                          <input class="form-check-input" type="checkbox" role="switch" id="t2-logic-switch" ${logicChecked ? 'checked' : ''}>
                          <label class="form-check-label fw-bold" for="t2-logic-switch" id="t2-logic-label">${window.APP_CONFIG.UI_TEXTS.t2LogicDisplayNames[initialLogic] || initialLogic}</label>
@@ -94,10 +95,10 @@ window.uiComponents = (() => {
                         ${createCriteriaGroup('homogeneity', 'Homogeneity', 't2Homogeneity', createButtonOptions)}
                         ${createCriteriaGroup('signal', 'Signal', 't2Signal', createButtonOptions)}
                         <div class="col-12 d-flex justify-content-end align-items-center border-top pt-3 mt-3">
-                            <button class="btn btn-sm btn-outline-secondary me-2" id="btn-reset-criteria" data-tippy-content="${window.APP_CONFIG.UI_TEXTS.tooltips.t2Actions.reset}">
+                            <button class="btn btn-sm btn-outline-secondary me-2" id="btn-reset-criteria" data-tippy-content="${tooltips.t2Actions.reset}">
                                 <i class="fas fa-undo me-1"></i> Reset to Default
                             </button>
-                            <button class="btn btn-sm btn-primary" id="btn-apply-criteria" data-tippy-content="${window.APP_CONFIG.UI_TEXTS.tooltips.t2Actions.apply}">
+                            <button class="btn btn-sm btn-primary" id="btn-apply-criteria" data-tippy-content="${tooltips.t2Actions.apply}">
                                 <i class="fas fa-check me-1"></i> Apply & Save
                             </button>
                         </div>
@@ -291,7 +292,7 @@ window.uiComponents = (() => {
                                             data-action="apply-saved-bf" 
                                             data-cohort="${cohortId}" 
                                             data-metric="${metricName}"
-                                            data-tippy-content="Apply this set of criteria to the 'Define T2 Malignancy Criteria' panel.">
+                                            data-tippy-content="Apply this set of criteria to the 'Define T2 Criteria' panel.">
                                         Apply
                                     </button>
                                 </td>
@@ -434,7 +435,11 @@ window.uiComponents = (() => {
     function createAddedValueCardHTML(addedValueStats, t2SetName) {
         const na = window.APP_CONFIG.NA_PLACEHOLDER;
         const fP = (val, dig = 1) => formatPercent(val, dig, na);
-        const fCI_p = (m, k) => { const d = (k === 'auc' || k === 'f1' || k === 'youden' || k === 'balAcc') ? 3 : 1; const p = !(k === 'auc' || k === 'f1' || k === 'youden' || k === 'balAcc'); return formatCI(m?.value, m?.ci?.lower, m?.ci?.upper, d, p, na); };
+        const fCI_p = (m, k) => { 
+            const d = (k === 'auc' || k === 'f1' || k ==='youden' || k === 'balAcc') ? 3 : 1; 
+            const p = !(k === 'auc' || k === 'f1' || k ==='youden' || k === 'balAcc'); 
+            return formatCI(m?.value, m?.ci?.lower, m?.ci?.upper, d, p, na); 
+        };
         
         const fpData = addedValueStats?.t2FalsePositives;
         const fnData = addedValueStats?.t2FalseNegatives;
@@ -461,14 +466,14 @@ window.uiComponents = (() => {
                         <tr>
                             <td>T2 False Positives (T2+, N-)</td>
                             <td>${fpData.count}</td>
-                            <td data-tippy-content="Of the ${fpData.count} patients incorrectly flagged by T2, the Avocado Sign correctly identified ${fP(fpPerf?.spec?.value, 1)} as negative.">${fCI_p(fpPerf?.spec, 'spec')}</td>
+                            <td data-tippy-content="Of the ${fpData.count} patients incorrectly flagged by T2 criteria, the Avocado Sign correctly identified ${fP(fpPerf?.spec?.value, 1)} as negative.">${fCI_p(fpPerf?.spec, 'spec')}</td>
                             <td>${na}</td>
                         </tr>
                         <tr>
                             <td>T2 False Negatives (T2-, N+)</td>
                             <td>${fnData.count}</td>
                             <td>${na}</td>
-                            <td data-tippy-content="Of the ${fnData.count} patients missed by T2, the Avocado Sign correctly identified ${fP(fnPerf?.sens?.value, 1)} as positive.">${fCI_p(fnPerf?.sens, 'sens')}</td>
+                            <td data-tippy-content="Of the ${fnData.count} patients missed by T2 criteria, the Avocado Sign correctly identified ${fP(fnPerf?.sens?.value, 1)} as positive.">${fCI_p(fnPerf?.sens, 'sens')}</td>
                         </tr>
                     </tbody>
                 </table>

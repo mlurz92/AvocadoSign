@@ -15,7 +15,7 @@ window.resultsGenerator = (() => {
 
         const text = `
             <h3 id="ergebnisse_patientencharakteristika">Patient Characteristics</h3>
-            <p>The study cohort comprised ${helpers.formatValueForPublication(nOverall, 0)} patients (mean age, ${helpers.formatValueForPublication(overallStats?.descriptive?.age?.mean, 1)} years ± ${helpers.formatValueForPublication(overallStats?.descriptive?.age?.sd, 1)} [standard deviation]; ${overallStats?.descriptive?.sex?.m} men). The process of patient enrollment is detailed in the study flowchart (Fig 1). Of the included patients, ${helpers.formatValueForPublication(nSurgeryAlone, 0)} (${helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall}, 'acc', { includeCI: false })}) underwent primary surgery, and ${helpers.formatValueForPublication(nNeoadjuvantTherapy, 0)} (${helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall}, 'acc', { includeCI: false })}) received neoadjuvant chemoradiotherapy. Overall, ${helpers.formatValueForPublication(nPositive, 0)} of ${nOverall} patients (${helpers.formatMetricForPublication({value: nPositive / nOverall}, 'acc', { includeCI: false })}) had histopathologically confirmed lymph node metastases (N-positive). Patients in the primary surgery group were significantly older than those in the neoadjuvant therapy group (mean age, ${helpers.formatValueForPublication(surgeryAloneStats?.descriptive?.age?.mean, 1)} vs ${helpers.formatValueForPublication(neoadjuvantStats?.descriptive?.age?.mean, 1)} years; ${helpers.formatPValueForPublication(descriptiveComparison?.age?.pValue)}), and the proportion of men was significantly higher in the neoadjuvant group (${helpers.formatMetricForPublication({value: (neoadjuvantStats?.descriptive?.sex?.m || 0) / nNeoadjuvantTherapy}, 'acc', { includeCI: false })} vs ${helpers.formatMetricForPublication({value: (surgeryAloneStats?.descriptive?.sex?.m || 0) / nSurgeryAlone}, 'acc', { includeCI: false })}; ${helpers.formatPValueForPublication(descriptiveComparison?.sex?.pValue)}). There was no significant difference in the prevalence of N-positive status between the subgroups (${helpers.formatPValueForPublication(descriptiveComparison?.nStatus?.pValue)}). Detailed patient characteristics for the overall cohort and by treatment subgroup are provided in Table 1.</p>
+            <p>The study cohort comprised ${helpers.formatValueForPublication(nOverall, 0)} patients (mean age, ${helpers.formatValueForPublication(overallStats?.descriptive?.age?.mean, 1)} years ± ${helpers.formatValueForPublication(overallStats?.descriptive?.age?.sd, 1)} [standard deviation]; ${overallStats?.descriptive?.sex?.m} men). The process of patient enrollment is detailed in the study flowchart (Fig 1). Of the included patients, ${helpers.formatValueForPublication(nSurgeryAlone, 0)} (${helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall}, 'acc', { includeCI: false, includeCount: false })}) underwent primary surgery, and ${helpers.formatValueForPublication(nNeoadjuvantTherapy, 0)} (${helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall}, 'acc', { includeCI: false, includeCount: false })}) received neoadjuvant chemoradiotherapy. Overall, ${helpers.formatValueForPublication(nPositive, 0)} of ${nOverall} patients (${helpers.formatMetricForPublication({value: nPositive / nOverall}, 'acc', { includeCI: false, includeCount: false })}) had histopathologically confirmed lymph node metastases (N-positive). Patients in the primary surgery group were significantly older than those in the neoadjuvant therapy group (mean age, ${helpers.formatValueForPublication(surgeryAloneStats?.descriptive?.age?.mean, 1)} vs ${helpers.formatValueForPublication(neoadjuvantStats?.descriptive?.age?.mean, 1)} years; ${helpers.formatPValueForPublication(descriptiveComparison?.age?.pValue)}), and the proportion of men was significantly higher in the neoadjuvant group (${helpers.formatMetricForPublication({value: (neoadjuvantStats?.descriptive?.sex?.m || 0) / nNeoadjuvantTherapy}, 'acc', { includeCI: false, includeCount: false })} vs ${helpers.formatMetricForPublication({value: (surgeryAloneStats?.descriptive?.sex?.m || 0) / nSurgeryAlone}, 'acc', { includeCI: false, includeCount: false })}; ${helpers.formatPValueForPublication(descriptiveComparison?.sex?.pValue)}). There was no significant difference in the prevalence of N-positive status between the subgroups (${helpers.formatPValueForPublication(descriptiveComparison?.nStatus?.pValue)}). Detailed patient characteristics for the overall cohort and by treatment subgroup are provided in Table 1.</p>
         `;
 
         const figurePlaceholder = `
@@ -30,10 +30,10 @@ window.resultsGenerator = (() => {
                 <div id="figure-2-examples-container" class="publication-chart-container text-start small">
                     <p class="mb-2"><strong>[Instruction for Author: Please insert a 4-panel figure here showing the following:]</strong></p>
                     <ul class="list-unstyled ps-3">
-                        <li><strong>Panel A:</strong> Axial T2w image of a morphologically suspicious lymph node (e.g., irregular border).</li>
-                        <li><strong>Panel B:</strong> Corresponding axial contrast-enhanced T1w VIBE image showing a positive Avocado Sign in the same node.</li>
-                        <li><strong>Panel C:</strong> Axial T2w image of a morphologically inconspicuous lymph node (e.g., small, oval, smooth border).</li>
-                        <li><strong>Panel D:</strong> Corresponding contrast-enhanced T1w VIBE image demonstrating a positive Avocado Sign in this otherwise unremarkable node.</li>
+                        <li><strong>Panel A:</strong> Axial T2-weighted image of a morphologically suspicious lymph node (e.g., irregular border).</li>
+                        <li><strong>Panel B:</strong> Corresponding axial contrast-enhanced T1-weighted VIBE image showing a positive Avocado Sign in the same node.</li>
+                        <li><strong>Panel C:</strong> Axial T2-weighted image of a morphologically inconspicuous lymph node (e.g., small, oval, smooth border).</li>
+                        <li><strong>Panel D:</strong> Corresponding contrast-enhanced T1-weighted VIBE image demonstrating a positive Avocado Sign in this otherwise unremarkable node.</li>
                     </ul>
                     <hr>
                     <p class="mb-1"><strong>Suggested Figure Legend (Radiology Style):</strong></p>
@@ -42,7 +42,7 @@ window.resultsGenerator = (() => {
                         <strong>(a)</strong> Axial T2-weighted image shows a mesorectal lymph node (arrow) with an irregular border, a feature suspicious for malignancy. 
                         <strong>(b)</strong> Corresponding axial contrast-enhanced T1-weighted fat-suppressed image demonstrates a distinct hypointense core within the enhancing node (arrow), representing a positive Avocado Sign. 
                         <strong>(c)</strong> In a different patient, an axial T2-weighted image shows a small, oval lymph node with smooth borders (arrowhead), appearing morphologically benign. 
-                        <strong>(d)</strong> The corresponding contrast-enhanced T1-weighted image, however, reveals a clear Avocado Sign (arrowhead), correctly identifying metastatic involvement despite the benign T2w morphology.
+                        <strong>(d)</strong> The corresponding contrast-enhanced T1-weighted image, however, reveals a clear Avocado Sign (arrowhead), correctly identifying metastatic involvement despite the benign morphology on T2-weighted images.
                     </p>
                 </div>
             </div>
@@ -57,7 +57,7 @@ window.resultsGenerator = (() => {
 
         const getCountRow = (count, total) => {
             if(total === 0 || count === undefined || count === null) return '0 (N/A)';
-            return `${helpers.formatValueForPublication(count, 0)} (${helpers.formatMetricForPublication({value: count / total}, 'acc', { includeCI: false })})`;
+            return `${helpers.formatValueForPublication(count, 0)} (${helpers.formatMetricForPublication({value: count / total}, 'acc', { includeCI: false, includeCount: false })})`;
         };
         
         const tableConfig = {
@@ -101,7 +101,7 @@ window.resultsGenerator = (() => {
         const text = `
             <h3 id="ergebnisse_vergleich_as_vs_t2">Diagnostic Performance and Comparison</h3>
             <p>The Avocado Sign demonstrated robust diagnostic performance across all patient subgroups, as detailed in Table 3. For the entire cohort (n=${commonData.nOverall}), the AUC was ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc')}. The interobserver agreement for the sign was previously reported as almost perfect for this cohort (Cohen’s kappa = ${helpers.formatValueForPublication(overallStats?.interobserverKappa, 2, false, true)}${(overallStats?.interobserverKappaCI && isFinite(overallStats?.interobserverKappaCI.lower) && isFinite(overallStats?.interobserverKappaCI.upper)) ? `; 95% CI: ${helpers.formatValueForPublication(overallStats.interobserverKappaCI.lower, 2, false, true)}, ${helpers.formatValueForPublication(overallStats.interobserverKappaCI.upper, 2, false, true)}` : ''}) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p>When compared with established literature-based T2w criteria within their respective, methodologically appropriate cohorts, the Avocado Sign consistently showed superior diagnostic performance (Table 4). ${esgarComparisonText} Similarly, its performance surpassed that of other literature-based criteria in their corresponding cohorts. Furthermore, the performance of the Avocado Sign was high, although a statistically significant difference to a data-driven T2w benchmark was observed ${bfComparisonText}, which represents a data-driven benchmark for conventional morphology in our cohort.</p>
+            <p>The performance of the Avocado Sign was high, although a statistically significant difference to a data-driven T2-based benchmark was observed ${bfComparisonText}. This benchmark, derived computationally from our data, represents an optimized 'best-case' scenario for T2-based criteria in this specific cohort. When compared with established literature-based T2 criteria within their respective, methodologically appropriate cohorts, the Avocado Sign consistently showed superior diagnostic performance (Table 4). ${esgarComparisonText} Similarly, its performance surpassed that of other literature-based criteria in their corresponding cohorts.</p>
         `;
 
         const table3Config = {
@@ -109,7 +109,7 @@ window.resultsGenerator = (() => {
             caption: 'Table 3: Diagnostic Performance of the Avocado Sign by Patient Cohort',
             headers: ['Cohort', 'n', 'AUC (95% CI)', 'Sensitivity (95% CI)', 'Specificity (95% CI)', 'Accuracy (95% CI)'],
             rows: [],
-            notes: '<em>Note.—</em>AUC = Area under the receiver operating characteristic curve. Performance metrics for the Avocado Sign are calculated within each specified treatment subgroup.'
+            notes: '<em>Note.—</em>AUC = Area under the receiver operating characteristic curve. Performance metrics for the Avocado Sign are calculated on a per-patient basis within each specified treatment subgroup.'
         };
 
         const addPerfRow = (cohortId) => {
@@ -130,10 +130,10 @@ window.resultsGenerator = (() => {
 
         const table4Config = {
             id: 'table-results-literature-comparison',
-            caption: 'Table 4: Comparison of Avocado Sign vs Literature-Based T2w Criteria in Applicable Cohorts',
+            caption: 'Table 4: Comparison of Avocado Sign vs Literature-Based T2 Criteria in Applicable Cohorts',
             headers: ['Cohort (n)', 'Criteria Set', 'AUC (95% CI)', 'Sensitivity', 'Specificity', '<em>P</em> value (vs AS)'],
             rows: [],
-            notes: '<em>Note.—</em>AUC = Area under the receiver operating characteristic curve, AS = Avocado Sign, ESGAR = European Society of Gastrointestinal and Abdominal Radiology. Performance metrics are calculated within the specified treatment subgroup. The P value (DeLong test) indicates the statistical significance of the difference in AUC compared to the Avocado Sign (AS) within that same cohort.'
+            notes: '<em>Note.—</em>AUC = Area under the receiver operating characteristic curve, AS = Avocado Sign, ESGAR = European Society of Gastrointestinal and Abdominal Radiology. Performance metrics are calculated on a per-patient basis within the specified treatment subgroup. The P value (DeLong test) indicates the statistical significance of the difference in AUC compared to the Avocado Sign (AS) within that same cohort.'
         };
 
         const addLitCompRow = (cohortId, litSetId) => {
@@ -150,24 +150,24 @@ window.resultsGenerator = (() => {
                 `<strong>${getCohortDisplayName(cohortId)}</strong> (n=${cohortStats.descriptive.patientCount})`,
                 '   Avocado Sign',
                 helpers.formatMetricForPublication(asPerf.auc, 'auc'),
-                helpers.formatMetricForPublication(asPerf.sens, 'sens', true),
-                helpers.formatMetricForPublication(asPerf.spec, 'spec', true),
+                helpers.formatMetricForPublication(asPerf.sens, 'sens', { includeCount: false }),
+                helpers.formatMetricForPublication(asPerf.spec, 'spec', { includeCount: false }),
                 '—'
             ]);
             table4Config.rows.push([
                 '',
                 `   ${litSet.name}`,
                 helpers.formatMetricForPublication(t2Perf.auc, 'auc'),
-                helpers.formatMetricForPublication(t2Perf.sens, 'sens', true),
-                helpers.formatMetricForPublication(t2Perf.spec, 'spec', true),
+                helpers.formatMetricForPublication(t2Perf.sens, 'sens', { includeCount: false }),
+                helpers.formatMetricForPublication(t2Perf.spec, 'spec', { includeCount: false }),
                 helpers.formatPValueForPublication(comp.delong.pValue)
             ]);
         };
         
-        addLitCompRow(window.APP_CONFIG.COHORTS.OVERALL.id, 'Koh_2008');
-        table4Config.rows.push(['', '', '', '', '', '']); // Visual separator
         addLitCompRow(window.APP_CONFIG.COHORTS.SURGERY_ALONE.id, 'Rutegard_2025');
-        table4Config.rows.push(['', '', '', '', '', '']); // Visual separator
+        table4Config.rows.push(['', '', '', '', '', '']); 
+        addLitCompRow(window.APP_CONFIG.COHORTS.OVERALL.id, 'Koh_2008');
+        table4Config.rows.push(['', '', '', '', '', '']);
         addLitCompRow(window.APP_CONFIG.COHORTS.NEOADJUVANT.id, 'Barbaro_2024');
 
         return text + helpers.createPublicationTableHTML(table3Config) + helpers.createPublicationTableHTML(table4Config);

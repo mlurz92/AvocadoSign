@@ -42,7 +42,7 @@ window.publicationHelpers = (() => {
             case 'npv':
             case 'acc':
                 isPercent = true;
-                digits = 1;
+                digits = 0;
                 noLeadingZero = false;
                 break;
             case 'auc':
@@ -134,7 +134,11 @@ window.publicationHelpers = (() => {
                 'BF': 'Brute-Force',
                 'ESGAR': 'European Society of Gastrointestinal and Abdominal Radiology',
                 'nCRT': 'neoadjuvant chemoradiotherapy',
-                'T2w': 'T2-weighted'
+                'T2': 'T2-weighted',
+                'VIBE': 'volumetric interpolated breath-hold examination',
+                'DWI': 'diffusion-weighted imaging',
+                'STARD': 'Standards for Reporting of Diagnostic Accuracy Studies',
+                'TNT': 'Total Neoadjuvant Therapy'
             };
             const definedAbbrs = Array.from(abbreviations)
                 .filter(abbr => abbrDefinitions[abbr])
