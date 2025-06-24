@@ -220,7 +220,7 @@ function getPValueText(pValue, italicizeP = true) {
 
     if (p < 0.001) return `${pTag} < .001`;
     if (p > 0.99) return `${pTag} > .99`;
-
+    
     if (p < 0.01) {
         return `${pTag} = .${p.toFixed(3).substring(2)}`;
     }
@@ -230,7 +230,7 @@ function getPValueText(pValue, italicizeP = true) {
         return `${pTag} = .${p.toFixed(3).substring(2)}`;
     }
 
-    let formattedP = pRoundedTo2.toFixed(2);
+    let formattedP = p.toFixed(2);
     if (formattedP.startsWith("0.")) {
         formattedP = formattedP.substring(1);
     } else if (formattedP === "1.00") {

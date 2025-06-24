@@ -1,4 +1,4 @@
-# Nodal Staging Analysis Tool: Application Guide (Version 4.3.0)
+# Nodal Staging Analysis Tool: Application Guide (Version 5.0.0)
 
 ## 1. Introduction
 
@@ -34,9 +34,9 @@ The application utilizes a dual-context system to ensure both user flexibility a
 
 * **Analysis Context (Methodological Lock):** For specific, scientifically valid comparisons, the application automatically activates a temporary **Analysis Context**. This is a core feature of the `Comparison` tab and parts of the `Statistics` tab.
     * **Activation:** When a literature-based T2 criterion is selected for comparison (e.g., ESGAR 2016), the application automatically sets the context to the methodologically correct patient cohort (e.g., "Surgery alone").
-    * **Effect:** While an Analysis Context is active, the Global Cohort Selection buttons in the header are **disabled (locked)** to prevent invalid comparisons. All statistical calculations and charts within that context are performed exclusively on the locked cohort. A banner within the tab clearly indicates which context is active.
+    * **Effect:** While an Analysis Context is active, the Global Cohort Selection buttons in the header are **disabled (locked)** to prevent invalid comparisons. All statistical calculations and charts within that context are performed exclusively on the locked cohort.
+    * **Transparency:** A banner within the active tab clearly indicates which context is active, ensuring you are always aware of the exact patient group being analyzed.
     * **Deactivation:** The context is automatically cleared when you switch to another main tab (like `Data` or `Publication`) or change the comparison view back to a non-context-specific option.
-    * **Transparency:** The UI provides clear feedback to inform you which context is currently active, ensuring you are always aware of the exact patient group being analyzed.
 
 This system ensures that direct statistical tests (like DeLong or McNemar) are always performed on the same, appropriate patient group, which is a critical requirement for a valid scientific publication.
 
@@ -67,7 +67,8 @@ The application is divided into six main modules, accessible via the navigation 
     * **"Diagnostic Performance (Current T2)" Card:** Displays the diagnostic performance (Sensitivity, Specificity, PPV, NPV, Accuracy, AUC) of the currently defined (but not yet necessarily applied) T2 settings in real-time.
     * **Brute-Force Optimization:** This section is twofold:
         1.  **"Criteria Optimization (Brute-Force)" Card (Runner):** A new optimization analysis can be started here. The user selects a target metric (e.g., "Balanced Accuracy") and starts the process. A progress bar indicates the status. After completion, the best-found criteria can be applied directly ("Apply Best") or the top-10 results can be viewed in a detail window ("Top 10").
-        2.  **"Brute-Force Optima (Saved Results)" Card (Overview):** This table provides a persistent overview of the **best saved results** for each cohort and each target metric that has already been run. Each result can be loaded into the "Define T2 Malignancy Criteria" panel by clicking its "Apply" button, streamlining the workflow.
+        2.  **"Brute-Force Optima (Saved Results)" Card (Overview):** This table provides a persistent overview of the **best saved results** for each cohort and each target metric that has already been run. Each result can be loaded into the "Define T2 Malignancy Criteria" panel by clicking its "Apply" button.
+        3. **Intelligent Cohort Switching:** When you click "Apply" for a saved result, the application not only loads the criteria but also **automatically switches the Global Cohort** to match the cohort on which the optimization was originally performed (e.g., applying a result for 'Surgery alone' will switch the main view to that cohort). This ensures you are immediately viewing the criteria in their most relevant context.
 
 ### 3.3. Statistics Tab
 * **Purpose:** Provides a formal and comprehensive statistical evaluation of diagnostic performance.
@@ -104,7 +105,7 @@ The application is divided into six main modules, accessible via the navigation 
     * **"Export Full Manuscript as Markdown" Button:** Initiates the download of the entire generated manuscript, including all text and formatted tables (but figures as text descriptions, as Markdown does not embed images directly), as a single Markdown (`.md`) file.
     * **"Export Tables as Markdown" Button:** Extracts all tables embedded within the generated manuscript content, converts each into Markdown table format, and downloads them as individual Markdown (`.md`) files. Each file is named based on its table caption.
     * **"Export Charts as SVG" Button:** Collects all dynamically rendered charts (e.g., histograms, pie charts, bar charts, ROC curves, flowcharts) from across the application, extracts their underlying SVG (Scalable Vector Graphics) code, and downloads each as a separate SVG (`.svg`) file. These files are ideal for high-quality graphics in publications.
-    * **Preparation for Export:** For optimal results, it is recommended to visit the "Publication" tab and other relevant tabs (Analysis, Statistics, Comparison) at least once before initiating an export from this tab, as charts and some text elements are dynamically rendered upon tab activation. The system attempts to ensure data readiness, but a prior rendering helps guarantee all visual elements are in the DOM for extraction.
+    * **Preparation for Export:** The chart export functionality has been made more robust to automatically render necessary charts in the background. However, for optimal text generation, it is still recommended to visit the "Publication" tab at least once before initiating a manuscript or table export.
 
 ## 4. Technical Overview
 
@@ -115,8 +116,8 @@ The application follows a modular architecture that separates data logic, servic
 2.  **State Manager (`state.js`):** Manages the global application state (e.g., active cohort, sort order) and a temporary `analysisContext` to ensure methodologically sound comparisons.
 3.  **App Controller (`main.js`):** Orchestrates the data flow. Upon state changes, it triggers data filtering, recalculation of all statistics, and re-rendering of the UI, passing the correct data context to each module. It also houses the high-level export functions that interact with the `exportService`.
 4.  **Core Modules (`core/`):** Process the raw data (`data_processor.js`), manage interactive T2 criteria (`t2_criteria_manager.js`), and manage literature-based criteria (`study_criteria_manager.js`).
-5.  **Service Layer (`services/`):** Contains the complex business logic for statistics (`statistics_service.js`), brute-force optimization (`brute_force_manager.js`), and publication generation (`publication_service.js` which orchestrates sub-modules like `abstract_generator.js`, `methods_generator.js`, `results_generator.js`, `discussion_generator.js`, `references_generator.js`, `stard_generator.js`, `title_page_generator.js`, `publication_helpers.js`). Crucially, the `export_service.js` module provides the robust HTML to Markdown and SVG extraction capabilities.
-6.  **UI Layer (`ui/`):** Responsible for rendering all data and components based on the data provided by the App Controller. This includes reusable components (`components/` like `ui_components.js`, `table_renderer.js`, `chart_renderer.js`, `flowchart_renderer.js`) and tab-specific rendering logic (`tabs/` like `data_tab.js`, `analysis_tab.js`, `statistics_tab.js`, `comparison_tab.js`, `publication_tab.js`, and `export_tab.js`).
+5.  **Service Layer (`services/`):** Contains the complex business logic for statistics (`statistics_service.js`), brute-force optimization (`brute_force_manager.js`), and publication generation (`publication_service.js` which orchestrates sub-modules). The `export_service.js` module provides the robust HTML to Markdown and SVG extraction capabilities.
+6.  **UI Layer (`ui/`):** Responsible for rendering all data and components based on the data provided by the App Controller. This includes reusable components (`components/`) and tab-specific rendering logic (`tabs/`).
 
 ### 4.2. Directory Structure
 <details>

@@ -670,8 +670,7 @@ window.statisticsService = (() => {
         });
 
         if (results.Overall) {
-            results.Overall.interobserverKappa = window.APP_CONFIG.STATISTICAL_CONSTANTS.INTEROBSERVER_KAPPA.value;
-            results.Overall.interobserverKappaCI = window.APP_CONFIG.STATISTICAL_CONSTANTS.INTEROBSERVER_KAPPA.ci;
+            results.Overall.interobserverKappa = window.APP_CONFIG.STATISTICAL_CONSTANTS.INTEROBSERVER_KAPPA;
         }
 
         const dataSurgery = window.dataProcessor.filterDataByCohort(data, window.APP_CONFIG.COHORTS.SURGERY_ALONE.id);

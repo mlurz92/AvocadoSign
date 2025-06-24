@@ -307,17 +307,11 @@ class App {
             this.refreshCurrentTab();
             if (source === "user") {
                 window.uiManager.showToast(`Cohort '${getCohortDisplayName(newCohort)}' selected.`, 'info');
-            } else if (source === "auto_comparison") {
-                window.uiManager.showToast(`Global cohort automatically set to '${getCohortDisplayName(newCohort)}' to match the study selection.`, 'info', 4000);
-                window.uiManager.highlightElement(`btn-cohort-${newCohort}`);
+            } else if (source === "auto_bf_apply") {
+                 window.uiManager.showToast(`Cohort automatically set to '${getCohortDisplayName(newCohort)}' to match applied criteria.`, 'info', 4000);
+                 window.uiManager.highlightElement(`btn-cohort-${newCohort}`);
             }
         }
-    }
-    
-    handleSortRequest(context, key, subKey) {
-        if (context === 'data') window.state.updateDataTableSort(key, subKey);
-        else if (context === 'analysis') window.state.updateAnalysisTableSort(key, subKey);
-        this.refreshCurrentTab();
     }
     
     applyAndRefreshAll() {
@@ -353,8 +347,7 @@ class App {
         }
 
         if (cohortId && window.state.getCurrentCohort() !== cohortId) {
-            this.handleCohortChange(cohortId, "user");
-            window.uiManager.showToast(`Cohort automatically switched to '${getCohortDisplayName(cohortId)}' to apply criteria.`, 'info');
+            this.handleCohortChange(cohortId, "auto_bf_apply");
         }
 
         const best = bfResult.bestResult;
@@ -404,17 +397,68 @@ class App {
         window.exportService.exportTablesAsMarkdown(this.preRenderedPublicationHTML);
     }
 
-    exportCharts() {
-        const chartContainerIds = [
-            'figure-1-flowchart-container',
-            'chart-dash-age', 'chart-dash-gender', 'chart-dash-therapy', 
-            'chart-dash-status-n', 'chart-dash-status-as', 'chart-dash-status-t2',
-            'comp-as-perf-chart',
-            'comp-chart-container',
-            'chart-stat-age-0', 'chart-stat-gender-0',
-            'chart-stat-age-1', 'chart-stat-gender-1'
-        ];
-        window.exportService.exportChartsAsSvg(chartContainerIds);
+    async _ensureChartsAreRenderedForExport() {
+        const hiddenContainerId = window.APP_CONFIG.UI_SETTINGS.HIDDEN_CHART_CONTAINER_ID;
+        const hiddenContainer = document.getElementById(hiddenContainerId);
+        if (!hiddenContainer || !this.allPublicationStats) return;
+
+        hiddenContainer.innerHTML = '';
+        const chartTasks = [];
+
+        Object.entries(this.allPublicationStats).forEach(([cohortId, stats]) => {
+            if (stats && stats.descriptive && stats.descriptive.patientCount > 0) {
+                const desc = stats.descriptive;
+                const tempAgeId = `export-age-${cohortId}`;
+                const tempGenderId = `export-gender-${cohortId}`;
+                
+                hiddenContainer.innerHTML += `<div id="${tempAgeId}" style="width: 300px; height: 200px;"></div><div id="${tempGenderId}" style="width: 200px; height: 200px;"></div>`;
+                
+                chartTasks.push(() => window.chartRenderer.renderAgeDistributionChart(desc.ageData || [], tempAgeId));
+                
+                const genderData = [{label: 'Male', value: desc.sex.m ?? 0}, {label: 'Female', value: desc.sex.f ?? 0}];
+                chartTasks.push(() => window.chartRenderer.renderPieChart(genderData, tempGenderId));
+            }
+        });
+
+        const comparisonData = this._prepareComparisonData();
+        if (comparisonData && comparisonData.performanceAS && comparisonData.performanceT2) {
+            const tempCompBarId = 'export-comp-bar';
+            hiddenContainer.innerHTML += `<div id="${tempCompBarId}" style="width: 450px; height: 350px;"></div>`;
+            const chartData = [
+                { metric: 'Sens.', AS: comparisonData.performanceAS.sens?.value || 0, T2: comparisonData.performanceT2.sens?.value || 0 },
+                { metric: 'Spec.', AS: comparisonData.performanceAS.spec?.value || 0, T2: comparisonData.performanceT2.spec?.value || 0 },
+                { metric: 'Acc.', AS: comparisonData.performanceAS.acc?.value || 0, T2: comparisonData.performanceT2.acc?.value || 0 },
+                { metric: 'AUC', AS: comparisonData.performanceAS.auc?.value || 0, T2: comparisonData.performanceT2.auc?.value || 0 }
+            ];
+            chartTasks.push(() => window.chartRenderer.renderComparisonBarChart(chartData, tempCompBarId, {}, comparisonData.t2ShortName));
+        }
+
+        const flowchartStats = {
+            Overall: this.allPublicationStats[window.APP_CONFIG.COHORTS.OVERALL.id],
+            surgeryAlone: this.allPublicationStats[window.APP_CONFIG.COHORTS.SURGERY_ALONE.id],
+            neoadjuvantTherapy: this.allPublicationStats[window.APP_CONFIG.COHORTS.NEOADJUVANT.id]
+        };
+        const tempFlowchartId = 'export-flowchart';
+        hiddenContainer.innerHTML += `<div id="${tempFlowchartId}" style="width: 600px; height: 450px;"></div>`;
+        chartTasks.push(() => window.flowchartRenderer.renderFlowchart(flowchartStats, tempFlowchartId));
+
+        chartTasks.forEach(task => task());
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    async exportCharts() {
+        window.uiManager.showToast('Preparing charts for export...', 'info', 2000);
+        await this._ensureChartsAreRenderedForExport();
+
+        const allChartContainerIds = Array.from(document.querySelectorAll('[id^="chart-"], [id*="-chart-"], [id$="-chart"]')).map(el => el.id);
+        const uniqueChartIds = [...new Set(allChartContainerIds)];
+
+        window.exportService.exportChartsAsSvg(uniqueChartIds);
+
+        const hiddenContainer = document.getElementById(window.APP_CONFIG.UI_SETTINGS.HIDDEN_CHART_CONTAINER_ID);
+        if (hiddenContainer) {
+            hiddenContainer.innerHTML = '';
+        }
     }
 
     getRawData() { return this.rawData; }

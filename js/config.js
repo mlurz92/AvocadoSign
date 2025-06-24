@@ -9,7 +9,7 @@ window.DEFAULT_T2_CRITERIA = Object.freeze({
 
 window.APP_CONFIG = Object.freeze({
     APP_NAME: "Nodal Staging: Avocado Sign vs. T2 Criteria",
-    APP_VERSION: "4.3.0-radiology-optimized",
+    APP_VERSION: "5.0.0-radiology-final",
     NA_PLACEHOLDER: '—',
     COHORTS: Object.freeze({
         OVERALL: { id: 'Overall', therapyValue: null, displayName: 'Overall' },
@@ -38,19 +38,19 @@ window.APP_CONFIG = Object.freeze({
         { value: 'NPV', label: 'NPV' }
     ]),
     STORAGE_KEYS: Object.freeze({
-        APPLIED_CRITERIA: 'avocadoSign_appliedT2Criteria_v4.5',
-        APPLIED_LOGIC: 'avocadoSign_appliedT2Logic_v4.5',
-        BRUTE_FORCE_RESULTS: 'avocadoSign_bruteForceResults_v4.5',
-        CURRENT_COHORT: 'avocadoSign_currentCohort_v4.5',
-        PUBLICATION_SECTION: 'avocadoSign_publicationSection_v4.5',
-        PUBLICATION_BRUTE_FORCE_METRIC: 'avocadoSign_publicationBfMetric_v4.5',
-        PUBLICATION_LANG: 'avocadoSign_publicationLang_v4.5',
-        STATS_LAYOUT: 'avocadoSign_statsLayout_v4.5',
-        STATS_COHORT1: 'avocadoSign_statsCohort1_v4.5',
-        STATS_COHORT2: 'avocadoSign_statsCohort2_v4.5',
-        COMPARISON_VIEW: 'avocadoSign_comparisonView_v4.5',
-        COMPARISON_STUDY_ID: 'avocadoSign_comparisonStudyId_v4.5',
-        FIRST_APP_START: 'avocadoSign_appFirstStart_v4.3.0'
+        APPLIED_CRITERIA: 'avocadoSign_appliedT2Criteria_v5.0',
+        APPLIED_LOGIC: 'avocadoSign_appliedT2Logic_v5.0',
+        BRUTE_FORCE_RESULTS: 'avocadoSign_bruteForceResults_v5.0',
+        CURRENT_COHORT: 'avocadoSign_currentCohort_v5.0',
+        PUBLICATION_SECTION: 'avocadoSign_publicationSection_v5.0',
+        PUBLICATION_BRUTE_FORCE_METRIC: 'avocadoSign_publicationBfMetric_v5.0',
+        PUBLICATION_LANG: 'avocadoSign_publicationLang_v5.0',
+        STATS_LAYOUT: 'avocadoSign_statsLayout_v5.0',
+        STATS_COHORT1: 'avocadoSign_statsCohort1_v5.0',
+        STATS_COHORT2: 'avocadoSign_statsCohort2_v5.0',
+        COMPARISON_VIEW: 'avocadoSign_comparisonView_v5.0',
+        COMPARISON_STUDY_ID: 'avocadoSign_comparisonStudyId_v5.0',
+        FIRST_APP_START: 'avocadoSign_appFirstStart_v5.0'
     }),
     PATHS: Object.freeze({
         BRUTE_FORCE_WORKER: 'workers/brute_force_worker.js'

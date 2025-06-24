@@ -40,7 +40,7 @@ window.publicationService = (() => {
 
         const validAbbreviations = Object.entries(counts)
             .filter(([abbr, count]) => count >= 10 && potentialAbbreviations[abbr])
-            .sort((a, b) => a[0].localeCompare(b[0])) // Sort alphabetically
+            .sort((a, b) => a[0].localeCompare(b[0]))
             .slice(0, 10)
             .map(([abbr]) => `<li><strong>${abbr}</strong> = ${potentialAbbreviations[abbr]}</li>`)
             .join('');
@@ -109,7 +109,7 @@ window.publicationService = (() => {
         if (abbreviationsHTML) {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = titlePageHTML;
-            const keyResultsList = tempDiv.querySelector('h4+ul'); // Finds the <ul> after the "Key Results" <h4>
+            const keyResultsList = tempDiv.querySelector('h4+ul'); 
             if (keyResultsList) {
                 keyResultsList.insertAdjacentHTML('afterend', abbreviationsHTML);
                 titlePageHTML = tempDiv.innerHTML;

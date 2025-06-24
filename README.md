@@ -1,4 +1,4 @@
-# Nodal Staging Analysis Tool (v4.3.0)
+# Nodal Staging Analysis Tool (v5.0.0-radiology-final)
 
 This repository contains the source code for the "Nodal Staging: Avocado Sign vs. T2 Criteria" analysis tool, a client-side web application for advanced research in medical imaging.
 
@@ -16,7 +16,7 @@ This application is a specialized research instrument designed for the in-depth,
 * **Automated Criteria Optimization:** An integrated brute-force algorithm, running in a dedicated Web Worker, to systematically identify the mathematically optimal criteria combination for a user-selected diagnostic metric.
 * **Comprehensive Statistical Analysis:** Automated calculation of all relevant diagnostic performance metrics (Sensitivity, Specificity, PPV, NPV, Accuracy, AUC) including 95% confidence intervals and statistical comparison tests (e.g., DeLong, McNemar).
 * **Publication Assistant:** A dedicated module that generates formatted, English-language text, tables, and figures for a scientific manuscript, precisely adhering to the style guidelines of the journal *Radiology*.
-* **Export Functionality:** Enables export of the full generated manuscript as Markdown, individual tables as Markdown, and all rendered charts as Scalable Vector Graphics (SVG) files.
+* **Robust Export Functionality:** Enables export of the full generated manuscript as Markdown, individual tables as Markdown, and all rendered charts as high-quality Scalable Vector Graphics (SVG) files.
 
 ### 1.3. Disclaimer: Research Instrument Only
 **This application is designed exclusively for research and educational purposes.** The presented data, statistics, and generated texts are based on a static, pseudonymized research dataset. **The results must not, under any circumstances, be used for clinical diagnosis, direct treatment decisions, or any other primary medical applications.** The scientific and clinical responsibility for the interpretation and use of the generated results lies solely with the user.

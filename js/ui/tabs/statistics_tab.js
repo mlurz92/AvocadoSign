@@ -6,12 +6,19 @@ window.statisticsTab = (() => {
         const total = d.patientCount;
         const na = window.APP_CONFIG.NA_PLACEHOLDER;
         const fv = (val, dig = 1, useStd = true) => formatNumber(val, dig, na, useStd);
-        const fP = (val, dig = 1) => formatPercent(val, dig, na);
-        const fLK = (lkData) => `${fv(lkData?.median,1)} (${fv(lkData?.min,0)}–${fv(lkData?.max,0)}) [${fv(lkData?.mean,1)} ± ${fv(lkData?.sd,1)}]`;
+        const fLK = (lkData) => {
+            if (!lkData || isNaN(lkData.median)) return na;
+            return `${fv(lkData.median,1)} (${fv(lkData.min,0)}–${fv(lkData.max,0)}) [${fv(lkData.mean,1)} ± ${fv(lkData.sd,1)}]`;
+        };
         const appliedCriteria = window.t2CriteriaManager.getAppliedCriteria();
         const appliedLogic = window.t2CriteriaManager.getAppliedLogic();
         const formattedAppliedT2 = window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true);
         const tooltips = window.APP_CONFIG.UI_TEXTS.tooltips.descriptiveStatistics;
+        
+        const getCountString = (count, total) => {
+            if (total === 0 || count === undefined || count === null) return `0 (${na})`;
+            return `${count} (${formatPercent(count / total, 1)})`;
+        };
 
         const getTooltip = (key, cohortId) => {
             let content = tooltips[key]?.description || '';
@@ -27,11 +34,11 @@ window.statisticsTab = (() => {
                             <thead class="visually-hidden"><tr><th>Metric</th><th>Value</th></tr></thead>
                             <tbody>
                                 <tr data-tippy-content="Patient age in years (Median, Min–Max, Mean ± Standard Deviation)."><td>Age, Median (Min–Max) [Mean ± SD]</td><td>${fv(d.age?.median,1)} (${fv(d.age?.min,0)}–${fv(d.age?.max,0)}) [${fv(d.age?.mean,1)} ± ${fv(d.age?.sd,1)}]</td></tr>
-                                <tr data-tippy-content="Distribution of male and female patients."><td>Sex (male / female) (n / %)</td><td>${d.sex?.m ?? 0} / ${d.sex?.f ?? 0} (${fP((d.sex?.m ?? 0) / total, 1)} / ${fP((d.sex?.f ?? 0) / total, 1)})</td></tr>
-                                <tr data-tippy-content="Distribution of treatment approaches before surgery."><td>Therapy (Surgery alone / Neoadjuvant therapy) (n / %)</td><td>${d.therapy?.surgeryAlone ?? 0} / ${d.therapy?.neoadjuvantTherapy ?? 0} (${fP((d.therapy?.surgeryAlone ?? 0) / total, 1)} / ${fP((d.therapy?.neoadjuvantTherapy ?? 0) / total, 1)})</td></tr>
-                                <tr data-tippy-content="Distribution of final histopathological N-Status (N+/N-)."><td>N Status (+ / -) (n / %)</td><td>${d.nStatus?.plus ?? 0} / ${d.nStatus?.minus ?? 0} (${fP((d.nStatus?.plus ?? 0) / total, 1)} / ${fP((d.nStatus?.minus ?? 0) / total, 1)})</td></tr>
-                                <tr data-tippy-content="Distribution of Avocado Sign status (AS+/AS-)."><td>AS Status (+ / -) (n / %)</td><td>${d.asStatus?.plus ?? 0} / ${d.asStatus?.minus ?? 0} (${fP((d.asStatus?.plus ?? 0) / total, 1)} / ${fP((d.asStatus?.minus ?? 0) / total, 1)})</td></tr>
-                                <tr data-tippy-content="Distribution of T2 criteria status (T2+/T2-) based on applied settings: ${formattedAppliedT2}."><td>T2 Status (+ / -)</td><td>${d.t2Status?.plus ?? 0} / ${d.t2Status?.minus ?? 0} (${fP((d.t2Status?.plus ?? 0) / total, 1)} / ${fP((d.t2Status?.minus ?? 0) / total, 1)})</td></tr>
+                                <tr data-tippy-content="Distribution of male and female patients."><td>Sex (male / female) (n / %)</td><td>${getCountString(d.sex?.m, total)} / ${getCountString(d.sex?.f, total)}</td></tr>
+                                <tr data-tippy-content="Distribution of treatment approaches before surgery."><td>Therapy (Surgery alone / Neoadjuvant therapy) (n / %)</td><td>${getCountString(d.therapy?.surgeryAlone, total)} / ${getCountString(d.therapy?.neoadjuvantTherapy, total)}</td></tr>
+                                <tr data-tippy-content="Distribution of final histopathological N-Status (N+/N-)."><td>N Status (+ / -) (n / %)</td><td>${getCountString(d.nStatus?.plus, total)} / ${getCountString(d.nStatus?.minus, total)}</td></tr>
+                                <tr data-tippy-content="Distribution of Avocado Sign status (AS+/AS-)."><td>AS Status (+ / -) (n / %)</td><td>${getCountString(d.asStatus?.plus, total)} / ${getCountString(d.asStatus?.minus, total)}</td></tr>
+                                <tr data-tippy-content="Distribution of T2 criteria status (T2+/T2-) based on applied settings: ${formattedAppliedT2}."><td>T2 Status (+ / -)</td><td>${getCountString(d.t2Status?.plus, total)} / ${getCountString(d.t2Status?.minus, total)}</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -287,7 +294,7 @@ window.statisticsTab = (() => {
             }
         });
 
-        if (layout === 'vergleich' && allCohortStats[cohort1] && allCohortStats[cohort2] && allCohortStats.interCohortComparison) {
+        if (layout === 'vergleich' && allCohortStats[cohort1] && allCohortStats[cohort2] && allCohortStats.interCohortComparison && allCohortStats.interCohortDemographicComparison) {
              const compCard = document.createElement('div');
              compCard.className = 'col-12';
              const c1Stats = allCohortStats[cohort1];
@@ -343,7 +350,7 @@ window.statisticsTab = (() => {
                     <button id="statistics-toggle-single" class="btn btn-outline-primary ${layout === 'einzel' ? 'active' : ''}">Single View</button>
                     <button id="statistics-toggle-comparison" class="btn btn-outline-primary ${layout === 'vergleich' ? 'active' : ''}">Comparison View</button>
                 </div>
-                <div id="statistics-cohort-select-2-container" class="ms-3" style="display: ${layout === 'vergleich' ? 'block' : 'none'};">
+                <div id="statistics-cohort-select-container" class="ms-3" style="display: ${layout === 'vergleich' ? 'block' : 'none'};">
                     <div class="input-group input-group-sm">
                          <select class="form-select" id="statistics-cohort-select-1" aria-label="Select first cohort">${cohortOptions1}</select>
                          <span class="input-group-text">vs.</span>
@@ -362,7 +369,7 @@ window.statisticsTab = (() => {
                     if (document.getElementById(`chart-stat-gender-${i}`)) {
                         const genderData = [{label: 'Male', value: stats.descriptive.sex.m ?? 0}, {label: 'Female', value: stats.descriptive.sex.f ?? 0}];
                         if (stats.descriptive.sex.unknown > 0) genderData.push({label: 'Unknown', value: stats.descriptive.sex.unknown });
-                        window.chartRenderer.renderPieChart(genderData, `chart-stat-gender-${i}`, { height: 180, margin: { top: 10, right: 10, bottom: 35, left: 10 }, innerRadiusFactor: 0.0, legendBelow: true });
+                        window.chartRenderer.renderPieChart(genderData, `chart-stat-gender-${i}`, { height: 180, margin: { top: 10, right: 10, bottom: 35, left: 10 }, innerRadiusFactor: 0.0, legendBelow: true, legendItemCount: genderData.length });
                     }
                 }
             });
@@ -370,5 +377,7 @@ window.statisticsTab = (() => {
         return viewSelectorHTML + outerRow.outerHTML;
     }
 
-    return { render };
+    return Object.freeze({
+        render
+    });
 })();

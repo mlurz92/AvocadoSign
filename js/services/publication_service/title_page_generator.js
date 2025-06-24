@@ -36,9 +36,9 @@ window.titlePageGenerator = (() => {
             keyResultsHTML = `
                 <h4 style="font-size: 1.1rem; font-weight: bold; margin-top: 1.5rem;">Key Results</h4>
                 <ul style="padding-left: 20px; margin-top: 0.5rem; list-style-position: inside; text-align: left;">
-                    <li>In a retrospective analysis of ${nOverall} patients, a novel contrast-enhanced MRI sign yielded an area under the receiver operating characteristic curve (AUC) of ${aucAS}.</li>
-                    <li>The sign demonstrated significantly higher diagnostic performance than established literature-based T2 criteria, including the ESGAR 2016 guidelines, in the primary surgery cohort (${helpers.formatPValueForPublication(pValueEsgar)}).</li>
-                    <li>The performance of the sign was high, although a statistically significant difference to a data-driven T2-based criteria set was observed (AUC, ${aucAS} vs ${aucBF}; ${helpers.formatPValueForPublication(pValueBF)}).</li>
+                    <li>In this retrospective analysis of ${nOverall} patients with rectal cancer, a novel contrast-enhanced MRI sign yielded an area under the receiver operating characteristic curve (AUC) of ${aucAS} for predicting nodal involvement.</li>
+                    <li>The sign demonstrated a significantly higher AUC than the established ESGAR 2016 T2-based criteria in the primary surgery cohort (${helpers.formatPValueForPublication(pValueEsgar)}).</li>
+                    <li>The performance of the sign was high, although a statistically significant difference to a data-driven T2-based criteria set optimized for this cohort was observed (AUC, ${aucAS} vs ${aucBF}; ${helpers.formatPValueForPublication(pValueBF)}).</li>
                 </ul>
             `;
         }
