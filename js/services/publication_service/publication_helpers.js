@@ -20,7 +20,14 @@ window.publicationHelpers = (() => {
         return formattedString;
     }
 
-    function formatMetricForPublication(metric, name, showValueOnly = false) {
+    function formatMetricForPublication(metric, name, options = {}) {
+        const config = {
+            showValueOnly: false,
+            includeCI: true,
+            includeCount: true,
+            ...options
+        };
+
         if (!metric || typeof metric.value !== 'number' || isNaN(metric.value)) {
             return 'N/A';
         }
@@ -60,30 +67,23 @@ window.publicationHelpers = (() => {
         const valueStr = formatValueForPublication(metric.value, digits, isPercent, noLeadingZero);
         let valueWithUnit = isPercent ? `${valueStr}%` : valueStr;
 
-        if (showValueOnly) {
+        if (config.showValueOnly) {
             return valueWithUnit;
         }
 
-        let detailsStr = '';
-        if (isPercent && metric.n_success !== undefined && metric.n_trials !== undefined && metric.n_trials > 0) {
-            detailsStr += ` (${metric.n_success} of ${metric.n_trials}`;
+        let detailsParts = [];
+        if (config.includeCount && isPercent && metric.n_success !== undefined && metric.n_trials !== undefined && metric.n_trials > 0) {
+            detailsParts.push(`${metric.n_success} of ${metric.n_trials}`);
         }
 
-        if (metric.ci && typeof metric.ci.lower === 'number' && typeof metric.ci.upper === 'number' && !isNaN(metric.ci.lower) && !isNaN(metric.ci.upper)) {
+        if (config.includeCI && metric.ci && typeof metric.ci.lower === 'number' && typeof metric.ci.upper === 'number' && !isNaN(metric.ci.lower) && !isNaN(metric.ci.upper)) {
             const lowerStr = formatValueForPublication(metric.ci.lower, digits, isPercent, noLeadingZero);
             const upperStr = formatValueForPublication(metric.ci.upper, digits, isPercent, noLeadingZero);
             const ciStr = isPercent ? `${lowerStr}%, ${upperStr}%` : `${lowerStr}, ${upperStr}`;
-            
-            if (detailsStr) {
-                detailsStr += `; 95% CI: ${ciStr})`;
-            } else {
-                detailsStr = ` (95% CI: ${ciStr})`;
-            }
-        } else if (detailsStr) {
-            detailsStr += ')';
+            detailsParts.push(`95% CI: ${ciStr}`);
         }
 
-        return `${valueWithUnit}${detailsStr}`;
+        return detailsParts.length > 0 ? `${valueWithUnit} (${detailsParts.join('; ')})` : valueWithUnit;
     }
 
     function createPublicationTableHTML(config) {

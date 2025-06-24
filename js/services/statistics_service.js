@@ -30,9 +30,13 @@ window.statisticsService = (() => {
         if (!Array.isArray(arr) || arr.length === 0) return { q1: NaN, q3: NaN };
         const sortedArr = arr.map(x => parseFloat(x)).filter(x => !isNaN(x) && isFinite(x)).sort((a, b) => a - b);
         if (sortedArr.length === 0) return { q1: NaN, q3: NaN };
+
         const q1Index = (sortedArr.length + 1) / 4;
         const q3Index = (sortedArr.length + 1) * 3 / 4;
+
         const getQuartileValue = (index) => {
+            if (index <= 1) return sortedArr[0];
+            if (index >= sortedArr.length) return sortedArr[sortedArr.length - 1];
             const base = Math.floor(index) - 1;
             const frac = index - Math.floor(index);
             if (sortedArr[base + 1] !== undefined) {
@@ -40,6 +44,7 @@ window.statisticsService = (() => {
             }
             return sortedArr[base];
         };
+        
         return {
             q1: getQuartileValue(q1Index),
             q3: getQuartileValue(q3Index)

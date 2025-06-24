@@ -173,7 +173,7 @@ function generateCriteriaCombinations() {
     }
     
     if (VALUE_OPTIONS.size.length === 0) {
-        VALUE_OPTIONS.size = Array.from({ length: Math.round((25.0 - 0.1)/0.1) + 1 }, (_, i) => 0.1 + i * 0.1);
+        VALUE_OPTIONS.size = Array.from({ length: Math.round((25.0 - 0.1)/0.1) + 1 }, (_, i) => parseFloat((0.1 + i * 0.1).toFixed(1)));
     }
     
     const combinations = [];

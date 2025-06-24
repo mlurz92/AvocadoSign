@@ -15,7 +15,7 @@ window.resultsGenerator = (() => {
 
         const text = `
             <h3 id="ergebnisse_patientencharakteristika">Patient Characteristics</h3>
-            <p>The study cohort comprised ${helpers.formatValueForPublication(nOverall, 0)} patients (mean age, ${helpers.formatValueForPublication(overallStats?.descriptive?.age?.mean, 1)} years ± ${helpers.formatValueForPublication(overallStats?.descriptive?.age?.sd, 1)} [standard deviation]; ${overallStats?.descriptive?.sex?.m} men). The process of patient enrollment is detailed in the study flowchart (Fig 1). Of the included patients, ${helpers.formatValueForPublication(nSurgeryAlone, 0)} (${helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall}, 'acc', true)}) underwent primary surgery, and ${helpers.formatValueForPublication(nNeoadjuvantTherapy, 0)} (${helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall}, 'acc', true)}) received neoadjuvant chemoradiotherapy. Overall, ${helpers.formatValueForPublication(nPositive, 0)} of ${nOverall} patients (${helpers.formatMetricForPublication({value: nPositive / nOverall}, 'acc', true)}) had histopathologically confirmed lymph node metastases (N-positive). There were no significant differences in age, sex distribution, or the prevalence of N-positive status between the primary surgery and neoadjuvant therapy subgroups. Detailed patient characteristics for the overall cohort and by treatment subgroup are provided in Table 1.</p>
+            <p>The study cohort comprised ${helpers.formatValueForPublication(nOverall, 0)} patients (mean age, ${helpers.formatValueForPublication(overallStats?.descriptive?.age?.mean, 1)} years ± ${helpers.formatValueForPublication(overallStats?.descriptive?.age?.sd, 1)} [standard deviation]; ${overallStats?.descriptive?.sex?.m} men). The process of patient enrollment is detailed in the study flowchart (Fig 1). Of the included patients, ${helpers.formatValueForPublication(nSurgeryAlone, 0)} (${helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall}, 'acc', { includeCI: false })}) underwent primary surgery, and ${helpers.formatValueForPublication(nNeoadjuvantTherapy, 0)} (${helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall}, 'acc', { includeCI: false })}) received neoadjuvant chemoradiotherapy. Overall, ${helpers.formatValueForPublication(nPositive, 0)} of ${nOverall} patients (${helpers.formatMetricForPublication({value: nPositive / nOverall}, 'acc', { includeCI: false })}) had histopathologically confirmed lymph node metastases (N-positive). There were no significant differences in age, sex distribution, or the prevalence of N-positive status between the primary surgery and neoadjuvant therapy subgroups. Detailed patient characteristics for the overall cohort and by treatment subgroup are provided in Table 1.</p>
         `;
 
         const figurePlaceholder = `
@@ -57,7 +57,7 @@ window.resultsGenerator = (() => {
 
         const getCountRow = (count, total) => {
             if(total === 0 || count === undefined || count === null) return '0 (N/A)';
-            return `${helpers.formatValueForPublication(count, 0)} (${helpers.formatMetricForPublication({value: count / total}, 'acc', true)})`;
+            return `${helpers.formatValueForPublication(count, 0)} (${helpers.formatMetricForPublication({value: count / total}, 'acc', { includeCI: false })})`;
         };
         
         const tableConfig = {
@@ -89,13 +89,13 @@ window.resultsGenerator = (() => {
         const bfComparisonForPub = overallStats?.comparisonASvsT2Bruteforce?.[bruteForceMetricForPublication];
         
         const bfComparisonText = (bfResultForPub && bfComparisonForPub)
-            ? `(AUC, ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc', true)} vs ${helpers.formatMetricForPublication(bfResultForPub?.auc, 'auc', true)}; ${helpers.formatPValueForPublication(bfComparisonForPub?.delong?.pValue)})`
+            ? `(AUC, ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc', { showValueOnly: true })} vs ${helpers.formatMetricForPublication(bfResultForPub?.auc, 'auc', { showValueOnly: true })}; ${helpers.formatPValueForPublication(bfComparisonForPub?.delong?.pValue)})`
             : '(comparison pending)';
 
         const text = `
             <h3 id="ergebnisse_vergleich_as_vs_t2">Diagnostic Performance and Comparison</h3>
             <p>The Avocado Sign demonstrated robust diagnostic performance across all patient subgroups, as detailed in Table 3. For the entire cohort (n=${commonData.nOverall}), the AUC was ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc')}. The interobserver agreement for the sign was previously reported as almost perfect for this cohort (Cohen’s kappa = ${helpers.formatValueForPublication(overallStats?.interobserverKappa, 2, false, true)}${(overallStats?.interobserverKappaCI && isFinite(overallStats?.interobserverKappaCI.lower) && isFinite(overallStats?.interobserverKappaCI.upper)) ? `; 95% CI: ${helpers.formatValueForPublication(overallStats.interobserverKappaCI.lower, 2, false, true)}, ${helpers.formatValueForPublication(overallStats.interobserverKappaCI.upper, 2, false, true)}` : ''}) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p>When compared with established literature-based T2w criteria within their respective, methodologically appropriate cohorts, the Avocado Sign consistently showed superior diagnostic performance (Table 4). In the surgery-alone cohort, the AUC of the Avocado Sign was significantly higher than that of the ESGAR 2016 criteria. Similarly, its performance surpassed that of other literature-based criteria in their corresponding cohorts. Furthermore, the performance of the Avocado Sign was statistically non-inferior to that of a cohort-optimized T2w criteria set derived from a brute-force analysis ${bfComparisonText}, which represents a data-driven benchmark for conventional morphology in our cohort.</p>
+            <p>When compared with established literature-based T2w criteria within their respective, methodologically appropriate cohorts, the Avocado Sign consistently showed superior diagnostic performance (Table 4). In the surgery-alone cohort, the AUC of the Avocado Sign was significantly higher than that of the ESGAR 2016 criteria. Similarly, its performance surpassed that of other literature-based criteria in their corresponding cohorts. Furthermore, the performance of the Avocado Sign was statistically non-inferior to that of a data-driven T2w benchmark ${bfComparisonText}, which represents a data-driven benchmark for conventional morphology in our cohort.</p>
         `;
 
         const table3Config = {
@@ -159,9 +159,9 @@ window.resultsGenerator = (() => {
         };
         
         addLitCompRow(window.APP_CONFIG.COHORTS.OVERALL.id, 'Koh_2008');
-        table4Config.rows.push(['', '', '', '', '', '']);
+        table4Config.rows.push(['', '', '', '', '', '']); // Visual separator
         addLitCompRow(window.APP_CONFIG.COHORTS.SURGERY_ALONE.id, 'Rutegard_2025');
-        table4Config.rows.push(['', '', '', '', '', '']);
+        table4Config.rows.push(['', '', '', '', '', '']); // Visual separator
         addLitCompRow(window.APP_CONFIG.COHORTS.NEOADJUVANT.id, 'Barbaro_2024');
 
         return text + helpers.createPublicationTableHTML(table3Config) + helpers.createPublicationTableHTML(table4Config);
