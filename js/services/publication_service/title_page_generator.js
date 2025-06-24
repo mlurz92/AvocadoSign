@@ -11,8 +11,7 @@ window.titlePageGenerator = (() => {
         const correspondingAuthor = {
             name: "Markus Lurz, MD",
             address: "Delitzscher Str. 141, 04129 Leipzig, Germany",
-            email: "Markus.Lurz@sanktgeorg.de",
-            phone: "+49 (0)341 909-0000"
+            email: "Markus.Lurz@sanktgeorg.de"
         };
         
         const manuscriptType = "Original Research";
@@ -27,14 +26,14 @@ window.titlePageGenerator = (() => {
             const bfResultForPub = overallStats?.performanceT2Bruteforce?.[bruteForceMetricForPublication];
             const bfComparisonForPub = overallStats?.comparisonASvsT2Bruteforce?.[bruteForceMetricForPublication];
 
-            summaryStatementHTML = `<p><strong>In this retrospective study of 106 patients with rectal cancer, the contrast-enhanced Avocado Sign demonstrated diagnostic performance for nodal staging superior to established T2-weighted criteria and comparable to a cohort-optimized benchmark.</strong></p>`;
+            summaryStatementHTML = `<p><strong>In this retrospective study of 106 patients with rectal cancer, the contrast-enhanced Avocado Sign demonstrated diagnostic performance for nodal staging superior to established T2-weighted criteria and approaching the performance of a cohort-optimized benchmark.</strong></p>`;
             
             keyResultsHTML = `
                 <h4 style="font-size: 1.1rem; font-weight: bold; margin-top: 1.5rem;">Key Results</h4>
                 <ul style="padding-left: 20px; margin-top: 0.5rem; list-style-position: inside; text-align: left;">
-                    <li>In a retrospective analysis of ${nOverall} patients, the Avocado Sign (AS) on contrast-enhanced MRI yielded an area under the receiver operating characteristic curve (AUC) of ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc', true)}.</li>
-                    <li>The AS demonstrated significantly higher diagnostic performance than established literature-based T2-weighted (T2w) criteria, including the ESGAR 2016 guidelines, in the primary surgery cohort (${helpers.formatPValueForPublication(stats?.surgeryAlone?.comparisonASvsT2Literature?.Rutegard_2025?.delong?.pValue)}).</li>
-                    <li>The performance of the AS was comparable to that of a cohort-optimized T2w criteria set derived from a brute-force analysis (AUC, ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc', true)} vs ${helpers.formatMetricForPublication(bfResultForPub?.auc, 'auc', true)}; ${helpers.formatPValueForPublication(bfComparisonForPub?.delong?.pValue)}).</li>
+                    <li>In a retrospective analysis of ${nOverall} patients, the Avocado Sign on contrast-enhanced MRI yielded an area under the receiver operating characteristic curve (AUC) of ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc', true)}.</li>
+                    <li>The Avocado Sign demonstrated significantly higher diagnostic performance than established literature-based T2-weighted criteria, including the ESGAR 2016 guidelines, in the primary surgery cohort (${helpers.formatPValueForPublication(stats?.surgeryAlone?.comparisonASvsT2Literature?.Rutegard_2025?.delong?.pValue)}).</li>
+                    <li>The performance of the Avocado Sign was high, although a statistically significant difference to a data-driven T2-weighted criteria set derived from a brute-force analysis was observed (AUC, ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc', true)} vs ${helpers.formatMetricForPublication(bfResultForPub?.auc, 'auc', true)}; ${helpers.formatPValueForPublication(bfComparisonForPub?.delong?.pValue)}).</li>
                 </ul>
             `;
         }

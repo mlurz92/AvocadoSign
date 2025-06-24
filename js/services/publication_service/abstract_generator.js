@@ -23,11 +23,11 @@ window.abstractGenerator = (() => {
         const demographicsString = `${nOverall} patients (mean age, ${meanAgeFormatted} years ± ${ageSDFormatted} [standard deviation]; ${overallStats?.descriptive?.sex?.m ?? 'N/A'} men)`;
 
         const resultsSectionHTML = `
-            <p>A total of ${demographicsString} were evaluated, of whom ${nPositive} of ${nOverall} (${helpers.formatMetricForPublication({value: nPositive / nOverall}, 'acc', { includeCI: false })}) had N-positive disease at histopathology. The Avocado Sign demonstrated a sensitivity of ${helpers.formatMetricForPublication(overallStats?.performanceAS?.sens, 'sens', { includeCI: false })} and a specificity of ${helpers.formatMetricForPublication(overallStats?.performanceAS?.spec, 'spec', { includeCI: false })}, with an AUC of ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc')}. Its performance was superior to established literature-based T2w criteria. Furthermore, its diagnostic accuracy was comparable to that of a data-driven T2w benchmark ${bfComparisonText}.</p>
+            <p>A total of ${demographicsString} were evaluated, of whom ${nPositive} of ${nOverall} (${helpers.formatMetricForPublication({value: nPositive / nOverall}, 'acc', { includeCI: false })}) had N-positive disease at histopathology. The Avocado Sign demonstrated a sensitivity of ${helpers.formatMetricForPublication(overallStats?.performanceAS?.sens, 'sens', { includeCI: false })} and a specificity of ${helpers.formatMetricForPublication(overallStats?.performanceAS?.spec, 'spec', { includeCI: false })}, with an AUC of ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc')}. Its performance was superior to established literature-based T2w criteria. Furthermore, its diagnostic accuracy was high, although a statistically significant difference to a data-driven T2w benchmark was observed ${bfComparisonText}.</p>
         `;
         
         const conclusionText = `
-            <p>The Avocado Sign is an accurate and reproducible MRI marker for predicting lymph node status in rectal cancer, demonstrating performance superior to established T2-weighted criteria and comparable to a data-driven T2w benchmark, suggesting it could simplify and improve current staging protocols.</p>
+            <p>The Avocado Sign is an accurate and reproducible MRI marker for predicting lymph node status in rectal cancer, demonstrating performance superior to established T2-weighted criteria and approaching the performance of a data-driven T2w benchmark, suggesting it could simplify and improve current staging protocols.</p>
         `;
 
         const abstractContentHTML = `
