@@ -42,7 +42,7 @@ window.publicationHelpers = (() => {
             case 'npv':
             case 'acc':
                 isPercent = true;
-                digits = 0;
+                digits = 1;
                 noLeadingZero = false;
                 break;
             case 'auc':

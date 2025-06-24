@@ -16,21 +16,19 @@ window.abstractGenerator = (() => {
         const bfResultsAvailable = !!(bfResultForPub && bfComparisonForPub);
         
         const bfComparisonText = bfResultsAvailable
-            ? `(AUC, ${helpers.formatMetricForPublication(perfAS?.auc, 'auc', { showValueOnly: true })} vs ${helpers.formatMetricForPublication(bfResultForPub?.auc, 'auc', { showValueOnly: true })}; ${helpers.formatPValueForPublication(bfComparisonForPub?.delong?.pValue)})`
-            : '(comparison pending)';
+            ? `(AUC, ${helpers.formatValueForPublication(perfAS?.auc?.value, 2, false, true)} vs ${helpers.formatValueForPublication(bfResultForPub?.auc?.value, 2, false, true)}; ${helpers.formatPValueForPublication(bfComparisonForPub?.delong?.pValue)})`
+            : '';
 
-        const meanAgeFormatted = helpers.formatValueForPublication(overallStats?.descriptive?.age?.mean, 1);
-        const ageSDFormatted = helpers.formatValueForPublication(overallStats?.descriptive?.age?.sd, 1);
-        const demographicsString = `${nOverall} patients (mean age, ${meanAgeFormatted} years ± ${ageSDFormatted} [standard deviation]; ${overallStats?.descriptive?.sex?.m ?? 'N/A'} men)`;
-
-        const resultsSectionHTML = `
-            <p>A total of ${demographicsString} were evaluated, of whom ${nPositive} of ${nOverall} (${helpers.formatMetricForPublication({value: nPositive / nOverall}, 'acc', { includeCI: false, includeCount: false})}) had N-positive disease at histopathology. The novel contrast-enhanced sign demonstrated a sensitivity of ${helpers.formatMetricForPublication(perfAS?.sens, 'sens', { includeCI: false, includeCount: false })} and a specificity of ${helpers.formatMetricForPublication(perfAS?.spec, 'spec', { includeCI: false, includeCount: false })}, with an AUC of ${helpers.formatMetricForPublication(perfAS?.auc, 'auc', { includeCI: true })}. Its performance was superior to established literature-based T2 criteria and approached the performance of a data-driven T2-based benchmark ${bfComparisonText}.</p>
-        `;
+        const meanAgeFormatted = helpers.formatValueForPublication(overallStats.descriptive.age.mean, 1);
+        const ageSDFormatted = helpers.formatValueForPublication(overallStats.descriptive.age.sd, 1);
         
-        const conclusionText = `
-            <p>This novel contrast-enhanced MRI sign is an accurate and reproducible marker for predicting lymph node status in rectal cancer. It could simplify and improve current staging protocols by demonstrating performance superior to established T2 criteria.</p>
-        `;
+        const demographicsSentence = `A total of ${nOverall} patients (mean age, ${meanAgeFormatted} years ± ${ageSDFormatted}; ${overallStats.descriptive.sex.m} men) were evaluated.`;
+        const nPositiveText = `${nPositive} of ${nOverall} (${helpers.formatMetricForPublication({ value: nPositive / nOverall }, 'acc', { includeCI: false, includeCount: false })})`;
 
+        const findingsSentence = `Of these, ${nPositiveText} had N-positive disease. The novel contrast-enhanced sign yielded a sensitivity of ${helpers.formatMetricForPublication(perfAS.sens, 'sens', { includeCI: false })} and a specificity of ${helpers.formatMetricForPublication(perfAS.spec, 'spec', { includeCI: false })}, with an AUC of ${helpers.formatMetricForPublication(perfAS.auc, 'auc', { includeCI: true })}. The sign's performance was superior to established literature-based T2 criteria and was comparable with a data-driven T2 benchmark ${bfComparisonText}.`;
+
+        const resultsSectionHTML = `<p>${demographicsSentence} ${findingsSentence}</p>`;
+        
         const abstractContentHTML = `
             <div class="structured-abstract">
                 <h3>Background</h3>
@@ -40,13 +38,13 @@ window.abstractGenerator = (() => {
                 <p>To evaluate the diagnostic performance of a novel contrast-enhanced MRI sign and to compare it with both established literature-based and data-driven T2 criteria for predicting nodal status.</p>
                 
                 <h3>Materials and Methods</h3>
-                <p>This secondary analysis of a retrospective, single-institution study received institutional review board approval with a waiver of informed consent. Data from ${nOverall} consecutive patients with histologically confirmed rectal cancer who underwent 3.0-T MRI between January 2020 and November 2023 were analyzed. Two blinded radiologists evaluated a novel sign on contrast-enhanced T1-weighted images and morphological features on T2 images. Histopathologic examination of the surgical specimen served as the reference standard. Diagnostic performance was assessed using the area under the receiver operating characteristic curve (AUC), and methods were compared using the DeLong test.</p>
+                <p>This secondary analysis of a retrospective, single-institution study received institutional review board approval with a waiver of informed consent. Data from ${nOverall} consecutive patients with histologically confirmed rectal cancer who underwent 3.0-T MRI between January 2020 and November 2023 were analyzed. Two blinded radiologists evaluated a novel sign on contrast-enhanced T1-weighted images and morphological features on T2-weighted images. Histopathologic examination of the surgical specimen served as the reference standard. Diagnostic performance was assessed using the area under the receiver operating characteristic curve (AUC), and methods were compared using the DeLong test.</p>
                 
                 <h3>Results</h3>
                 ${resultsSectionHTML}
                 
                 <h3>Conclusion</h3>
-                ${conclusionText}
+                <p>The novel contrast-enhanced MRI sign is an accurate and reproducible marker for predicting lymph node status in rectal cancer. It could simplify and improve current staging protocols by demonstrating performance superior to established T2 criteria.</p>
             </div>
         `;
 
