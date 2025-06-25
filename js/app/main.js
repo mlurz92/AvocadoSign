@@ -74,7 +74,7 @@ class App {
                 stardGenerator: window.stardGenerator, publicationService: window.publicationService, uiManager: window.uiManager, 
                 uiComponents: window.uiComponents, tableRenderer: window.tableRenderer, chartRenderer: window.chartRenderer, 
                 flowchartRenderer: window.flowchartRenderer, dataTab: window.dataTab, analysisTab: window.analysisTab, 
-                statisticsTab: window.statisticsTab, comparisonTab: window.comparisonTab, publicationTab: window.publicationTab, 
+                statisticsTab: window.statisticsTab, comparisonTab: window.comparisonTab, 
                 eventManager: window.eventManager, APP_CONFIG: window.APP_CONFIG, 
                 PUBLICATION_CONFIG: window.PUBLICATION_CONFIG
             };
@@ -206,39 +206,54 @@ class App {
         let cohortForComparison = globalCohort;
         let patientCountForComparison = patientCount;
 
-        if (selectedStudyId === window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_STUDY_ID) {
-            const statsForGlobalCohort = this.allPublicationStats[globalCohort];
-            performanceAS = statsForGlobalCohort?.performanceAS;
-            performanceT2 = statsForGlobalCohort?.performanceT2Applied;
-            comparisonASvsT2 = statsForGlobalCohort?.comparisonASvsT2Applied;
-            const appliedCriteria = window.t2CriteriaManager.getAppliedCriteria();
-            const appliedLogic = window.t2CriteriaManager.getAppliedLogic();
-            comparisonCriteriaSet = {
-                id: window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_STUDY_ID, name: window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_DISPLAY_NAME,
-                displayShortName: window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_DISPLAY_NAME, criteria: appliedCriteria, logic: appliedLogic,
-                studyInfo: {
-                    reference: 'User-defined criteria', patientCohort: `Current: ${getCohortDisplayName(globalCohort)} (N=${patientCount})`,
-                    keyCriteriaSummary: window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, false)
+        if (selectedStudyId.startsWith('bf_')) {
+            const cohortId = selectedStudyId.split('_')[1];
+            cohortForComparison = cohortId;
+            const bfMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
+            const statsForBfCohort = this.allPublicationStats[cohortId];
+            
+            if (statsForBfCohort) {
+                patientCountForComparison = statsForBfCohort.descriptive?.patientCount || 0;
+                performanceAS = statsForBfCohort.performanceAS;
+                performanceT2 = statsForBfCohort.performanceT2Bruteforce?.[bfMetric];
+                comparisonASvsT2 = statsForBfCohort.comparisonASvsT2Bruteforce?.[bfMetric];
+                const bfDef = statsForBfCohort.bruteforceDefinitions?.[bfMetric];
+                
+                if (bfDef) {
+                    comparisonCriteriaSet = {
+                        id: selectedStudyId,
+                        name: `Best Case T2 (${getCohortDisplayName(cohortId)})`,
+                        displayShortName: `BF T2 (${getCohortDisplayName(cohortId)})`,
+                        criteria: bfDef.criteria,
+                        logic: bfDef.logic,
+                        studyInfo: {
+                            isDynamic: true,
+                            patientCohort: `${getCohortDisplayName(cohortId)} (N=${patientCountForComparison})`,
+                            keyCriteriaSummary: window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, false)
+                        }
+                    };
+                    t2ShortName = comparisonCriteriaSet.displayShortName;
                 }
-            };
-            t2ShortName = window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_DISPLAY_NAME;
-        } else if (selectedStudyId) {
+            }
+        } else {
             const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(selectedStudyId);
             if (studySet) {
                 cohortForComparison = studySet.applicableCohort || window.APP_CONFIG.COHORTS.OVERALL.id;
                 const statsForStudyCohort = this.allPublicationStats[cohortForComparison];
-                patientCountForComparison = statsForStudyCohort?.descriptive?.patientCount || 0;
-                
-                performanceAS = statsForStudyCohort?.performanceAS;
-                performanceT2 = statsForStudyCohort?.performanceT2Literature?.[selectedStudyId];
-                comparisonASvsT2 = statsForStudyCohort?.comparisonASvsT2Literature?.[selectedStudyId];
-                comparisonCriteriaSet = studySet;
-                t2ShortName = studySet.displayShortName || studySet.name;
+                if (statsForStudyCohort) {
+                    patientCountForComparison = statsForStudyCohort.descriptive?.patientCount || 0;
+                    performanceAS = statsForStudyCohort.performanceAS;
+                    performanceT2 = statsForStudyCohort.performanceT2Literature?.[selectedStudyId];
+                    comparisonASvsT2 = statsForStudyCohort.comparisonASvsT2Literature?.[selectedStudyId];
+                    comparisonCriteriaSet = studySet;
+                    t2ShortName = studySet.displayShortName || studySet.name;
+                }
             }
         }
 
         return {
             globalCohort, patientCount,
+            processedData: this.processedData,
             statsGesamt: this.allPublicationStats[window.APP_CONFIG.COHORTS.OVERALL.id], 
             statsSurgeryAlone: this.allPublicationStats[window.APP_CONFIG.COHORTS.SURGERY_ALONE.id], 
             statsNeoadjuvantTherapy: this.allPublicationStats[window.APP_CONFIG.COHORTS.NEOADJUVANT.id],
@@ -295,7 +310,7 @@ class App {
             case 'data': window.uiManager.renderTabContent('data', () => window.dataTab.render(currentDataForTab, window.state.getDataTableSort())); break;
             case 'analysis': window.uiManager.renderTabContent('analysis', () => window.analysisTab.render(currentDataForTab, window.t2CriteriaManager.getCurrentCriteria(), window.t2CriteriaManager.getCurrentLogic(), window.state.getAnalysisTableSort(), activeCohort, window.bruteForceManager.isWorkerAvailable(), this.allPublicationStats[activeCohort], allBruteForceResults)); break;
             case 'statistics': window.uiManager.renderTabContent('statistics', () => window.statisticsTab.render(this.processedData, criteria, logic, window.state.getStatsLayout(), window.state.getStatsCohort1(), window.state.getStatsCohort2(), globalCohort)); break;
-            case 'comparison': window.uiManager.renderTabContent('comparison', () => window.comparisonTab.render(window.state.getComparisonView(), currentComparisonData, window.state.getComparisonStudyId(), globalCohort, this.processedData, criteria, logic)); break;
+            case 'comparison': window.uiManager.renderTabContent('comparison', () => window.comparisonTab.render(window.state.getComparisonView(), currentComparisonData, window.state.getComparisonStudyId())); break;
             case 'publication': window.uiManager.renderTabContent('publication', () => window.publicationTab.render(publicationData, window.state.getPublicationSection())); break;
             case 'export': window.uiManager.renderTabContent('export', () => window.exportTab.render()); break;
         }
@@ -427,7 +442,8 @@ class App {
             const chartData = [
                 { metric: 'Sens.', AS: comparisonData.performanceAS.sens?.value || 0, T2: comparisonData.performanceT2.sens?.value || 0 },
                 { metric: 'Spec.', AS: comparisonData.performanceAS.spec?.value || 0, T2: comparisonData.performanceT2.spec?.value || 0 },
-                { metric: 'Acc.', AS: comparisonData.performanceAS.acc?.value || 0, T2: comparisonData.performanceT2.acc?.value || 0 },
+                { metric: 'PPV', AS: comparisonData.performanceAS.ppv?.value || 0, T2: comparisonData.performanceT2.ppv?.value || 0 },
+                { metric: 'NPV', AS: comparisonData.performanceAS.npv?.value || 0, T2: comparisonData.performanceT2.npv?.value || 0 },
                 { metric: 'AUC', AS: comparisonData.performanceAS.auc?.value || 0, T2: comparisonData.performanceT2.auc?.value || 0 }
             ];
             chartTasks.push(() => window.chartRenderer.renderComparisonBarChart(chartData, tempCompBarId, {}, comparisonData.t2ShortName));
@@ -458,6 +474,19 @@ class App {
         const hiddenContainer = document.getElementById(window.APP_CONFIG.UI_SETTINGS.HIDDEN_CHART_CONTAINER_ID);
         if (hiddenContainer) {
             hiddenContainer.innerHTML = '';
+        }
+    }
+
+    handleSortRequest(context, key, subKey) {
+        let changed = false;
+        if (context === 'data') {
+            changed = window.state.updateDataTableSort(key, subKey);
+        } else if (context === 'analysis') {
+            changed = window.state.updateAnalysisTableSort(key, subKey);
+        }
+        
+        if (changed) {
+            this.refreshCurrentTab();
         }
     }
 

@@ -1,6 +1,7 @@
 window.studyT2CriteriaManager = (() => {
 
     const literatureCriteriaSets = [
+        // --- Cohort: surgeryAlone (Treatment-Naïve) ---
         {
             id: 'Rutegard_2025',
             name: 'ESGAR 2016 (in Rutegård et al. 2025)',
@@ -16,7 +17,7 @@ window.studyT2CriteriaManager = (() => {
             },
             studyInfo: {
                 refKey: 'Rutegard_2025',
-                patientCohort: 'Surgery Alone (n=46)',
+                patientCohort: 'Treatment-naïve / Overall (n=46)',
                 investigationType: 'Prospective, Node-by-Node',
                 focus: 'Validation of combined ESGAR 2016 criteria',
                 keyCriteriaSummary: '≥9mm OR (5–8mm AND ≥2 features) OR (<5mm AND 3 features)'
@@ -24,11 +25,11 @@ window.studyT2CriteriaManager = (() => {
             description: 'ESGAR 2016 consensus criteria: A lymph node is considered malignant if it has a short-axis diameter of ≥9 mm, OR if it has a diameter of 5–8 mm and at least two suspicious morphological features (round shape, irregular border, or heterogeneous signal), OR if it has a diameter of <5 mm and all three suspicious features.'
         },
         {
-            id: 'Koh_2008',
-            name: 'Koh et al. (2008)',
-            displayShortName: 'Koh 2008',
-            logic: 'OR',
-            applicableCohort: 'Overall',
+            id: 'Grone_2017',
+            name: 'Gröne et al. (2017)',
+            displayShortName: 'Gröne 2017',
+            logic: 'AND',
+            applicableCohort: 'surgeryAlone',
             criteria: {
                 size: { active: false },
                 shape: { active: false },
@@ -37,10 +38,96 @@ window.studyT2CriteriaManager = (() => {
                 signal: { active: false }
             },
             studyInfo: {
-                refKey: 'Koh_2008',
-                patientCohort: 'Overall (n=25)',
-                investigationType: 'Prospective, Pre- and Post-nCRT',
-                keyCriteriaSummary: 'Irregular Border OR Heterogeneous Signal'
+                refKey: 'Grone_2017',
+                patientCohort: 'Treatment-naïve (n=60)',
+                investigationType: 'Retrospective',
+                focus: 'Accuracy of single vs. combined morphological criteria',
+                keyCriteriaSummary: 'Irregular Border AND Heterogeneous Signal'
+            }
+        },
+        {
+            id: 'Jiang_2025',
+            name: 'Node-RADS (in Jiang et al. 2025)',
+            displayShortName: 'Node-RADS',
+            logic: 'OR', // Approximation for evaluation; true logic is a scoring system
+            applicableCohort: 'surgeryAlone',
+            criteria: {
+                size: { active: true, threshold: 5.0, condition: '>=' },
+                shape: { active: true, value: 'round' },
+                border: { active: true, value: 'irregular' },
+                homogeneity: { active: true, value: 'heterogeneous' },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Jiang_2025',
+                patientCohort: 'Treatment-naïve (n=113)',
+                investigationType: 'Retrospective, Modality Benchmarking',
+                focus: 'Evaluation of Node-RADS v1.0 classification',
+                keyCriteriaSummary: 'Node-RADS Score 4 or 5 (Approximated as Size ≥5mm OR Round OR Irregular OR Heterogeneous)'
+            }
+        },
+        // --- Cohort: neoadjuvantTherapy (Post-Treatment) ---
+        {
+            id: 'Pangarkar_2021',
+            name: 'SAR Restaging (in Pangarkar et al. 2021)',
+            displayShortName: 'SAR (Pangarkar 2021)',
+            logic: 'OR',
+            applicableCohort: 'neoadjuvantTherapy',
+            criteria: {
+                size: { active: true, threshold: 5.0, condition: '>=' },
+                shape: { active: false },
+                border: { active: false },
+                homogeneity: { active: false },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Pangarkar_2021',
+                patientCohort: 'Neoadjuvant Therapy (n=166)',
+                investigationType: 'Retrospective',
+                focus: 'Validation of SAR restaging criteria (size ≥ 5 mm)',
+                keyCriteriaSummary: 'Short-axis diameter ≥ 5 mm'
+            }
+        },
+        {
+            id: 'Zhang_2023',
+            name: 'ESGAR Restaging (in Zhang et al. 2023)',
+            displayShortName: 'ESGAR (Zhang 2023)',
+            logic: 'OR',
+            applicableCohort: 'neoadjuvantTherapy',
+            criteria: {
+                size: { active: true, threshold: 5.0, condition: '>=' },
+                shape: { active: false },
+                border: { active: false },
+                homogeneity: { active: false },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Zhang_2023',
+                patientCohort: 'Neoadjuvant Therapy (n=90)',
+                investigationType: 'Retrospective, Node-by-Node',
+                focus: 'Validation of ESGAR restaging criterion (size ≥ 5 mm)',
+                keyCriteriaSummary: 'Short-axis diameter ≥ 5 mm'
+            }
+        },
+        {
+            id: 'Crimi_2024',
+            name: 'Long-Axis Criterion (in Crimì et al. 2024)',
+            displayShortName: 'Long-Axis (Crimì 2024)',
+            logic: 'OR',
+            applicableCohort: 'neoadjuvantTherapy',
+            criteria: {
+                size: { active: true, threshold: 5.5, condition: '>=' }, // Note: This is an approximation. The study used long-axis.
+                shape: { active: false },
+                border: { active: false },
+                homogeneity: { active: false },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Crimi_2024',
+                patientCohort: 'Neoadjuvant Therapy (n=139)',
+                investigationType: 'Retrospective',
+                focus: 'Comparison of dimensional criteria (long-axis, volume)',
+                keyCriteriaSummary: 'Long-axis ≥ 5.5 mm (approximated here by short-axis)'
             }
         },
         {
@@ -61,7 +148,71 @@ window.studyT2CriteriaManager = (() => {
                 patientCohort: 'Neoadjuvant Therapy (n=191)',
                 investigationType: 'Retrospective, Post-nCRT',
                 focus: 'Size criteria for predicting ypN0',
-                keyCriteriaSummary: 'A node is considered malignant if short-axis diameter > 2.2 mm.'
+                keyCriteriaSummary: 'Short-axis diameter > 2.2 mm'
+            }
+        },
+        {
+            id: 'Almlov_2020',
+            name: 'Almlöv et al. (2020)',
+            displayShortName: 'Almlöv 2020',
+            logic: 'OR',
+            applicableCohort: 'neoadjuvantTherapy',
+            criteria: {
+                size: { active: true, threshold: 5.0, condition: '>=' },
+                shape: { active: false },
+                border: { active: true, value: 'irregular' },
+                homogeneity: { active: true, value: 'heterogeneous' },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Almlov_2020',
+                patientCohort: 'Neoadjuvant Therapy (n=80)',
+                investigationType: 'Retrospective Case-Control',
+                focus: 'Risk factors for metachronous metastases',
+                keyCriteriaSummary: 'Size ≥5mm OR Irregular Border OR Heterogeneous Signal'
+            }
+        },
+        // --- Cohort: Overall (Mixed or Meta-Analysis) ---
+        {
+            id: 'Koh_2008',
+            name: 'Koh et al. (2008)',
+            displayShortName: 'Koh 2008',
+            logic: 'OR',
+            applicableCohort: 'Overall',
+            criteria: {
+                size: { active: false },
+                shape: { active: false },
+                border: { active: true, value: 'irregular' },
+                homogeneity: { active: true, value: 'heterogeneous' },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Koh_2008',
+                patientCohort: 'Overall (n=25)',
+                investigationType: 'Prospective, Pre- and Post-nCRT',
+                focus: 'Morphological assessment post-nCRT',
+                keyCriteriaSummary: 'Irregular Border OR Heterogeneous Signal'
+            }
+        },
+        {
+            id: 'Zhuang_2021',
+            name: 'Zhuang et al. (2021) - Size+Morphology',
+            displayShortName: 'Zhuang 2021 (Size+Morph)',
+            logic: 'OR',
+            applicableCohort: 'Overall',
+            criteria: {
+                size: { active: true, threshold: 5.0, condition: '>=' },
+                shape: { active: false },
+                border: { active: true, value: 'irregular' },
+                homogeneity: { active: true, value: 'heterogeneous' },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Zhuang_2021',
+                patientCohort: 'Overall (Meta-Analysis, n=2,875)',
+                investigationType: 'Systematic Review',
+                focus: 'Comparison of various size and morphology criteria',
+                keyCriteriaSummary: 'Approximation of "Size ≥ 5 mm with morphological standard"'
             }
         }
     ];

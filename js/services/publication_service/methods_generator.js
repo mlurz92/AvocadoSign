@@ -31,7 +31,7 @@ window.methodsGenerator = (() => {
         return `
             <h3 id="methoden_studienanlage_ethik">Study Design and Patients</h3>
             <p>${regulatoryStatement} This analysis is based on a new, fully blinded re-evaluation of a previously described retrospective cohort of ${helpers.formatValueForPublication(nOverall, 0)} consecutive patients with histologically confirmed rectal cancer who underwent pelvic MRI for primary staging or restaging between January 2020 and November 2023 ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p>Inclusion criteria for this secondary analysis were the availability of high-quality T2-weighted and contrast-enhanced T1-weighted MRI sequences and a definitive histopathological reference standard from the subsequent total mesorectal excision specimen. Of the final cohort, ${helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall, n_success: nSurgeryAlone, n_trials: nOverall }, 'acc', { includeCI: false })} underwent primary surgery, and ${helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall, n_success: nNeoadjuvantTherapy, n_trials: nOverall }, 'acc', { includeCI: false })} received neoadjuvant chemoradiotherapy followed by restaging MRI prior to surgery.</p>
+            <p>Inclusion criteria for this secondary analysis were the availability of high-quality T2-weighted and contrast-enhanced T1-weighted MRI sequences and a definitive histopathological reference standard from the subsequent total mesorectal excision specimen. Of the final cohort, ${helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall, n_success: nSurgeryAlone, n_trials: nOverall }, 'acc', { includeCI: false })} underwent primary surgery, while ${helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall, n_success: nNeoadjuvantTherapy, n_trials: nOverall }, 'acc', { includeCI: false })} received neoadjuvant chemoradiotherapy followed by restaging MRI prior to surgery.</p>
         `;
     }
 
@@ -39,7 +39,7 @@ window.methodsGenerator = (() => {
         const helpers = window.publicationHelpers;
         return `
             <h3 id="methoden_mrt_protokoll_akquisition">MRI Protocol and Image Analysis</h3>
-            <p>All MRI examinations were performed on a 3.0-T system (MAGNETOM Prisma Fit; Siemens Healthineers) with a phased-array body coil. The standardized protocol included high-resolution, multiplanar T2-weighted turbo spin-echo sequences and an axial diffusion-weighted sequence. Following the intravenous administration of a weight-based dose (0.2 mL/kg) of a macrocyclic gadolinium-based contrast agent (Gadoteridol; ProHance; Bracco), a fat-suppressed, T1-weighted volumetric interpolated breath-hold examination (VIBE) sequence was acquired. Detailed imaging parameters are provided in Table 1.</p>
+            <p>All MRI examinations were performed on a 3.0-T system (MAGNETOM Prisma Fit; Siemens Healthineers) using a phased-array body coil. The standardized protocol included high-resolution, multiplanar T2-weighted turbo spin-echo sequences and an axial diffusion-weighted sequence. Following the intravenous administration of a weight-based dose (0.2 mL/kg) of a macrocyclic gadolinium-based contrast agent (Gadoteridol; ProHance; Bracco), a fat-suppressed, T1-weighted volumetric interpolated breath-hold examination (VIBE) sequence was acquired. Detailed imaging parameters are provided in Table 1.</p>
             ${_createMriParametersTableHTML()}
             <p>Two board-certified radiologists (with 8 and 30 years of experience in abdominal MRI, respectively), who were blinded to the histopathological outcomes and each other's findings, independently reviewed all MRI studies. To minimize recall bias and intra-reader variability, the T2-weighted sequences were evaluated in a separate reading session at least four weeks prior to the assessment of the contrast-enhanced sequences. Any discrepancies in the final patient-level assessment were resolved by consensus.</p>
             <p><strong>Avocado Sign (AS) Assessment:</strong> On the contrast-enhanced T1-weighted VIBE images, all visible mesorectal lymph nodes were assessed for the presence of the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense lymph node, irrespective of node size or shape (Fig 2) ${helpers.getReference('Lurz_Schaefer_2025')}. No minimum size threshold was applied. A patient was classified as AS-positive if at least one such node was identified.</p>
@@ -63,11 +63,25 @@ window.methodsGenerator = (() => {
         };
 
         const literatureSets = window.studyT2CriteriaManager.getAllStudyCriteriaSets() || [];
+        const authorNameMap = {
+            'Rutegard_2025': 'Rutegård et al (2025)',
+            'Koh_2008': 'Koh et al (2008)',
+            'Barbaro_2024': 'Barbaro et al (2024)',
+            'Grone_2017': 'Gröne et al (2017)',
+            'Jiang_2025': 'Jiang et al (2025)',
+            'Pangarkar_2021': 'Pangarkar et al (2021)',
+            'Zhang_2023': 'Zhang et al (2023)',
+            'Crimi_2024': 'Crimì et al (2024)',
+            'Almlov_2020': 'Almlöv et al (2020)',
+            'Zhuang_2021': 'Zhuang et al (2021)'
+        };
+
         literatureSets.forEach(set => {
             if (set && set.studyInfo) {
+                const criteriaSetName = authorNameMap[set.id] || set.name || 'N/A';
                 table2Config.rows.push([
-                    set.name || 'N/A',
-                    helpers.getReference(set.studyInfo.refKey) || 'N/A',
+                    criteriaSetName,
+                    helpers.getReference(set.id),
                     set.studyInfo.patientCohort || 'N/A',
                     set.studyInfo.keyCriteriaSummary || 'N/A',
                     set.logic === 'KOMBINIERT' ? 'Combined (ESGAR Logic)' : (window.APP_CONFIG.UI_TEXTS.t2LogicDisplayNames[set.logic] || 'N/A')
@@ -78,7 +92,7 @@ window.methodsGenerator = (() => {
         return `
             <h3 id="methoden_vergleichskriterien_t2">Comparative T2 Criteria Sets</h3>
             <p>To provide a robust benchmark for the Avocado Sign, we evaluated two distinct types of T2-criteria sets:</p>
-            <p><strong>1. Literature-Based Criteria:</strong> We applied three criteria sets from previously published, influential studies to their respective target populations within our cohort (Table 2). These included the complex, size-dependent criteria from the ESGAR consensus group for the surgery-alone cohort ${helpers.getReference('Rutegard_2025')}, criteria based on morphological features by Koh et al. for the overall cohort ${helpers.getReference('Koh_2008')}, and a size-only criterion for post-nCRT restaging by Barbaro et al. ${helpers.getReference('Barbaro_2024')}.</p>
+            <p><strong>1. Literature-Based Criteria:</strong> We applied several criteria sets from previously published, influential studies to their respective target populations within our cohort (Table 2). These included complex, size-dependent rules, such as the ESGAR 2016 consensus criteria ${helpers.getReference('Rutegard_2025')}, and simpler criteria based on size or morphology from various other studies ${helpers.getReference('Pangarkar_2021')}${helpers.getReference('Grone_2017')}.</p>
             ${helpers.createPublicationTableHTML(table2Config)}
             <p><strong>2. Data-driven T2 Benchmark:</strong> To establish the most stringent T2-based comparator, we developed a data-driven benchmark using a systematic brute-force optimization. This computational approach was designed to identify the 'best-case' T2 criteria combination for our specific dataset by exhaustively testing all permutations of T2 features (size, shape, border, homogeneity), their respective values (e.g., size thresholds from 0.1 mm to 25.0 mm), and logical operators. This process was intentionally performed on each entire cohort to define a stringent, internally-derived standard against which the Avocado Sign could be compared, while acknowledging the inherent risk of overfitting associated with such a cohort-specific model. The best-performing criteria set for a pre-selected metric (${bruteForceMetricForPublication}) was then used for secondary comparisons.</p>
         `;

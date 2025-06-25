@@ -188,8 +188,9 @@ window.chartRenderer = (() => {
             .on("mouseover", function(event, d) {
                 tooltip.transition().duration(50).style("opacity", .95);
                 const displayName = subgroupDisplayNames[d.key] || d.key;
-                const digits = (d.metric === 'AUC' || d.metric === 'F1') ? 2 : 0;
-                const formattedValue = (d.metric === 'AUC' || d.metric === 'F1') ? formatNumber(d.value, digits) : formatPercent(d.value, digits);
+                const isRate = d.metric !== 'AUC' && d.metric !== 'F1';
+                const digits = isRate ? 0 : 2;
+                const formattedValue = isRate ? formatPercent(d.value, digits) : formatNumber(d.value, digits);
                 tooltip.html(`<strong>${d.metric} (${displayName}):</strong> ${formattedValue}`).style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 15) + "px");
                 d3.select(this).style("opacity", 1).style("stroke", "#333").style("stroke-width", 1);
             })

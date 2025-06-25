@@ -68,67 +68,69 @@ window.statisticsTab = (() => {
     function createCriteriaComparisonTableHTML(allStats) {
         const na_stat = window.APP_CONFIG.NA_PLACEHOLDER;
         const results = [];
-        const cohortOrder = ['Overall', 'surgeryAlone', 'neoadjuvantTherapy'];
-        
-        cohortOrder.forEach(cohortId => {
-            const asPerf = allStats[cohortId]?.performanceAS;
-            if (asPerf) {
-                results.push({
-                    group: 'Avocado Sign',
-                    name: `Avocado Sign (${getCohortDisplayName(cohortId)})`,
-                    ...asPerf
-                });
+        const allLitSets = window.studyT2CriteriaManager.getAllStudyCriteriaSets();
+
+        const addResults = (items, groupTitle) => {
+            if (items.length > 0) {
+                results.push({ isSeparator: true, name: `<strong>${groupTitle}</strong>` });
+                items.forEach(item => results.push(item));
             }
+        };
+
+        const generateRowData = (name, pValue, performanceStats, isPlaceholder = false) => ({
+            name, pValue, isPlaceholder, ...performanceStats
         });
 
-        results.push({ isSeparator: true, name: '<strong>Literature-Based Criteria</strong>' });
+        const asPerf = allStats['Overall']?.performanceAS;
+        if (asPerf) {
+            results.push({
+                group: 'Avocado Sign',
+                name: 'Avocado Sign (Overall Cohort)',
+                ...asPerf
+            });
+        }
         
-        const litOrder = ['Koh_2008', 'Rutegard_2025', 'Barbaro_2024'];
-        litOrder.forEach(litId => {
-            const set = window.studyT2CriteriaManager.getStudyCriteriaSetById(litId);
-            if (!set) return;
-            const cohortForSet = set.applicableCohort || window.APP_CONFIG.COHORTS.OVERALL.id;
+        const appliedPerf = allStats['Overall']?.performanceT2Applied;
+        const appliedComp = allStats['Overall']?.comparisonASvsT2Applied;
+        const appliedCriteria = window.t2CriteriaManager.getAppliedCriteria();
+        const appliedLogic = window.t2CriteriaManager.getAppliedLogic();
+        const appliedName = `Applied T2<br><code class="small fw-normal">${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true)}</code>`;
+        
+        if (appliedPerf) {
+            results.push({
+                group: 'Applied T2',
+                name: appliedName,
+                pValue: appliedComp?.delong?.pValue,
+                ...appliedPerf
+            });
+        }
+        
+        const litSurgeryAlone = [], litNeoadjuvant = [], litOverall = [];
+        allLitSets.forEach(set => {
+            const cohortForSet = set.applicableCohort || 'Overall';
             const statsForSet = allStats[cohortForSet];
             if (statsForSet) {
                 const perf = statsForSet.performanceT2Literature?.[set.id];
                 const comp = statsForSet.comparisonASvsT2Literature?.[set.id];
                 if (perf) {
-                    results.push({
-                        group: 'Literature',
-                        name: `${set.name}<br><em class="text-muted small fw-normal">(Cohort: ${getCohortDisplayName(cohortForSet)})</em>`,
-                        pValue: comp?.delong?.pValue,
-                        ...perf
-                    });
+                    const row = generateRowData(
+                        `${set.name}<br><em class="text-muted small fw-normal">(Cohort: ${getCohortDisplayName(cohortForSet)})</em>`,
+                        comp?.delong?.pValue,
+                        perf
+                    );
+                    if (cohortForSet === 'surgeryAlone') litSurgeryAlone.push(row);
+                    else if (cohortForSet === 'neoadjuvantTherapy') litNeoadjuvant.push(row);
+                    else litOverall.push(row);
                 }
             }
         });
         
-        results.push({ isSeparator: true, name: '<strong>Data-driven Best-Case Criteria</strong>' });
-
-        const defaultMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
-        cohortOrder.forEach(cohortId => {
-            const cohortStats = allStats[cohortId];
-            const bfPerf = cohortStats?.performanceT2Bruteforce?.[defaultMetric];
-            const bfComp = cohortStats?.comparisonASvsT2Bruteforce?.[defaultMetric];
-            const bfDef = cohortStats?.bruteforceDefinitions?.[defaultMetric];
-            
-            let nameContent = `Best Case T2 (${getCohortDisplayName(cohortId)})`;
-            if (bfDef) {
-                const criteriaDisplay = window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, true);
-                nameContent += `<br><code class="small fw-normal">${criteriaDisplay}</code>`;
-            }
-
-            results.push({
-                group: 'Best-Case',
-                name: nameContent,
-                pValue: bfComp?.delong?.pValue,
-                isPlaceholder: !bfPerf,
-                ...(bfPerf || {})
-            });
-        });
+        addResults(litSurgeryAlone, 'Literature-Based T2 Criteria (Surgery-alone Cohort)');
+        addResults(litNeoadjuvant, 'Literature-Based T2 Criteria (Neoadjuvant-therapy Cohort)');
+        addResults(litOverall, 'Literature-Based T2 Criteria (Overall Cohort)');
 
         if (results.length === 0) return '<p class="text-muted small p-3">No criteria comparison data.</p>';
-
+        
         let tableHtml = `<div class="table-responsive"><table class="table table-sm table-striped small mb-0"><thead><tr>
             <th data-tippy-content="Method or criteria set being evaluated.">Set</th>
             <th data-tippy-content="${getDefinitionTooltip('sens')}">Sens.</th>
@@ -196,8 +198,8 @@ window.statisticsTab = (() => {
         
         const outerRow = document.createElement('div');
         outerRow.className = 'row g-4';
-        const formattedAppliedT2Short = `Applied T2 Criteria (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true)})`;
-        const formattedAppliedT2Long = `Applied T2 Criteria (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, false)})`;
+        const formattedAppliedT2Short = `Applied T2 (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true)})`;
+        const formattedAppliedT2Long = `Applied T2 (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, false)})`;
 
         cohortIdsToShow.forEach((cohortId, i) => {
             const stats = allCohortStats[cohortId];

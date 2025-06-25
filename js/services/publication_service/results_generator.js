@@ -83,63 +83,82 @@ window.resultsGenerator = (() => {
     function _createConsolidatedComparisonTableHTML(stats) {
         const na_stat = window.APP_CONFIG.NA_PLACEHOLDER;
         const results = [];
-        const cohortOrder = ['Overall', 'surgeryAlone', 'neoadjuvantTherapy'];
+        const allLitSets = window.studyT2CriteriaManager.getAllStudyCriteriaSets();
 
-        results.push({ isSeparator: true, name: `<strong>${window.APP_CONFIG.SPECIAL_IDS.AVOCADO_SIGN_DISPLAY_NAME}</strong>` });
-        
-        cohortOrder.forEach(cohortId => {
-            const asPerf = stats[cohortId]?.performanceAS;
-            if (asPerf) {
-                results.push({
-                    name: `Avocado Sign (${getCohortDisplayName(cohortId)})`,
-                    ...asPerf
-                });
+        const addResults = (items, groupTitle) => {
+            if (items.length > 0) {
+                results.push({ isSeparator: true, name: `<strong>${groupTitle}</strong>` });
+                items.forEach(item => results.push(item));
             }
-        });
+        };
 
-        results.push({ isSeparator: true, name: '<strong>Literature-Based T2 Criteria</strong>' });
+        const generateRowData = (name, pValue, performanceStats, isPlaceholder = false) => ({
+            name, pValue, isPlaceholder, ...performanceStats
+        });
         
-        const litOrder = ['Koh_2008', 'Rutegard_2025', 'Barbaro_2024'];
-        litOrder.forEach(litId => {
-            const set = window.studyT2CriteriaManager.getStudyCriteriaSetById(litId);
-            if (!set) return;
+        const authorNameMap = {
+            'Rutegard_2025': 'Rutegård et al (2025)',
+            'Koh_2008': 'Koh et al (2008)',
+            'Barbaro_2024': 'Barbaro et al (2024)',
+            'Grone_2017': 'Gröne et al (2017)',
+            'Jiang_2025': 'Jiang et al (2025)',
+            'Pangarkar_2021': 'Pangarkar et al (2021)',
+            'Zhang_2023': 'Zhang et al (2023)',
+            'Crimi_2024': 'Crimì et al (2024)',
+            'Almlov_2020': 'Almlöv et al (2020)',
+            'Zhuang_2021': 'Zhuang et al (2021)'
+        };
+
+        // 1. Avocado Sign Results
+        const asResults = Object.values(window.APP_CONFIG.COHORTS).map(cohort => {
+            const asPerf = stats[cohort.id]?.performanceAS;
+            return asPerf ? generateRowData(`Avocado Sign (${cohort.displayName})`, undefined, asPerf) : null;
+        }).filter(Boolean);
+        addResults(asResults, 'Avocado Sign');
+
+        // 2. Literature-Based Criteria
+        const litSurgeryAlone = [], litNeoadjuvant = [], litOverall = [];
+        allLitSets.forEach(set => {
             const cohortForSet = set.applicableCohort || 'Overall';
             const statsForSet = stats[cohortForSet];
             if (statsForSet) {
                 const perf = statsForSet.performanceT2Literature?.[set.id];
                 const comp = statsForSet.comparisonASvsT2Literature?.[set.id];
                 if (perf) {
-                    results.push({
-                        name: `${set.name}<br><em class="text-muted small fw-normal">(Applied to Cohort: ${getCohortDisplayName(cohortForSet)})</em>`,
-                        pValue: comp?.delong?.pValue,
-                        ...perf
-                    });
+                    const criteriaSetName = authorNameMap[set.id] || set.name;
+                    const row = generateRowData(
+                        criteriaSetName,
+                        comp?.delong?.pValue,
+                        perf
+                    );
+                    if (cohortForSet === 'surgeryAlone') litSurgeryAlone.push(row);
+                    else if (cohortForSet === 'neoadjuvantTherapy') litNeoadjuvant.push(row);
+                    else litOverall.push(row);
                 }
             }
         });
-        
-        results.push({ isSeparator: true, name: '<strong>Data-driven Best-Case T2 Criteria</strong>' });
+        addResults(litSurgeryAlone, 'Literature-Based T2 Criteria (Surgery-alone Cohort)');
+        addResults(litNeoadjuvant, 'Literature-Based T2 Criteria (Neoadjuvant-therapy Cohort)');
+        addResults(litOverall, 'Literature-Based T2 Criteria (Overall Cohort)');
 
+        // 3. Data-driven Best-Case T2 Criteria
+        const bfResults = [];
         const defaultMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
-        cohortOrder.forEach(cohortId => {
-            const cohortStats = stats[cohortId];
+        Object.values(window.APP_CONFIG.COHORTS).forEach(cohort => {
+            const cohortStats = stats[cohort.id];
             const bfPerf = cohortStats?.performanceT2Bruteforce?.[defaultMetric];
             const bfComp = cohortStats?.comparisonASvsT2Bruteforce?.[defaultMetric];
             const bfDef = cohortStats?.bruteforceDefinitions?.[defaultMetric];
-            
-            let nameContent = `Best Case T2 (${getCohortDisplayName(cohortId)})`;
+
+            let nameContent = `Best Case T2 (${cohort.displayName})`;
             if (bfDef) {
                 const criteriaDisplay = window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, true);
                 nameContent += `<br><code class="small fw-normal" style="font-size: 0.8em;">${criteriaDisplay}</code>`;
             }
 
-            results.push({
-                name: nameContent,
-                pValue: bfComp?.delong?.pValue,
-                isPlaceholder: !bfPerf,
-                ...(bfPerf || {})
-            });
+            bfResults.push(generateRowData(nameContent, bfComp?.delong?.pValue, bfPerf, !bfPerf));
         });
+        addResults(bfResults, 'Data-driven Best-Case T2 Criteria');
 
         const tableConfig = {
             id: 'table-results-consolidated-comparison',
@@ -156,7 +175,7 @@ window.resultsGenerator = (() => {
             }
 
             if (r.isPlaceholder) {
-                tableConfig.rows.push([r.name, `<td colspan="6" class="text-center text-muted">${na_stat}</td>`]);
+                tableConfig.rows.push([r.name, ...Array(6).fill(`<span class="text-center text-muted d-block">${na_stat}</span>`)]);
                 return;
             }
             
@@ -188,10 +207,12 @@ window.resultsGenerator = (() => {
 
         const overallStats = stats[window.APP_CONFIG.COHORTS.OVERALL.id];
         const helpers = window.publicationHelpers;
-        
+        const interobserverKappa = overallStats?.interobserverKappa;
+        const interobserverKappaCI = overallStats?.interobserverKappa.ci;
+
         const text = `
             <h3 id="ergebnisse_vergleich_as_vs_t2">Diagnostic Performance and Comparison</h3>
-            <p>The diagnostic performance of the Avocado Sign was evaluated for each patient subgroup. For the entire cohort (n=${commonData.nOverall}), the area under the receiver operating characteristic curve (AUC) was ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc', {includeCount: false})}. The interobserver agreement for the sign was previously reported as almost perfect for this cohort (Cohen’s kappa = ${helpers.formatValueForPublication(overallStats?.interobserverKappa?.value, 2, false, true)}; 95% CI: ${helpers.formatValueForPublication(overallStats?.interobserverKappaCI?.lower, 2, false, true)}, ${helpers.formatValueForPublication(overallStats?.interobserverKappaCI?.upper, 2, false, true)}) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
+            <p>The diagnostic performance of the Avocado Sign was evaluated for each patient subgroup. For the entire cohort (n=${commonData.nOverall}), the area under the receiver operating characteristic curve (AUC) was ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc', {includeCount: false})}. The interobserver agreement for the sign was previously reported as almost perfect for this cohort (Cohen’s kappa = ${helpers.formatValueForPublication(interobserverKappa?.value, 2, false, true)}; 95% CI: ${helpers.formatValueForPublication(interobserverKappaCI?.lower, 2, false, true)}, ${helpers.formatValueForPublication(interobserverKappaCI?.upper, 2, false, true)}) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
             <p>A detailed comparison of the diagnostic performance of the Avocado Sign against both literature-based and data-driven T2 criteria is presented in Table 4. The Avocado Sign consistently yielded a greater AUC than the established literature-based T2 criteria within their respective, methodologically appropriate cohorts. Its performance was also comparable with the data-driven best-case benchmarks.</p>
         `;
 

@@ -133,12 +133,15 @@ window.state = (() => {
         if (newView === 'as-pur') {
             clearAnalysisContext();
         } else if (newView === 'as-vs-t2') {
-            if (currentState.comparisonStudyId === null) {
+            if (currentState.comparisonStudyId === null || currentState.comparisonStudyId === window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_STUDY_ID) {
                 studyIdChanged = setComparisonStudyId(window.APP_CONFIG.DEFAULT_SETTINGS.COMPARISON_STUDY_ID);
             }
             const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(currentState.comparisonStudyId);
             if (studySet?.applicableCohort) {
                 setAnalysisContext({ cohortId: studySet.applicableCohort, criteriaName: studySet.name });
+            } else if (currentState.comparisonStudyId && currentState.comparisonStudyId.startsWith('bf_')) {
+                 const cohortId = currentState.comparisonStudyId.split('_')[1];
+                 setAnalysisContext({ cohortId: cohortId, criteriaName: `Best Case T2 (${getCohortDisplayName(cohortId)})` });
             } else {
                 clearAnalysisContext();
             }
@@ -149,15 +152,26 @@ window.state = (() => {
 
     function getComparisonStudyId() { return currentState.comparisonStudyId; }
     function setComparisonStudyId(newStudyId) {
-        const studyIdChanged = _setter('comparisonStudyId', window.APP_CONFIG.STORAGE_KEYS.COMPARISON_STUDY_ID, newStudyId ?? null);
+        const isDynamicBfId = newStudyId && newStudyId.startsWith('bf_');
+        const isStaticStudyId = !!window.studyT2CriteriaManager.getStudyCriteriaSetById(newStudyId);
+
+        if (!newStudyId || (!isDynamicBfId && !isStaticStudyId)) {
+            newStudyId = window.APP_CONFIG.DEFAULT_SETTINGS.COMPARISON_STUDY_ID;
+        }
+
+        const studyIdChanged = _setter('comparisonStudyId', window.APP_CONFIG.STORAGE_KEYS.COMPARISON_STUDY_ID, newStudyId);
+
         if (studyIdChanged) {
-            if (newStudyId && newStudyId !== window.APP_CONFIG.SPECIAL_IDS.APPLIED_CRITERIA_STUDY_ID) {
+            if (isStaticStudyId) {
                 const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(newStudyId);
                 if (studySet?.applicableCohort) {
                     setAnalysisContext({ cohortId: studySet.applicableCohort, criteriaName: studySet.name });
                 } else {
                     clearAnalysisContext();
                 }
+            } else if (isDynamicBfId) {
+                const cohortId = newStudyId.split('_')[1];
+                setAnalysisContext({ cohortId: cohortId, criteriaName: `Best Case T2 (${getCohortDisplayName(cohortId)})` });
             } else {
                 clearAnalysisContext();
             }
