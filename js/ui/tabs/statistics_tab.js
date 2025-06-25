@@ -65,43 +65,37 @@ window.statisticsTab = (() => {
             </div>`;
     }
 
-    function createCriteriaComparisonTableHTML(allStats, globalCoh, appliedCriteria, appliedLogic) {
+    function createCriteriaComparisonTableHTML(allStats) {
         const na_stat = window.APP_CONFIG.NA_PLACEHOLDER;
         const results = [];
-        const asPerf = allStats[globalCoh]?.performanceAS;
-        if(asPerf) {
-            results.push({
-                name: window.APP_CONFIG.SPECIAL_IDS.AVOCADO_SIGN_DISPLAY_NAME,
-                cohort: getCohortDisplayName(globalCoh),
-                n: allStats[globalCoh]?.descriptive?.patientCount || '?',
-                ...asPerf
-            });
-        }
+        const cohortOrder = ['Overall', 'surgeryAlone', 'neoadjuvantTherapy'];
         
-        const appliedPerf = allStats[globalCoh]?.performanceT2Applied;
-        const appliedComp = allStats[globalCoh]?.comparisonASvsT2Applied;
-        if(appliedPerf) {
-            results.push({
-                name: `Applied T2 Criteria (${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true)})`,
-                cohort: getCohortDisplayName(globalCoh),
-                n: allStats[globalCoh]?.descriptive?.patientCount || '?',
-                pValue: appliedComp?.delong?.pValue,
-                ...appliedPerf
-            });
-        }
+        cohortOrder.forEach(cohortId => {
+            const asPerf = allStats[cohortId]?.performanceAS;
+            if (asPerf) {
+                results.push({
+                    group: 'Avocado Sign',
+                    name: `Avocado Sign (${getCohortDisplayName(cohortId)})`,
+                    ...asPerf
+                });
+            }
+        });
 
-        const litSets = window.studyT2CriteriaManager.getAllStudyCriteriaSets();
-        litSets.forEach(set => {
+        results.push({ isSeparator: true, name: '<strong>Literature-Based Criteria</strong>' });
+        
+        const litOrder = ['Koh_2008', 'Rutegard_2025', 'Barbaro_2024'];
+        litOrder.forEach(litId => {
+            const set = window.studyT2CriteriaManager.getStudyCriteriaSetById(litId);
+            if (!set) return;
             const cohortForSet = set.applicableCohort || window.APP_CONFIG.COHORTS.OVERALL.id;
             const statsForSet = allStats[cohortForSet];
             if (statsForSet) {
                 const perf = statsForSet.performanceT2Literature?.[set.id];
                 const comp = statsForSet.comparisonASvsT2Literature?.[set.id];
-                 if (perf) {
+                if (perf) {
                     results.push({
-                        name: set.name,
-                        cohort: getCohortDisplayName(cohortForSet),
-                        n: statsForSet.descriptive?.patientCount || '?',
+                        group: 'Literature',
+                        name: `${set.name}<br><em class="text-muted small fw-normal">(Cohort: ${getCohortDisplayName(cohortForSet)})</em>`,
                         pValue: comp?.delong?.pValue,
                         ...perf
                     });
@@ -109,23 +103,29 @@ window.statisticsTab = (() => {
             }
         });
         
-        const bfPerf = allStats[globalCoh]?.performanceT2Bruteforce;
-        if (bfPerf && Object.keys(bfPerf).length > 0) {
-            Object.keys(bfPerf).forEach(metricName => {
-                const perf = bfPerf[metricName];
-                const comp = allStats[globalCoh]?.comparisonASvsT2Bruteforce?.[metricName];
-                const def = allStats[globalCoh]?.bruteforceDefinitions?.[metricName];
-                if(perf && def) {
-                    results.push({
-                        name: `Optimized T2 (${metricName}): ${window.studyT2CriteriaManager.formatCriteriaForDisplay(def.criteria, def.logic, true)}`,
-                        cohort: getCohortDisplayName(globalCoh),
-                        n: allStats[globalCoh]?.descriptive?.patientCount || '?',
-                        pValue: comp?.delong?.pValue,
-                        ...perf
-                    });
-                }
+        results.push({ isSeparator: true, name: '<strong>Data-driven Best-Case Criteria</strong>' });
+
+        const defaultMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
+        cohortOrder.forEach(cohortId => {
+            const cohortStats = allStats[cohortId];
+            const bfPerf = cohortStats?.performanceT2Bruteforce?.[defaultMetric];
+            const bfComp = cohortStats?.comparisonASvsT2Bruteforce?.[defaultMetric];
+            const bfDef = cohortStats?.bruteforceDefinitions?.[defaultMetric];
+            
+            let nameContent = `Best Case T2 (${getCohortDisplayName(cohortId)})`;
+            if (bfDef) {
+                const criteriaDisplay = window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, true);
+                nameContent += `<br><code class="small fw-normal">${criteriaDisplay}</code>`;
+            }
+
+            results.push({
+                group: 'Best-Case',
+                name: nameContent,
+                pValue: bfComp?.delong?.pValue,
+                isPlaceholder: !bfPerf,
+                ...(bfPerf || {})
             });
-        }
+        });
 
         if (results.length === 0) return '<p class="text-muted small p-3">No criteria comparison data.</p>';
 
@@ -135,23 +135,30 @@ window.statisticsTab = (() => {
             <th data-tippy-content="${getDefinitionTooltip('spec')}">Spec.</th>
             <th data-tippy-content="${getDefinitionTooltip('ppv')}">PPV</th>
             <th data-tippy-content="${getDefinitionTooltip('npv')}">NPV</th>
-            <th data-tippy-content="${getDefinitionTooltip('acc')}">Acc.</th>
             <th data-tippy-content="${getDefinitionTooltip('auc')}">AUC</th>
             <th data-tippy-content="${getDefinitionTooltip('pValue')}">p-Value (vs AS)</th>
         </tr></thead><tbody>`;
 
         results.forEach(r => {
-            const cohortInfo = (r.cohort !== getCohortDisplayName(globalCoh)) ? ` (${r.cohort}, n=${r.n})` : ``;
+            if (r.isSeparator) {
+                tableHtml += `<tr><td colspan="7" class="text-start table-group-divider fw-bold pt-2">${r.name}</td></tr>`;
+                return;
+            }
+
+            if (r.isPlaceholder) {
+                tableHtml += `<tr><td>${r.name}</td><td colspan="6" class="text-center text-muted">${na_stat}</td></tr>`;
+                return;
+            }
+
             const pValueTooltip = (r.pValue !== undefined) ? getInterpretationTooltip('pValue', {value: r.pValue, testName: 'DeLong'}, {comparisonName: 'AUC', method1: 'AS', method2: r.name}) : 'Comparison not applicable';
             const pValueCellContent = (r.pValue !== undefined) ? `${getPValueText(r.pValue, false)} ${getStatisticalSignificanceSymbol(r.pValue)}` : na_stat;
 
             tableHtml += `<tr>
-                <td>${r.name}${cohortInfo}</td>
-                <td>${formatPercent(r.sens?.value, 0, na_stat)}</td>
-                <td>${formatPercent(r.spec?.value, 0, na_stat)}</td>
-                <td>${formatPercent(r.ppv?.value, 0, na_stat)}</td>
-                <td>${formatPercent(r.npv?.value, 0, na_stat)}</td>
-                <td>${formatPercent(r.acc?.value, 0, na_stat)}</td>
+                <td>${r.name}</td>
+                <td>${formatPercent(r.sens?.value, 1, na_stat)}</td>
+                <td>${formatPercent(r.spec?.value, 1, na_stat)}</td>
+                <td>${formatPercent(r.ppv?.value, 1, na_stat)}</td>
+                <td>${formatPercent(r.npv?.value, 1, na_stat)}</td>
                 <td>${formatNumber(r.auc?.value, 3, na_stat, true)}</td>
                 <td data-tippy-content="${pValueTooltip}">${pValueCellContent}</td>
             </tr>`;
@@ -331,8 +338,8 @@ window.statisticsTab = (() => {
             criteriaComparisonCard.className = 'col-12';
             criteriaComparisonCard.innerHTML = window.uiComponents.createStatisticsCard(
                 'criteria-comparison',
-                `Criteria Comparison Table (Cohort: ${getCohortDisplayName(globalCohort)})`,
-                createCriteriaComparisonTableHTML(allCohortStats, globalCohort, appliedCriteria, appliedLogic),
+                `Criteria Comparison Table`,
+                createCriteriaComparisonTableHTML(allCohortStats),
                 false,
                 'criteriaComparisonTable',
                 globalCohort

@@ -1,5 +1,23 @@
 window.methodsGenerator = (() => {
 
+    function _createMriParametersTableHTML() {
+        const tableConfig = {
+            id: 'table-methods-mri-params',
+            caption: 'Table 1: MRI Sequence Parameters',
+            headers: ['Sequence', 'Sagittal T2-TSE', 'Axial T2-TSE', 'Coronal T2-TSE', 'DWI (b100/500/1000)', 'Dixon-VIBE (post-contrast)'],
+            rows: [
+                ['Repetition time (ms)', '4170', '4400', '4400', '3700', '5.8'],
+                ['Echo time (ms)', '72', '81', '81', '59', '2.5/3.7'],
+                ['Field of view (mm)', '220', '220', '220', '220', '270'],
+                ['Slice thickness (mm)', '3', '2', '2', '2', '1.5'],
+                ['Matrix', '394 × 448', '380 × 432', '380 × 432', '140 × 140', '326 × 384'],
+                ['Acquisition time (min)', '4:37', '4:50', '4:50', '3:57', '4:10']
+            ],
+            notes: "TSE = turbo spin-echo, DWI = diffusion-weighted imaging, VIBE = volumetric interpolated breath-hold examination."
+        };
+        return window.publicationHelpers.createPublicationTableHTML(tableConfig);
+    }
+
     function generateStudyDesignHTML(stats, commonData) {
         const { nOverall, nNeoadjuvantTherapy, nSurgeryAlone } = commonData || {};
         const helpers = window.publicationHelpers;
@@ -21,7 +39,8 @@ window.methodsGenerator = (() => {
         const helpers = window.publicationHelpers;
         return `
             <h3 id="methoden_mrt_protokoll_akquisition">MRI Protocol and Image Analysis</h3>
-            <p>All MRI examinations were performed on a 3.0-T system (MAGNETOM Prisma Fit; Siemens Healthineers) with a phased-array body coil. The standardized protocol included high-resolution, multiplanar T2-weighted turbo spin-echo sequences and an axial diffusion-weighted sequence. Following the intravenous administration of a weight-based dose (0.2 mL/kg) of a macrocyclic gadolinium-based contrast agent (Gadoteridol; ProHance; Bracco), a fat-suppressed, T1-weighted volumetric interpolated breath-hold examination (VIBE) sequence was acquired. Key imaging parameters for the axial T2-weighted sequence were: repetition time 4400 msec, echo time 81 msec, slice thickness 2 mm. For the post-contrast VIBE sequence, parameters included: repetition time 5.8 msec, echo time 2.5/3.7 msec, slice thickness 1.5 mm. A table with detailed parameters for all sequences is provided in the supplementary material (Supplement 1).</p>
+            <p>All MRI examinations were performed on a 3.0-T system (MAGNETOM Prisma Fit; Siemens Healthineers) with a phased-array body coil. The standardized protocol included high-resolution, multiplanar T2-weighted turbo spin-echo sequences and an axial diffusion-weighted sequence. Following the intravenous administration of a weight-based dose (0.2 mL/kg) of a macrocyclic gadolinium-based contrast agent (Gadoteridol; ProHance; Bracco), a fat-suppressed, T1-weighted volumetric interpolated breath-hold examination (VIBE) sequence was acquired. Detailed imaging parameters are provided in Table 1.</p>
+            ${_createMriParametersTableHTML()}
             <p>Two board-certified radiologists (with 8 and 30 years of experience in abdominal MRI, respectively), who were blinded to the histopathological outcomes and each other's findings, independently reviewed all MRI studies. To minimize recall bias and intra-reader variability, the T2-weighted sequences were evaluated in a separate reading session at least four weeks prior to the assessment of the contrast-enhanced sequences. Any discrepancies in the final patient-level assessment were resolved by consensus.</p>
             <p><strong>Avocado Sign (AS) Assessment:</strong> On the contrast-enhanced T1-weighted VIBE images, all visible mesorectal lymph nodes were assessed for the presence of the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense lymph node, irrespective of node size or shape (Fig 2) ${helpers.getReference('Lurz_Schaefer_2025')}. No minimum size threshold was applied. A patient was classified as AS-positive if at least one such node was identified.</p>
             <p><strong>T2 Criteria Assessment:</strong> The same radiologists evaluated the T2-weighted images for five standard morphological features: size (short-axis diameter), shape (round vs oval), border (sharp vs irregular), internal homogeneity (homogeneous vs heterogeneous), and signal intensity. A patient with no visible nodes on T2-weighted images was considered T2-negative. This feature set formed the basis for all subsequent comparative analyses.</p>
