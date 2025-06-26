@@ -87,10 +87,13 @@ window.comparisonTab = (() => {
         
         const createOptions = (sets) => sets.map(set => `<option value="${set.id}" ${selectedStudyId === set.id ? 'selected' : ''}>${set.name || set.id}</option>`).join('');
 
-        const litSurgeryAlone = litStudySets.filter(s => s.applicableCohort === 'surgeryAlone');
-        const litNeoadjuvant = litStudySets.filter(s => s.applicableCohort === 'neoadjuvantTherapy');
-        const litOverall = litStudySets.filter(s => s.applicableCohort === 'Overall');
-        
+        const groupedLitSets = litStudySets.reduce((acc, set) => {
+            const group = set.group || 'Other Literature Criteria';
+            if (!acc[group]) acc[group] = [];
+            acc[group].push(set);
+            return acc;
+        }, {});
+
         const bfOptionsHTML = Object.keys(bfResults).map(cohortId => {
             const metric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
             if (bfResults[cohortId]?.[metric]) {
@@ -99,22 +102,20 @@ window.comparisonTab = (() => {
             }
             return '';
         }).join('');
+        
+        let optgroupHTML = `<optgroup label="Data-driven Best-Case Criteria">${bfOptionsHTML}</optgroup>`;
+        
+        const groupOrder = ['ESGAR Criteria', 'Other Literature Criteria'];
+        groupOrder.forEach(groupName => {
+            if (groupedLitSets[groupName]) {
+                optgroupHTML += `<optgroup label="${groupName}">${createOptions(groupedLitSets[groupName])}</optgroup>`;
+            }
+        });
 
         const selectHTML = `
             <select class="form-select" id="comp-study-select">
                 <option value="" ${!selectedStudyId ? 'selected' : ''} disabled>-- Please select --</option>
-                <optgroup label="Data-driven Best-Case Criteria">
-                    ${bfOptionsHTML}
-                </optgroup>
-                <optgroup label="Literature Criteria (Surgery-alone)">
-                    ${createOptions(litSurgeryAlone)}
-                </optgroup>
-                <optgroup label="Literature Criteria (Neoadjuvant-therapy)">
-                     ${createOptions(litNeoadjuvant)}
-                </optgroup>
-                <optgroup label="Literature Criteria (Overall)">
-                     ${createOptions(litOverall)}
-                </optgroup>
+                ${optgroupHTML}
             </select>`;
 
         let resultsHTML = '';
@@ -148,7 +149,7 @@ window.comparisonTab = (() => {
                     pValueTooltip = getInterpretationTooltip('pValue', {value: comparison.delong.pValue, testName: 'DeLong'}, { method1: 'AS', method2: t2ShortNameEffective, metricName: 'AUC'});
                 }
 
-                comparisonTableHTML += `<tr><td data-tippy-content="${getDefinitionTooltip(metric.key)}">${metric.name}</td><td data-tippy-content="${getInterpretationTooltip(metric.key, performanceAS[metric.key])}">${valAS}</td><td data-tippy-content="${getInterpretationTooltip(metric.key, performanceT2[metric.key])}">${valT2}</td><td data-tippy-content="${pValueTooltip}">${pValue}</td></tr>`;
+                comparisonTableHTML += `<tr><td data-tippy-content="${getDefinitionTooltip(metric.key)}">${metric.name}</td><td data-tippy-content="${getInterpretationTooltip('sens', performanceAS[metric.key])}">${valAS}</td><td data-tippy-content="${getInterpretationTooltip('spec', performanceT2[metric.key])}">${valT2}</td><td data-tippy-content="${pValueTooltip}">${pValue}</td></tr>`;
             });
             comparisonTableHTML += `</tbody></table></div>`;
             const comparisonTableCardHTML = window.uiComponents.createStatisticsCard('comp-as-vs-t2-comp-table_card', `Performance Metrics (AS vs. ${t2ShortNameEffective})`, comparisonTableHTML, false, null, []);

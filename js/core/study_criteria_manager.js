@@ -1,11 +1,82 @@
 window.studyT2CriteriaManager = (() => {
 
     const literatureCriteriaSets = [
-        // --- Cohort: surgeryAlone (Treatment-Naïve) ---
+        // --- ESGAR 2016 Criteria Group ---
+        {
+            id: 'ESGAR_2016_SurgeryAlone',
+            name: 'ESGAR 2016 (Surgery alone)',
+            displayShortName: 'ESGAR 2016',
+            group: 'ESGAR Criteria',
+            logic: 'KOMBINIERT',
+            applicableCohort: 'surgeryAlone',
+            criteria: {
+                size: { active: true },
+                shape: { active: true, value: 'round' },
+                border: { active: true, value: 'irregular' },
+                homogeneity: { active: true, value: 'heterogeneous' },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Beets_Tan_2018_ESGAR',
+                patientCohort: 'Treatment-naïve / Primary Surgery (n=29)',
+                investigationType: 'Consensus Guideline Application',
+                focus: 'Application of ESGAR 2016 primary staging criteria',
+                keyCriteriaSummary: 'Primary Staging: ≥9mm OR (5-8mm AND ≥2 features) OR (<5mm AND 3 features)'
+            },
+            description: 'ESGAR 2016 consensus criteria for primary staging: A node is malignant if size is ≥9mm, OR 5-8mm with ≥2 suspicious features (round, irregular border, heterogeneous signal), OR <5mm with all 3 features.'
+        },
+        {
+            id: 'ESGAR_2016_Neoadjuvant',
+            name: 'ESGAR 2016 (Neoadjuvant therapy)',
+            displayShortName: 'ESGAR 2016',
+            group: 'ESGAR Criteria',
+            logic: 'KOMBINIERT',
+            applicableCohort: 'neoadjuvantTherapy',
+            criteria: {
+                size: { active: true, threshold: 5.0, condition: '>=' },
+                shape: { active: false },
+                border: { active: false },
+                homogeneity: { active: false },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Beets_Tan_2018_ESGAR',
+                patientCohort: 'Neoadjuvant Therapy (n=77)',
+                investigationType: 'Consensus Guideline Application',
+                focus: 'Application of ESGAR 2016 restaging criteria',
+                keyCriteriaSummary: 'Restaging: Short-axis diameter ≥ 5 mm'
+            },
+            description: 'ESGAR 2016 consensus criteria for restaging after neoadjuvant therapy: A node is considered malignant if its short-axis diameter is ≥ 5 mm.'
+        },
+        {
+            id: 'ESGAR_2016_Overall',
+            name: 'ESGAR 2016 (Overall)',
+            displayShortName: 'ESGAR 2016',
+            group: 'ESGAR Criteria',
+            logic: 'KOMBINIERT',
+            applicableCohort: 'Overall',
+            criteria: {
+                size: { active: true },
+                shape: { active: true, value: 'round' },
+                border: { active: true, value: 'irregular' },
+                homogeneity: { active: true, value: 'heterogeneous' },
+                signal: { active: false }
+            },
+            studyInfo: {
+                refKey: 'Beets_Tan_2018_ESGAR',
+                patientCohort: 'Overall (n=106)',
+                investigationType: 'Consensus Guideline Application',
+                focus: 'Application of ESGAR 2016 criteria based on patient therapy type',
+                keyCriteriaSummary: 'Hybrid: Primary staging logic for surgery-alone patients, restaging logic for neoadjuvant-therapy patients.'
+            },
+            description: 'Hybrid application of ESGAR 2016 criteria to the overall cohort. Primary staging logic is used for treatment-naïve patients, and restaging logic (size ≥ 5mm) is used for post-neoadjuvant therapy patients.'
+        },
+        // --- Other Literature Criteria ---
         {
             id: 'Rutegard_2025',
             name: 'ESGAR 2016 (in Rutegård et al. 2025)',
-            displayShortName: 'ESGAR 2016',
+            displayShortName: 'ESGAR 2016 (Rutegård)',
+            group: 'Other Literature Criteria',
             logic: 'KOMBINIERT',
             applicableCohort: 'surgeryAlone',
             criteria: {
@@ -28,6 +99,7 @@ window.studyT2CriteriaManager = (() => {
             id: 'Grone_2017',
             name: 'Gröne et al. (2017)',
             displayShortName: 'Gröne 2017',
+            group: 'Other Literature Criteria',
             logic: 'AND',
             applicableCohort: 'surgeryAlone',
             criteria: {
@@ -49,6 +121,7 @@ window.studyT2CriteriaManager = (() => {
             id: 'Jiang_2025',
             name: 'Node-RADS (in Jiang et al. 2025)',
             displayShortName: 'Node-RADS',
+            group: 'Other Literature Criteria',
             logic: 'OR',
             applicableCohort: 'surgeryAlone',
             criteria: {
@@ -67,11 +140,11 @@ window.studyT2CriteriaManager = (() => {
             },
             description: 'Approximation of the Node-RADS v1.0 scoring system. A node is classified as malignant if it meets any of the major criteria for a high-risk score (≥4): short-axis ≥5mm, round shape, irregular border, or heterogeneous signal.'
         },
-        // --- Cohort: neoadjuvantTherapy (Post-Treatment) ---
         {
             id: 'Pangarkar_2021',
             name: 'SAR Restaging (in Pangarkar et al. 2021)',
             displayShortName: 'SAR (Pangarkar 2021)',
+            group: 'Other Literature Criteria',
             logic: 'OR',
             applicableCohort: 'neoadjuvantTherapy',
             criteria: {
@@ -93,6 +166,7 @@ window.studyT2CriteriaManager = (() => {
             id: 'Zhang_2023',
             name: 'ESGAR Restaging (in Zhang et al. 2023)',
             displayShortName: 'ESGAR (Zhang 2023)',
+            group: 'Other Literature Criteria',
             logic: 'OR',
             applicableCohort: 'neoadjuvantTherapy',
             criteria: {
@@ -114,6 +188,7 @@ window.studyT2CriteriaManager = (() => {
             id: 'Crimi_2024',
             name: 'Long-Axis Criterion (in Crimì et al. 2024)',
             displayShortName: 'Long-Axis (Crimì 2024)',
+            group: 'Other Literature Criteria',
             logic: 'OR',
             applicableCohort: 'neoadjuvantTherapy',
             criteria: {
@@ -135,6 +210,7 @@ window.studyT2CriteriaManager = (() => {
             id: 'Barbaro_2024',
             name: 'Barbaro et al. (2024)',
             displayShortName: 'Barbaro 2024',
+            group: 'Other Literature Criteria',
             logic: 'OR',
             applicableCohort: 'neoadjuvantTherapy',
             criteria: {
@@ -156,6 +232,7 @@ window.studyT2CriteriaManager = (() => {
             id: 'Almlov_2020',
             name: 'Almlöv et al. (2020)',
             displayShortName: 'Almlöv 2020',
+            group: 'Other Literature Criteria',
             logic: 'OR',
             applicableCohort: 'neoadjuvantTherapy',
             criteria: {
@@ -173,11 +250,11 @@ window.studyT2CriteriaManager = (() => {
                 keyCriteriaSummary: 'Size ≥5mm OR Irregular Border OR Heterogeneous Signal'
             }
         },
-        // --- Cohort: Overall (Mixed or Meta-Analysis) ---
         {
             id: 'Koh_2008',
             name: 'Koh et al. (2008)',
             displayShortName: 'Koh 2008',
+            group: 'Other Literature Criteria',
             logic: 'OR',
             applicableCohort: 'Overall',
             criteria: {
@@ -199,6 +276,7 @@ window.studyT2CriteriaManager = (() => {
             id: 'Zhuang_2021',
             name: 'Zhuang et al. (2021) - Size+Morphology',
             displayShortName: 'Zhuang 2021 (Size+Morph)',
+            group: 'Other Literature Criteria',
             logic: 'OR',
             applicableCohort: 'Overall',
             criteria: {
@@ -266,7 +344,7 @@ window.studyT2CriteriaManager = (() => {
 
         const effectiveLogic = logic || criteria.logic || 'OR';
         if (effectiveLogic === 'KOMBINIERT') {
-             const studySet = literatureCriteriaSets.find(s => s.logic === 'KOMBINIERT');
+             const studySet = literatureCriteriaSets.find(s => s.logic === 'KOMBINIERT' && s.criteria === criteria);
              if (studySet?.studyInfo?.keyCriteriaSummary) {
                  return shortFormat ? (studySet.displayShortName || studySet.name) : studySet.studyInfo.keyCriteriaSummary;
              }
@@ -294,14 +372,28 @@ window.studyT2CriteriaManager = (() => {
         return foundSet ? cloneDeep(foundSet) : null;
     }
 
-    function _checkSingleNodeESGAR(lymphNode, criteria) {
+    function _evaluateNodeWithEsgarLogic(lymphNode, criteriaSet, patientTherapy) {
         const checkResult = {
-             size: null, shape: null, border: null, homogeneity: null, signal: null,
-             esgarCategory: 'N/A', esgarMorphologyCount: 0, isPositive: false
+            size: null, shape: null, border: null, homogeneity: null, signal: null,
+            esgarCategory: 'N/A', esgarMorphologyCount: 0, isPositive: false
         };
-        if (!lymphNode || !criteria) return checkResult;
+        if (!lymphNode || !criteriaSet) return checkResult;
 
         const nodeSize = (typeof lymphNode.size === 'number' && !isNaN(lymphNode.size)) ? lymphNode.size : -1;
+        const criteria = criteriaSet.criteria;
+
+        let useRestagingLogic = false;
+        if (criteriaSet.id === 'ESGAR_2016_Neoadjuvant') {
+            useRestagingLogic = true;
+        } else if (criteriaSet.id === 'ESGAR_2016_Overall') {
+            useRestagingLogic = (patientTherapy === 'neoadjuvantTherapy');
+        }
+
+        if (useRestagingLogic) {
+            checkResult.isPositive = (nodeSize >= 5.0);
+            checkResult.esgarCategory = 'Restaging Logic';
+            return checkResult;
+        }
         
         const hasRoundShape = (lymphNode.shape === criteria.shape.value);
         const hasIrregularBorder = (lymphNode.border === criteria.border.value);
@@ -311,12 +403,10 @@ window.studyT2CriteriaManager = (() => {
         if (hasRoundShape) morphologyCount++;
         if (hasIrregularBorder) morphologyCount++;
         if (hasHeterogeneousHomogeneity) morphologyCount++;
-
-        checkResult.size = (nodeSize >= 9.0);
+        
         checkResult.shape = hasRoundShape;
         checkResult.border = hasIrregularBorder;
         checkResult.homogeneity = hasHeterogeneousHomogeneity;
-        checkResult.signal = null;
         checkResult.esgarMorphologyCount = morphologyCount;
 
         if (nodeSize >= 9.0) {
@@ -358,7 +448,7 @@ window.studyT2CriteriaManager = (() => {
             let positiveNodeCount = 0;
             const evaluatedNodes = lymphNodes.map(lk => {
                 if (!lk) return null;
-                const checkResult = _checkSingleNodeESGAR(lk, studyCriteriaSet.criteria);
+                const checkResult = _evaluateNodeWithEsgarLogic(lk, studyCriteriaSet, patient.therapy);
                 const isNodePositive = checkResult.isPositive;
                 if (isNodePositive) {
                     patientIsPositive = true;

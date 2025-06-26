@@ -135,7 +135,8 @@ window.APP_CONFIG = Object.freeze({
         Jiang_2025: {id: 18, text: "Jiang L, Zhuang Z, Tang X, et al. Diagnostic performance of node-RADS classification for primary lymph node assessment in rectal cancer: a modality benchmarking study. J Cancer Res Clin Oncol (2025) 151:145. https://doi.org/10.1007/s00432-025-06196-9"},
         Almlov_2020: {id: 19, text: "Almlöv K, Woisetschlager M, Loftås P, Hallböök O, Elander NO, and Sandström P. MRI lymph node evaluation for prediction of metastases in rectal cancer. Anticancer Res. 2020;40(5):2757-63. doi:10.21873/anticanres.14247"},
         Crimi_2024: {id: 20, text: "Crimì F, Cabrelle G, Campi C, et al. Nodal staging with MRI after neoadjuvant chemo-radiotherapy for locally advanced rectal cancer: a fast and reliable method. Eur Radiol (2024) 34:3205–3214. https://doi.org/10.1007/s00330-023-10265-3"},
-        Zhang_2023: {id: 21, text: "Zhang Z, Chen Y, Wen Z, et al. MRI for nodal restaging after neoadjuvant therapy in rectal cancer with histopathologic comparison. Cancer Imaging (2023) 23:67. https://doi.org/10.1186/s40644-023-00589-0"}
+        Zhang_2023: {id: 21, text: "Zhang Z, Chen Y, Wen Z, et al. MRI for nodal restaging after neoadjuvant therapy in rectal cancer with histopathologic comparison. Cancer Imaging (2023) 23:67. https://doi.org/10.1186/s40644-023-00589-0"},
+        Beets_Tan_2018_ESGAR: { id: 22, text: "Beets-Tan RGH, Lambregts DMJ, Maas M, et al. Magnetic resonance imaging for clinical management of rectal cancer: updated recommendations from the 2016 European Society of Gastrointestinal and Abdominal Radiology (ESGAR) consensus meeting. Eur Radiol. 2018;28:1465–1475. doi:10.1007/s00330-017-5026-2"}
     }),
     UI_TEXTS: Object.freeze({
         analysisContextBanner: {

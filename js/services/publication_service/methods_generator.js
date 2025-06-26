@@ -51,19 +51,25 @@ window.methodsGenerator = (() => {
         const { bruteForceMetricForPublication } = commonData || {};
         const helpers = window.publicationHelpers;
 
-        if (!bruteForceMetricForPublication) {
-            return '<h3 id="methoden_vergleichskriterien_t2">Comparative T2 Criteria Sets</h3><p class="text-warning">Brute-force metric for publication is not defined.</p>';
+        if (!bruteForceMetricForPublication || !stats) {
+            return '<h3 id="methoden_vergleichskriterien_t2">Comparative T2 Criteria Sets</h3><p class="text-warning">Required data for comparative criteria is missing.</p>';
         }
 
-        const table2Config = {
+        const tableConfig = {
             id: 'table-methods-t2-literature',
-            caption: 'Table 2. Literature-Based T2 Criteria Sets Used for Comparison',
+            caption: 'Table 2. T2-weighted Criteria Sets Used for Comparison',
             headers: ['Criteria Set', 'Study', 'Applicable Cohort', 'Key Criteria Summary', 'Logic'],
             rows: []
         };
+        
+        const allLiteratureSets = window.studyT2CriteriaManager.getAllStudyCriteriaSets() || [];
+        const esgarSets = allLiteratureSets.filter(set => set.group === 'ESGAR Criteria');
+        const otherSets = allLiteratureSets.filter(set => set.group !== 'ESGAR Criteria');
 
-        const literatureSets = window.studyT2CriteriaManager.getAllStudyCriteriaSets() || [];
         const authorNameMap = {
+            'ESGAR_2016_SurgeryAlone': 'ESGAR 2016 Primary Staging',
+            'ESGAR_2016_Neoadjuvant': 'ESGAR 2016 Restaging',
+            'ESGAR_2016_Overall': 'ESGAR 2016 Hybrid',
             'Rutegard_2025': 'Rutegård et al (2025)',
             'Koh_2008': 'Koh et al (2008)',
             'Barbaro_2024': 'Barbaro et al (2024)',
@@ -76,23 +82,62 @@ window.methodsGenerator = (() => {
             'Zhuang_2021': 'Zhuang et al (2021)'
         };
 
-        literatureSets.forEach(set => {
-            if (set && set.studyInfo) {
-                const criteriaSetName = authorNameMap[set.id] || set.name || 'N/A';
-                table2Config.rows.push([
-                    criteriaSetName,
-                    helpers.getReference(set.id),
-                    set.studyInfo.patientCohort || 'N/A',
-                    set.studyInfo.keyCriteriaSummary || 'N/A',
-                    set.logic === 'KOMBINIERT' ? 'Combined (ESGAR Logic)' : (window.APP_CONFIG.UI_TEXTS.t2LogicDisplayNames[set.logic] || 'N/A')
+        const addRowsToConfig = (sets) => {
+            sets.forEach(set => {
+                if (set && set.studyInfo) {
+                    const criteriaSetName = authorNameMap[set.id] || set.name || 'N/A';
+                    tableConfig.rows.push([
+                        criteriaSetName,
+                        helpers.getReference(set.studyInfo.refKey || set.id),
+                        getCohortDisplayName(set.applicableCohort),
+                        set.studyInfo.keyCriteriaSummary || 'N/A',
+                        set.logic === 'KOMBINIERT' ? 'Combined (ESGAR Logic)' : (window.APP_CONFIG.UI_TEXTS.t2LogicDisplayNames[set.logic] || 'N/A')
+                    ]);
+                }
+            });
+        };
+
+        // 1. ESGAR Criteria
+        if (esgarSets.length > 0) {
+            tableConfig.rows.push(['<td colspan="5" class="text-start table-group-divider fw-bold pt-2">ESGAR 2016 Criteria</td>']);
+            addRowsToConfig(esgarSets);
+        }
+
+        // 2. Data-driven Best-Case
+        tableConfig.rows.push(['<td colspan="5" class="text-start table-group-divider fw-bold pt-2">Data-driven Best-Case T2 Criteria</td>']);
+        Object.values(window.APP_CONFIG.COHORTS).forEach(cohort => {
+            const cohortStats = stats[cohort.id];
+            const bfDef = cohortStats?.bruteforceDefinitions?.[bruteForceMetricForPublication];
+            if (bfDef) {
+                const criteriaDisplay = window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, false);
+                tableConfig.rows.push([
+                    `Best Case (optimized for ${bruteForceMetricForPublication})`,
+                    '—',
+                    getCohortDisplayName(cohort.id),
+                    criteriaDisplay,
+                    window.APP_CONFIG.UI_TEXTS.t2LogicDisplayNames[bfDef.logic] || bfDef.logic
+                ]);
+            } else {
+                 tableConfig.rows.push([
+                    `Best Case (optimized for ${bruteForceMetricForPublication})`,
+                    '—',
+                    getCohortDisplayName(cohort.id),
+                    'Not yet calculated',
+                    'N/A'
                 ]);
             }
         });
 
+        // 3. Further Literature Criteria
+        if (otherSets.length > 0) {
+            tableConfig.rows.push(['<td colspan="5" class="text-start table-group-divider fw-bold pt-2">Further T2 Criteria from Literature</td>']);
+            addRowsToConfig(otherSets);
+        }
+
         return `
             <h3 id="methoden_vergleichskriterien_t2">Comparative T2 Criteria Sets</h3>
-            <p>To provide a robust benchmark for the Avocado Sign, its performance was compared against two types of T2-based criteria sets. First, to establish the most stringent internal comparator, a data-driven benchmark was developed via a systematic, computer-assisted analysis (Brute-Force) that exhaustively tested all permutations of T2 features and logical operators to identify the combination with the highest diagnostic performance for a pre-selected metric (${bruteForceMetricForPublication}). Second, to contextualize our findings, we applied several T2-based criteria sets from previously published studies to their respective target populations within our cohort (Table 2) ${helpers.getReference('Rutegard_2025')}, ${helpers.getReference('Pangarkar_2021')}, ${helpers.getReference('Grone_2017')}.</p>
-            ${helpers.createPublicationTableHTML(table2Config)}
+            <p>To provide a robust benchmark for the Avocado Sign, its performance was compared against multiple T2-based criteria sets in a tiered approach. First, we applied the 2016 ESGAR consensus criteria, which represent a widely recognized clinical standard, to their respective target populations within our cohort ${helpers.getReference('Beets_Tan_2018_ESGAR')}. Second, to establish the most stringent internal comparator, a data-driven benchmark was developed via a systematic, computer-assisted analysis (Brute-Force) that exhaustively tested all permutations of T2 features and logical operators to identify the combination with the highest diagnostic performance for a pre-selected metric (${bruteForceMetricForPublication}). Third, to contextualize our findings further, we applied several additional T2-based criteria sets from previously published studies to their appropriate cohorts. All evaluated criteria sets are detailed in Table 2.</p>
+            ${helpers.createPublicationTableHTML(tableConfig)}
         `;
     }
 
