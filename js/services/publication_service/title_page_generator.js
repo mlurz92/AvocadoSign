@@ -34,17 +34,17 @@ window.titlePageGenerator = (() => {
             const bfT2OverallAUC = bfResultForPub?.auc?.value;
             const bfComparisonPValue = overallStats?.comparisonASvsT2Bruteforce?.[bruteForceMetricForPublication]?.delong?.pValue;
             
-            const overallSens = overallStats?.performanceAS?.sens?.value;
-            const overallSpec = overallStats?.performanceAS?.spec?.value;
+            const overallSens = overallStats?.performanceAS?.sens;
+            const overallSpec = overallStats?.performanceAS?.spec;
 
-            summaryStatementHTML = `<p><strong>In a retrospective study of ${nOverall} patients with rectal cancer, a novel contrast-enhanced MRI sign for nodal staging yielded an area under the receiver operating characteristic curve (AUC) of ${helpers.formatValueForPublication(asOverallAUC, 2, false, true)}, outperforming established T2-based criteria.</strong></p>`;
+            summaryStatementHTML = `<p><strong>In a retrospective study of ${nOverall} patients with rectal cancer, a novel contrast-enhanced MRI feature for predicting nodal status yielded a greater area under the receiver operating characteristic curve than optimized T2-based criteria.</strong></p>`;
             
             keyResultsHTML = `
                 <h4 style="font-size: 1.1rem; font-weight: bold; margin-top: 1.5rem;">Key Results</h4>
                 <ul style="padding-left: 20px; margin-top: 0.5rem; list-style-position: inside; text-align: left;">
-                    <li>In a retrospective analysis of ${nOverall} patients, a novel contrast-enhanced MRI sign predicted nodal involvement with a sensitivity of ${helpers.formatValueForPublication(overallSens, 1, true)}% and a specificity of ${helpers.formatValueForPublication(overallSpec, 1, true)}%.</li>
-                    <li>The sign yielded a greater area under the receiver operating characteristic curve (AUC) than T2 criteria based on morphology alone (AUC, ${helpers.formatValueForPublication(asSurgeryAUC, 2, false, true)} vs ${helpers.formatValueForPublication(groeneT2SurgeryAUC, 2, false, true)}; ${helpers.formatPValueForPublication(groeneComparisonPValue)}).</li>
-                    <li>The sign’s performance was superior to a data-driven T2-based benchmark optimized for this cohort (AUC, ${helpers.formatValueForPublication(asOverallAUC, 2, false, true)} vs ${helpers.formatValueForPublication(bfT2OverallAUC, 2, false, true)}; ${helpers.formatPValueForPublication(bfComparisonPValue)}).</li>
+                    <li>In a retrospective analysis of ${nOverall} patients, a novel contrast-enhanced MRI feature, the Avocado Sign, predicted mesorectal nodal status with a sensitivity of ${helpers.formatMetricForPublication(overallSens, 'sens', { includeCI: false })} and a specificity of ${helpers.formatMetricForPublication(overallSpec, 'spec', { includeCI: false })}.</li>
+                    <li>In treatment-naïve patients, the Avocado Sign yielded a greater area under the receiver operating characteristic curve (AUC) for predicting N-status than established T2 criteria based on morphology alone (AUC, ${helpers.formatValueForPublication(asSurgeryAUC, 2, false, true)} vs ${helpers.formatValueForPublication(groeneT2SurgeryAUC, 2, false, true)}; ${helpers.formatPValueForPublication(groeneComparisonPValue)}).</li>
+                    <li>The sign’s performance was superior to a computationally optimized T2-based benchmark for the overall cohort (AUC, ${helpers.formatValueForPublication(asOverallAUC, 2, false, true)} vs ${helpers.formatValueForPublication(bfT2OverallAUC, 2, false, true)}; ${helpers.formatPValueForPublication(bfComparisonPValue)}).</li>
                 </ul>
             `;
         }
