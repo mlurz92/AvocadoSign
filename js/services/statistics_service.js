@@ -236,20 +236,16 @@ window.statisticsService = (() => {
         if (!isFinite(pObservedLog)) return { pValue: NaN, method: "Fisher's Exact Test (Numerical Error)" };
 
         let pValue = 0.0;
-        const minVal = Math.max(0, (a + b) + (a + c) - N);
-        const maxVal = Math.min(a + b, a + c);
+        const row1_sum = a + b;
+        const col1_sum = a + c;
+        
+        const minVal = Math.max(0, row1_sum + col1_sum - N);
+        const maxVal = Math.min(row1_sum, col1_sum);
 
         for (let i = minVal; i <= maxVal; i++) {
-            const current_a = i;
-            const current_b = (a + b) - current_a;
-            const current_c = (a + c) - current_a;
-            const current_d = (b + d) - current_c;
-
-            if (current_a >= 0 && current_b >= 0 && current_c >= 0 && current_d >= 0) {
-                const pCurrentLog = logProbHypergeometric(current_a, N, a + c, a + b);
-                if (isFinite(pCurrentLog) && pCurrentLog <= pObservedLog + 1e-9) {
-                    pValue += Math.exp(pCurrentLog);
-                }
+            const pCurrentLog = logProbHypergeometric(i, N, col1_sum, row1_sum);
+            if (isFinite(pCurrentLog) && pCurrentLog <= pObservedLog + 1e-9) {
+                pValue += Math.exp(pCurrentLog);
             }
         }
         return { pValue: Math.min(1.0, pValue), method: "Fisher's Exact Test" };

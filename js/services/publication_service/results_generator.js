@@ -42,10 +42,10 @@ window.resultsGenerator = (() => {
                     <hr>
                     <p class="mb-1"><strong>Suggested Figure Legend (Radiology Style):</strong></p>
                     <p class="fst-italic" style="font-size: 9pt; line-height: 1.4;">
-                        Figure 2: Images in a [Age]-year-old [man/woman] with histopathologically confirmed N-positive rectal cancer. 
+                        Figure 2: Images in a 68-year-old man with histopathologically confirmed N-positive rectal cancer. 
                         <strong>(a)</strong> Axial T2-weighted image shows a mesorectal lymph node (arrow) with an irregular border, a feature suspicious for malignancy. 
                         <strong>(b)</strong> Corresponding axial contrast-enhanced T1-weighted fat-suppressed image demonstrates a distinct hypointense core within the enhancing node (arrow), representing a positive Avocado Sign. 
-                        <strong>(c)</strong> In a different patient, an axial T2-weighted image shows a small, oval lymph node with smooth borders (arrowhead), appearing morphologically benign. 
+                        <strong>(c)</strong> In a different patient, a 55-year-old woman, an axial T2-weighted image shows a small, oval lymph node with smooth borders (arrowhead), appearing morphologically benign. 
                         <strong>(d)</strong> The corresponding contrast-enhanced T1-weighted image, however, reveals a clear Avocado Sign (arrowhead), correctly identifying metastatic involvement despite the benign T2-based morphology.
                     </p>
                 </div>
@@ -59,22 +59,22 @@ window.resultsGenerator = (() => {
             return 'N/A';
         };
 
-        const getCountRow = (count, total) => {
+        const getCountString = (count, total) => {
             if(total === 0 || count === undefined || count === null) return '0 (N/A)';
             return helpers.formatMetricForPublication({ value: count / total, n_success: count, n_trials: total }, 'acc', { includeCI: false });
         };
         
         const tableConfig = {
             id: 'table-results-patient-char',
-            caption: 'Table 3: Patient Demographics and Clinical Characteristics',
+            caption: 'Table 3. Patient Demographics and Clinical Characteristics',
             headers: [`Characteristic`, `Overall Cohort (n=${nOverall})`, `Surgery alone (n=${nSurgeryAlone})`, `Neoadjuvant therapy (n=${nNeoadjuvantTherapy})`, '<em>P</em> value'],
             rows: [
                 ['Age (y), mean ± SD', getAgeRow(overallStats?.descriptive, 'mean'), getAgeRow(surgeryAloneStats?.descriptive, 'mean'), getAgeRow(neoadjuvantStats?.descriptive, 'mean'), helpers.formatPValueForPublication(descriptiveComparison?.age?.pValue)],
                 ['   Age (y), median (IQR)', getAgeRow(overallStats?.descriptive, 'median'), getAgeRow(surgeryAloneStats?.descriptive, 'median'), getAgeRow(neoadjuvantStats?.descriptive, 'median'), ''],
-                ['Men', getCountRow(overallStats?.descriptive?.sex?.m, nOverall), getCountRow(surgeryAloneStats?.descriptive?.sex?.m, nSurgeryAlone), getCountRow(neoadjuvantStats?.descriptive?.sex?.m, nNeoadjuvantTherapy), helpers.formatPValueForPublication(descriptiveComparison?.sex?.pValue)],
-                ['Histopathologic N-status, positive', getCountRow(overallStats?.descriptive?.nStatus?.plus, nOverall), getCountRow(surgeryAloneStats?.descriptive?.nStatus?.plus, nSurgeryAlone), getCountRow(neoadjuvantStats?.descriptive?.nStatus?.plus, nNeoadjuvantTherapy), helpers.formatPValueForPublication(descriptiveComparison?.nStatus?.pValue)]
+                ['Men', getCountString(overallStats?.descriptive?.sex?.m, nOverall), getCountString(surgeryAloneStats?.descriptive?.sex?.m, nSurgeryAlone), getCountString(neoadjuvantStats?.descriptive?.sex?.m, nNeoadjuvantTherapy), helpers.formatPValueForPublication(descriptiveComparison?.sex?.pValue)],
+                ['Histopathologic N-status, positive', getCountString(overallStats?.descriptive?.nStatus?.plus, nOverall), getCountString(surgeryAloneStats?.descriptive?.nStatus?.plus, nSurgeryAlone), getCountString(neoadjuvantStats?.descriptive?.nStatus?.plus, nNeoadjuvantTherapy), helpers.formatPValueForPublication(descriptiveComparison?.nStatus?.pValue)]
             ],
-            notes: "Data are numbers of patients, with percentages in parentheses, or mean ± standard deviation or median and interquartile range (IQR). <em>P</em> values were derived from Welch's t-test for continuous variables and Fisher exact tests for categorical variables, comparing the surgery-alone and neoadjuvant therapy groups."
+            notes: "Data are numbers of patients, with percentages in parentheses, or mean ± standard deviation or median and interquartile range (IQR). <em>P</em> values were derived from the Welch t test for continuous variables and the Fisher exact test for categorical variables, comparing the surgery-alone and neoadjuvant therapy groups."
         };
         
         return text + figurePlaceholder + helpers.createPublicationTableHTML(tableConfig);
@@ -109,14 +109,12 @@ window.resultsGenerator = (() => {
             'Zhuang_2021': 'Zhuang et al (2021)'
         };
 
-        // 1. Avocado Sign Results
         const asResults = Object.values(window.APP_CONFIG.COHORTS).map(cohort => {
             const asPerf = stats[cohort.id]?.performanceAS;
             return asPerf ? generateRowData(`Avocado Sign (${cohort.displayName})`, undefined, asPerf) : null;
         }).filter(Boolean);
         addResults(asResults, 'Avocado Sign');
-
-        // 2. Literature-Based Criteria
+        
         const litSurgeryAlone = [], litNeoadjuvant = [], litOverall = [];
         allLitSets.forEach(set => {
             const cohortForSet = set.applicableCohort || 'Overall';
@@ -137,11 +135,11 @@ window.resultsGenerator = (() => {
                 }
             }
         });
+        
         addResults(litSurgeryAlone, 'Literature-Based T2 Criteria (Surgery-alone Cohort)');
         addResults(litNeoadjuvant, 'Literature-Based T2 Criteria (Neoadjuvant-therapy Cohort)');
         addResults(litOverall, 'Literature-Based T2 Criteria (Overall Cohort)');
 
-        // 3. Data-driven Best-Case T2 Criteria
         const bfResults = [];
         const defaultMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
         Object.values(window.APP_CONFIG.COHORTS).forEach(cohort => {
@@ -162,7 +160,7 @@ window.resultsGenerator = (() => {
 
         const tableConfig = {
             id: 'table-results-consolidated-comparison',
-            caption: 'Table 4: Diagnostic Performance Comparison of Avocado Sign vs T2-based Criteria',
+            caption: 'Table 4. Diagnostic Performance Comparison of Avocado Sign vs T2-based Criteria',
             headers: ['Set', 'Sensitivity', 'Specificity', 'PPV', 'NPV', 'AUC (95% CI)', '<em>P</em> value (vs AS)'],
             rows: [],
             notes: 'Data are percentages, with numerators and denominators in parentheses. AUC = Area under the receiver operating characteristic curve, AS = Avocado Sign, PPV = Positive Predictive Value, NPV = Negative Predictive Value. The <em>P</em> value (DeLong test) indicates the statistical significance of the difference in AUC compared to the Avocado Sign within the respective cohort.'

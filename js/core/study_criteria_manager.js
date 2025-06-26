@@ -49,7 +49,7 @@ window.studyT2CriteriaManager = (() => {
             id: 'Jiang_2025',
             name: 'Node-RADS (in Jiang et al. 2025)',
             displayShortName: 'Node-RADS',
-            logic: 'OR', // Approximation for evaluation; true logic is a scoring system
+            logic: 'OR',
             applicableCohort: 'surgeryAlone',
             criteria: {
                 size: { active: true, threshold: 5.0, condition: '>=' },
@@ -63,8 +63,9 @@ window.studyT2CriteriaManager = (() => {
                 patientCohort: 'Treatment-naïve (n=113)',
                 investigationType: 'Retrospective, Modality Benchmarking',
                 focus: 'Evaluation of Node-RADS v1.0 classification',
-                keyCriteriaSummary: 'Node-RADS Score 4 or 5 (Approximated as Size ≥5mm OR Round OR Irregular OR Heterogeneous)'
-            }
+                keyCriteriaSummary: 'Approximation of high-risk categories (Score ≥4) using OR-logic on major criteria.'
+            },
+            description: 'Approximation of the Node-RADS v1.0 scoring system. A node is classified as malignant if it meets any of the major criteria for a high-risk score (≥4): short-axis ≥5mm, round shape, irregular border, or heterogeneous signal.'
         },
         // --- Cohort: neoadjuvantTherapy (Post-Treatment) ---
         {

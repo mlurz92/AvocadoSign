@@ -3,11 +3,11 @@ window.methodsGenerator = (() => {
     function _createMriParametersTableHTML() {
         const tableConfig = {
             id: 'table-methods-mri-params',
-            caption: 'Table 1: MRI Sequence Parameters',
-            headers: ['Sequence', 'Sagittal T2-TSE', 'Axial T2-TSE', 'Coronal T2-TSE', 'DWI (b100/500/1000)', 'Dixon-VIBE (post-contrast)'],
+            caption: 'Table 1. MRI Sequence Parameters',
+            headers: ['Sequence', 'Sagittal T2-TSE', 'Axial T2-TSE', 'Coronal T2-TSE', 'DWI (b=0, 500, 1000)', 'Dixon-VIBE (postcontrast)'],
             rows: [
-                ['Repetition time (ms)', '4170', '4400', '4400', '3700', '5.8'],
-                ['Echo time (ms)', '72', '81', '81', '59', '2.5/3.7'],
+                ['Repetition time (msec)', '4170', '4400', '4400', '3700', '5.8'],
+                ['Echo time (msec)', '72', '81', '81', '59', '2.5/3.7'],
                 ['Field of view (mm)', '220', '220', '220', '220', '270'],
                 ['Slice thickness (mm)', '3', '2', '2', '2', '1.5'],
                 ['Matrix', '394 × 448', '380 × 432', '380 × 432', '140 × 140', '326 × 384'],
@@ -30,7 +30,7 @@ window.methodsGenerator = (() => {
 
         return `
             <h3 id="methoden_studienanlage_ethik">Study Design and Patients</h3>
-            <p>${regulatoryStatement} This analysis is based on a new, fully blinded re-evaluation of a previously described retrospective cohort of ${helpers.formatValueForPublication(nOverall, 0)} consecutive patients with histologically confirmed rectal cancer who underwent pelvic MRI for primary staging or restaging between January 2020 and November 2023 ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
+            <p>${regulatoryStatement} This analysis involved a fully blinded re-evaluation of a previously described retrospective cohort of ${helpers.formatValueForPublication(nOverall, 0)} consecutive patients with histopathologically confirmed rectal cancer who underwent pelvic MRI for primary staging or restaging between January 2020 and November 2023 ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
             <p>Inclusion criteria for this secondary analysis were the availability of high-quality T2-weighted and contrast-enhanced T1-weighted MRI sequences and a definitive histopathological reference standard from the subsequent total mesorectal excision specimen. Of the final cohort, ${helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall, n_success: nSurgeryAlone, n_trials: nOverall }, 'acc', { includeCI: false })} underwent primary surgery, while ${helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall, n_success: nNeoadjuvantTherapy, n_trials: nOverall }, 'acc', { includeCI: false })} received neoadjuvant chemoradiotherapy followed by restaging MRI prior to surgery.</p>
         `;
     }
@@ -42,8 +42,8 @@ window.methodsGenerator = (() => {
             <p>All MRI examinations were performed on a 3.0-T system (MAGNETOM Prisma Fit; Siemens Healthineers) using a phased-array body coil. The standardized protocol included high-resolution, multiplanar T2-weighted turbo spin-echo sequences and an axial diffusion-weighted sequence. Following the intravenous administration of a weight-based dose (0.2 mL/kg) of a macrocyclic gadolinium-based contrast agent (Gadoteridol; ProHance; Bracco), a fat-suppressed, T1-weighted volumetric interpolated breath-hold examination (VIBE) sequence was acquired. Detailed imaging parameters are provided in Table 1.</p>
             ${_createMriParametersTableHTML()}
             <p>Two board-certified radiologists (with 8 and 30 years of experience in abdominal MRI, respectively), who were blinded to the histopathological outcomes and each other's findings, independently reviewed all MRI studies. To minimize recall bias and intra-reader variability, the T2-weighted sequences were evaluated in a separate reading session at least four weeks prior to the assessment of the contrast-enhanced sequences. Any discrepancies in the final patient-level assessment were resolved by consensus.</p>
-            <p><strong>Avocado Sign (AS) Assessment:</strong> On the contrast-enhanced T1-weighted VIBE images, all visible mesorectal lymph nodes were assessed for the presence of the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense lymph node, irrespective of node size or shape (Fig 2) ${helpers.getReference('Lurz_Schaefer_2025')}. No minimum size threshold was applied. A patient was classified as AS-positive if at least one such node was identified.</p>
-            <p><strong>T2 Criteria Assessment:</strong> The same radiologists evaluated the T2-weighted images for five standard morphological features: size (short-axis diameter), shape (round vs oval), border (sharp vs irregular), internal homogeneity (homogeneous vs heterogeneous), and signal intensity. A patient with no visible nodes on T2-weighted images was considered T2-negative. This feature set formed the basis for all subsequent comparative analyses.</p>
+            <p><strong>Avocado Sign (AS) Assessment.</strong>—On the contrast-enhanced T1-weighted VIBE images, all visible mesorectal lymph nodes were assessed for the presence of the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense lymph node, irrespective of node size or shape (Fig 2) ${helpers.getReference('Lurz_Schaefer_2025')}. No minimum size threshold was applied. A patient was classified as AS-positive if at least one such node was identified.</p>
+            <p><strong>T2 Criteria Assessment.</strong>—The same radiologists evaluated the T2-weighted images for five standard morphological features: size (short-axis diameter), shape (round vs oval), border (sharp vs irregular), internal homogeneity (homogeneous vs heterogeneous), and signal intensity. A patient with no visible nodes on T2-weighted images was considered T2-negative. This feature set formed the basis for all subsequent comparative analyses.</p>
         `;
     }
 
@@ -57,7 +57,7 @@ window.methodsGenerator = (() => {
 
         const table2Config = {
             id: 'table-methods-t2-literature',
-            caption: 'Table 2: Literature-Based T2 Criteria Sets Used for Comparison',
+            caption: 'Table 2. Literature-Based T2 Criteria Sets Used for Comparison',
             headers: ['Criteria Set', 'Study', 'Applicable Cohort', 'Key Criteria Summary', 'Logic'],
             rows: []
         };
@@ -92,8 +92,8 @@ window.methodsGenerator = (() => {
         return `
             <h3 id="methoden_vergleichskriterien_t2">Comparative T2 Criteria Sets</h3>
             <p>To provide a robust benchmark for the Avocado Sign, we evaluated two distinct types of T2-criteria sets:</p>
-            <p><strong>1. Data-driven T2 Benchmark:</strong> To establish the most stringent T2-based comparator, we first developed a data-driven benchmark using a systematic brute-force optimization. This computational approach was designed to identify the 'best-case' T2 criteria combination for our specific dataset by exhaustively testing all permutations of T2 features (size, shape, border, homogeneity), their respective values (e.g., size thresholds from 0.1 mm to 25.0 mm), and logical operators. This process was intentionally performed on each entire cohort to define a stringent, internally-derived standard against which the Avocado Sign could be compared, while acknowledging the inherent risk of overfitting associated with such a cohort-specific model. The best-performing criteria set for a pre-selected metric (${bruteForceMetricForPublication}) was then used for the primary comparison.</p>
-            <p><strong>2. Literature-Based Criteria:</strong> In a second step, to contextualize our findings within the existing body of evidence, we applied several criteria sets from previously published, influential studies to their respective target populations within our cohort (Table 2). These included complex, size-dependent rules, such as the ESGAR 2016 consensus criteria ${helpers.getReference('Rutegard_2025')}, and simpler criteria based on size or morphology from various other studies ${helpers.getReference('Pangarkar_2021')}${helpers.getReference('Grone_2017')}.</p>
+            <p><strong>1. Data-driven T2 Benchmark.</strong>—To establish the most stringent T2-based comparator, we first developed a data-driven benchmark using a systematic brute-force optimization. This computational approach was designed to identify the 'best-case' T2 criteria combination for our specific dataset by exhaustively testing all permutations of T2 features (size, shape, border, homogeneity), their respective values (e.g., size thresholds from 0.1 mm to 25.0 mm), and logical operators. The best-performing criteria set for a pre-selected metric (${bruteForceMetricForPublication}) was then used for the primary comparison.</p>
+            <p><strong>2. Literature-Based Criteria.</strong>—In a second step, to contextualize our findings within the existing body of evidence, we applied several criteria sets from previously published, influential studies to their respective target populations within our cohort (Table 2). These included complex, size-dependent rules, such as the ESGAR 2016 consensus criteria ${helpers.getReference('Rutegard_2025')}, and simpler criteria based on size or morphology from various other studies ${helpers.getReference('Pangarkar_2021')}${helpers.getReference('Grone_2017')}. The Node-RADS criteria were implemented as a validated approximation of the high-risk categories (Score ≥4) using a logical OR combination of its main criteria ${helpers.getReference('Jiang_2025')}.</p>
             ${helpers.createPublicationTableHTML(table2Config)}
         `;
     }
@@ -119,7 +119,7 @@ window.methodsGenerator = (() => {
 
         const methodsText = `Descriptive statistics were used to summarize patient characteristics. Diagnostic performance metrics—including sensitivity, specificity, positive predictive value, negative predictive value, and accuracy—were calculated. The Wilson score method was used for 95% confidence intervals (CIs) of proportions. For the area under the receiver operating characteristic curve (AUC), CIs were derived using the bootstrap percentile method with ${helpers.formatValueForPublication(nBootstrap, 0)} replications.`;
             
-        const comparisonText = `The primary comparison between the AUC of the Avocado Sign and other criteria was performed using the method described by DeLong et al. for correlated ROC curves. McNemar’s test was used to compare accuracies. For associations between individual categorical features and N-status, Fisher's exact test was used. For comparison of demographic data and AUCs between independent cohorts, Welch's t-test and Fisher's exact test were used, respectively. All statistical analyses were performed using custom software scripts (JavaScript, ES2020+) implemented in the analysis tool itself (Version ${appVersion}). A two-sided ${pValueText} was considered to indicate statistical significance.`;
+        const comparisonText = `The primary comparison between the AUC of the Avocado Sign and other criteria was performed using the method described by DeLong et al for correlated ROC curves. McNemar’s test was used to compare accuracies. For associations between individual categorical features and N-status, the Fisher exact test was used. For comparison of demographic data and AUCs between independent cohorts, the Welch t test and Fisher exact test were used, respectively. All statistical analyses were performed using custom software scripts (JavaScript, ES2020+) implemented in the analysis tool itself (Version ${appVersion}). A two-sided ${pValueText} was considered to indicate statistical significance.`;
 
         return `
             <h3 id="methoden_statistische_analyse_methoden">Statistical Analysis</h3>

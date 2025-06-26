@@ -8,20 +8,35 @@ window.referencesGenerator = (() => {
             return { processedHtml: html || '', referencesHtml: '' };
         }
 
-        const processedHtml = html.replace(/(\[[A-Za-z0-9_]+\])+/g, (match) => {
-            const keys = match.match(/\[([A-Za-z0-9_]+)\]/g).map(k => k.slice(1, -1));
-            const numbers = keys.map(refKey => {
-                if (!allReferences[refKey]) {
-                    return `REF_NOT_FOUND: ${refKey}`;
+        const singleRefRegex = /\[([A-Za-z0-9_]+)\]/g;
+        
+        const allMatches = [...html.matchAll(singleRefRegex)];
+        
+        allMatches.forEach(match => {
+            const refKey = match[1];
+            if (allReferences[refKey] && !citedRefKeys.has(refKey)) {
+                citedRefKeys.set(refKey, refCounter++);
+            }
+        });
+
+        const groupRefRegex = /(\[([A-Za-z0-9_]+)\])+/g;
+
+        const processedHtml = html.replace(groupRefRegex, (match) => {
+            const keysInGroup = [...match.matchAll(singleRefRegex)].map(m => m[1]);
+            
+            const numbers = keysInGroup.map(refKey => {
+                if (citedRefKeys.has(refKey)) {
+                    return citedRefKeys.get(refKey);
                 }
-                if (!citedRefKeys.has(refKey)) {
-                    citedRefKeys.set(refKey, refCounter++);
-                }
-                return citedRefKeys.get(refKey);
+                return `?`;
             });
             
             const uniqueNumbers = [...new Set(numbers)].sort((a, b) => a - b);
-            return `(${uniqueNumbers.join(', ')})`;
+            
+            if (uniqueNumbers.length > 0) {
+                return `(${uniqueNumbers.join(', ')})`;
+            }
+            return match;
         });
 
         const sortedCitedRefs = Array.from(citedRefKeys.entries()).sort((a, b) => a[1] - b[1]);
@@ -33,8 +48,7 @@ window.referencesGenerator = (() => {
                 if (!refData || !refData.text) {
                     return `<li>Reference for key '${key}' not found.</li>`;
                 }
-                const formattedText = refData.text.replace(/(\d{4};\d{1,3}:\d{1,4}–\d{1,4})/, '<strong>$1</strong>');
-                return `<li>${formattedText}</li>`;
+                return `<li>${refData.text}</li>`;
             }).join('');
             referencesHtml = `<section id="references_main"><h2>References</h2><ol>${listItems}</ol></section>`;
         } else {

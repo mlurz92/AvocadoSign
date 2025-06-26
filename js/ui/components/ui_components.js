@@ -277,29 +277,35 @@ window.uiComponents = (() => {
         cohortOrder.forEach(cohortId => {
             if (allBfResultsByCohort[cohortId]) {
                 const cohortResults = allBfResultsByCohort[cohortId];
-                Object.keys(cohortResults).forEach(metricName => {
-                    const result = cohortResults[metricName];
-                    if(result && result.bestResult) {
-                        hasContent = true;
-                        tableHTML += `
-                            <tr>
-                                <td>${getCohortDisplayName(cohortId)}</td>
-                                <td>${metricName}</td>
-                                <td>${formatNumber(result.bestResult.metricValue, 4, na, true)}</td>
-                                <td><code>${formatCriteriaFunc(result.bestResult.criteria, result.bestResult.logic, true)}</code></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary p-0 px-2" 
-                                            data-action="apply-saved-bf" 
-                                            data-cohort="${cohortId}" 
-                                            data-metric="${metricName}"
-                                            data-tippy-content="Apply this set of criteria to the 'Define T2 Criteria' panel.">
-                                        Apply
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    }
-                });
+                const cohortMetrics = Object.keys(cohortResults);
+                
+                if (cohortMetrics.length > 0) {
+                    hasContent = true;
+                    tableHTML += `<tr><td colspan="5" class="text-start table-group-divider fw-bold pt-2">${getCohortDisplayName(cohortId)}</td></tr>`;
+
+                    cohortMetrics.sort((a,b) => a.localeCompare(b)).forEach(metricName => {
+                        const result = cohortResults[metricName];
+                        if(result && result.bestResult) {
+                            tableHTML += `
+                                <tr>
+                                    <td></td>
+                                    <td>${metricName}</td>
+                                    <td>${formatNumber(result.bestResult.metricValue, 4, na, true)}</td>
+                                    <td><code>${formatCriteriaFunc(result.bestResult.criteria, result.bestResult.logic, true)}</code></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary p-0 px-2" 
+                                                data-action="apply-saved-bf" 
+                                                data-cohort="${cohortId}" 
+                                                data-metric="${metricName}"
+                                                data-tippy-content="Apply this set of criteria to the 'Define T2 Criteria' panel.">
+                                            Apply
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        }
+                    });
+                }
             }
         });
 

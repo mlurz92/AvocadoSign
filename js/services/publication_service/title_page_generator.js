@@ -26,9 +26,11 @@ window.titlePageGenerator = (() => {
             const { nOverall, bruteForceMetricForPublication } = commonData;
             const bfResultForPub = overallStats?.performanceT2Bruteforce?.[bruteForceMetricForPublication];
             const asOverallAUC = overallStats?.performanceAS?.auc?.value;
+            
             const asSurgeryAUC = surgeryAloneStats?.performanceAS?.auc?.value;
-            const esgarT2SurgeryAUC = surgeryAloneStats?.performanceT2Literature?.Rutegard_2025?.auc?.value;
-            const esgarComparisonPValue = surgeryAloneStats?.comparisonASvsT2Literature?.Rutegard_2025?.delong?.pValue;
+            const groeneT2SurgeryAUC = surgeryAloneStats?.performanceT2Literature?.Grone_2017?.auc?.value;
+            const groeneComparisonPValue = surgeryAloneStats?.comparisonASvsT2Literature?.Grone_2017?.delong?.pValue;
+
             const bfT2OverallAUC = bfResultForPub?.auc?.value;
             const bfComparisonPValue = overallStats?.comparisonASvsT2Bruteforce?.[bruteForceMetricForPublication]?.delong?.pValue;
             
@@ -41,8 +43,8 @@ window.titlePageGenerator = (() => {
                 <h4 style="font-size: 1.1rem; font-weight: bold; margin-top: 1.5rem;">Key Results</h4>
                 <ul style="padding-left: 20px; margin-top: 0.5rem; list-style-position: inside; text-align: left;">
                     <li>In a retrospective analysis of ${nOverall} patients, a novel contrast-enhanced MRI sign predicted nodal involvement with a sensitivity of ${helpers.formatValueForPublication(overallSens, 1, true)}% and a specificity of ${helpers.formatValueForPublication(overallSpec, 1, true)}%.</li>
-                    <li>The sign yielded a greater area under the receiver operating characteristic curve (AUC) than the established ESGAR 2016 T2-based criteria in the primary surgery cohort (AUC, ${helpers.formatValueForPublication(asSurgeryAUC, 2, false, true)} vs ${helpers.formatValueForPublication(esgarT2SurgeryAUC, 2, false, true)}; ${helpers.formatPValueForPublication(esgarComparisonPValue)}).</li>
-                    <li>The sign’s performance was comparable with a data-driven T2-based benchmark optimized for this cohort (AUC, ${helpers.formatValueForPublication(asOverallAUC, 2, false, true)} vs ${helpers.formatValueForPublication(bfT2OverallAUC, 2, false, true)}; ${helpers.formatPValueForPublication(bfComparisonPValue)}).</li>
+                    <li>The sign yielded a greater area under the receiver operating characteristic curve (AUC) than T2 criteria based on morphology alone (AUC, ${helpers.formatValueForPublication(asSurgeryAUC, 2, false, true)} vs ${helpers.formatValueForPublication(groeneT2SurgeryAUC, 2, false, true)}; ${helpers.formatPValueForPublication(groeneComparisonPValue)}).</li>
+                    <li>The sign’s performance was superior to a data-driven T2-based benchmark optimized for this cohort (AUC, ${helpers.formatValueForPublication(asOverallAUC, 2, false, true)} vs ${helpers.formatValueForPublication(bfT2OverallAUC, 2, false, true)}; ${helpers.formatPValueForPublication(bfComparisonPValue)}).</li>
                 </ul>
             `;
         }
@@ -60,10 +62,7 @@ window.titlePageGenerator = (() => {
                 ${keyResultsHTML}
                 
                 <div style="font-size: 0.85rem; color: #444; margin-top: 2rem; border-top: 1px solid #ccc; padding-top: 1rem;">
-                    <p><strong>Address correspondence to:</strong><br>
-                        ${correspondingAuthor.name}, ${institution}, ${correspondingAuthor.address}. 
-                        E-mail: ${correspondingAuthor.email}
-                    </p>
+                    <p><strong>Address correspondence to:</strong> ${correspondingAuthor.name}, ${institution}, ${correspondingAuthor.address} (e-mail: ${correspondingAuthor.email}).</p>
                     <p><strong>Funding:</strong> ${fundingStatement}</p>
                     <p><strong>Data Sharing Statement:</strong> ${dataSharingStatement}</p>
                 </div>

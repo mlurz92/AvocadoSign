@@ -90,21 +90,6 @@ window.statisticsTab = (() => {
             });
         }
         
-        const appliedPerf = allStats['Overall']?.performanceT2Applied;
-        const appliedComp = allStats['Overall']?.comparisonASvsT2Applied;
-        const appliedCriteria = window.t2CriteriaManager.getAppliedCriteria();
-        const appliedLogic = window.t2CriteriaManager.getAppliedLogic();
-        const appliedName = `Applied T2<br><code class="small fw-normal">${window.studyT2CriteriaManager.formatCriteriaForDisplay(appliedCriteria, appliedLogic, true)}</code>`;
-        
-        if (appliedPerf) {
-            results.push({
-                group: 'Applied T2',
-                name: appliedName,
-                pValue: appliedComp?.delong?.pValue,
-                ...appliedPerf
-            });
-        }
-        
         const litSurgeryAlone = [], litNeoadjuvant = [], litOverall = [];
         allLitSets.forEach(set => {
             const cohortForSet = set.applicableCohort || 'Overall';
@@ -214,7 +199,7 @@ window.statisticsTab = (() => {
 
                 innerContainer.innerHTML += window.uiComponents.createStatisticsCard(`descriptive-stats-${i}`, 'Descriptive Statistics', createDescriptiveStatsContentHTML(stats, i, cohortId), true, 'descriptiveStatistics', cohortId);
 
-                const fCI_p_stat = (m, k) => { const d = (k === 'auc' || k ==='f1' || k==='youden' || k === 'balAcc') ? 3 : 0; const p = !(k === 'auc'||k==='f1'||k==='youden' || k === 'balAcc'); return formatCI(m?.value, m?.ci?.lower, m?.ci?.upper, d, p, na_stat); };
+                const fCI_p_stat = (m, k) => { const d = (k === 'auc' || k ==='f1' || k==='youden' || k === 'balAcc') ? 3 : 1; const p = !(k === 'auc'||k==='f1'||k==='youden' || k === 'balAcc'); return formatCI(m?.value, m?.ci?.lower, m?.ci?.upper, d, p, na_stat); };
                 
                 const createPerfTableHTML = (perfStats) => {
                     if (!perfStats || typeof perfStats.matrix !== 'object') return '<p class="text-muted small p-2">No diagnostic performance data.</p>';
