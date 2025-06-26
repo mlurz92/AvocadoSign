@@ -20,14 +20,22 @@ window.publicationService = (() => {
             'AS': 'Avocado Sign',
             'AUC': 'Area under the receiver operating characteristic curve',
             'CI': 'Confidence interval',
-            'nCRT': 'neoadjuvant chemoradiotherapy',
-            'TNT': 'Total Neoadjuvant Therapy',
-            'T2w': 'T2-weighted',
-            'VIBE': 'volumetric interpolated breath-hold examination',
             'DWI': 'diffusion-weighted imaging',
             'ESGAR': 'European Society of Gastrointestinal and Abdominal Radiology',
-            'STARD': 'Standards for Reporting of Diagnostic Accuracy Studies'
+            'IQR': 'Interquartile Range',
+            'MDT': 'Multidisciplinary Tumor Board',
+            'nCRT': 'neoadjuvant chemoradiotherapy',
+            'NPV': 'Negative Predictive Value',
+            'PPV': 'Positive Predictive Value',
+            'SD': 'Standard Deviation',
+            'STARD': 'Standards for Reporting of Diagnostic Accuracy Studies',
+            'T2w': 'T2-weighted',
+            'TNT': 'Total Neoadjuvant Therapy',
+            'TSE': 'turbo spin-echo',
+            'VIBE': 'volumetric interpolated breath-hold examination'
         };
+
+        const coreAbbreviations = new Set(['AS', 'AUC', 'CI', 'DWI', 'ESGAR', 'nCRT', 'NPV', 'PPV', 'T2w', 'TNT']);
 
         const textContent = fullHtmlContent.replace(/<[^>]+>/g, ' ');
         const counts = {};
@@ -39,7 +47,11 @@ window.publicationService = (() => {
         });
 
         const validAbbreviations = Object.entries(counts)
-            .filter(([abbr, count]) => count >= 10 && potentialAbbreviations[abbr])
+            .filter(([abbr, count]) => {
+                if (!potentialAbbreviations[abbr]) return false;
+                const isCore = coreAbbreviations.has(abbr);
+                return (isCore && count > 0) || count >= 5;
+            })
             .sort((a, b) => a[0].localeCompare(b[0]))
             .slice(0, 10)
             .map(([abbr]) => `<li><strong>${abbr}</strong> = ${potentialAbbreviations[abbr]}</li>`)
