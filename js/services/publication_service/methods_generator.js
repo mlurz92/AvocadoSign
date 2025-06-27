@@ -44,8 +44,8 @@ window.methodsGenerator = (() => {
             <p>All MRI examinations were performed on a 3.0-T system and included high-resolution T2-weighted sequences, diffusion-weighted imaging, and a postcontrast T1-weighted fat-suppressed sequence. Detailed imaging parameters are provided in Table 1.</p>
             ${_createMriParametersTableHTML()}
             <p>Two board-certified radiologists (with 8 and 30 years of experience in abdominal MRI), blinded to histopathological outcomes and each other's findings, independently reviewed all studies; discrepancies were resolved by consensus. To minimize recall bias, T2-weighted and contrast-enhanced sequences were evaluated in separate reading sessions at least four weeks apart.</p>
-            <p><strong>Avocado Sign (AS) Assessment.</strong>—On contrast-enhanced T1-weighted images, a patient's N-status was classified as AS-positive if at least one mesorectal lymph node demonstrated the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense node, irrespective of its size or shape (Fig 2) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p><strong>T2 Criteria Assessment.</strong>—On T2-weighted images, all visible mesorectal nodes were evaluated for five standard morphologic features: size, shape, border, internal homogeneity, and signal intensity. A patient's N-status was classified as T2-positive if at least one lymph node fulfilled a given set of combined T2-based criteria.</p>
+            <p><strong>Avocado Sign (AS) Assessment.</strong>—On contrast-enhanced T1-weighted images, a patient's mesorectal nodal status was classified as AS-positive if at least one mesorectal lymph node demonstrated the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense node, irrespective of its size or shape (Fig 2) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
+            <p><strong>T2 Criteria Assessment.</strong>—On T2-weighted images, all visible mesorectal nodes were evaluated for five standard morphologic features: size, shape, border, internal homogeneity, and signal intensity. A patient's nodal status was classified as T2-positive if at least one lymph node fulfilled a given set of combined T2-based criteria.</p>
         `;
     }
 
@@ -143,7 +143,7 @@ window.methodsGenerator = (() => {
     function generateReferenceStandardHTML(stats, commonData) {
         return `
             <h3 id="methoden_referenzstandard_histopathologie">Reference Standard</h3>
-            <p>The definitive reference standard for the patient-level N-status was the histopathological examination of the total mesorectal excision specimens performed by experienced gastrointestinal pathologists. All identified lymph nodes were meticulously dissected and analyzed for the presence of metastatic tumor cells. A patient was classified as N-positive if metastases were found in at least one lymph node.</p>
+            <p>The definitive reference standard for the patient-level nodal status was the histopathological examination of the total mesorectal excision specimens performed by experienced gastrointestinal pathologists. All identified lymph nodes were meticulously dissected and analyzed for the presence of metastatic tumor cells. A patient was classified as N-positive if metastases were found in at least one lymph node.</p>
         `;
     }
 
@@ -161,7 +161,7 @@ window.methodsGenerator = (() => {
 
         const methodsText = `Descriptive statistics were used to summarize patient characteristics. Diagnostic performance metrics—including sensitivity, specificity, positive predictive value, negative predictive value, and accuracy—were calculated. The Wilson score method was used for 95% confidence intervals (CIs) of proportions. For the area under the receiver operating characteristic curve (AUC), CIs were derived using the bootstrap percentile method with ${helpers.formatValueForPublication(nBootstrap, 0)} replications.`;
             
-        const comparisonText = `The primary comparison between the AUC of the Avocado Sign and other criteria was performed using the method described by DeLong et al for correlated ROC curves. McNemar’s test was used to compare accuracies. For associations between individual categorical features and N-status, the Fisher exact test was used. For comparison of demographic data and AUCs between independent cohorts, the Welch t test and Fisher exact test were used, respectively. All statistical analyses were performed using custom software scripts (JavaScript, ES2020+) implemented in the analysis tool itself (Version ${appVersion}). A two-sided ${pValueText} was considered to indicate statistical significance.`;
+        const comparisonText = `The primary comparison between the AUC of the Avocado Sign and other criteria was performed using the method described by DeLong et al for correlated ROC curves. McNemar’s test was used to compare accuracies. For associations between individual categorical features and nodal status, the Fisher exact test was used. For comparison of demographic data and AUCs between independent cohorts, the Welch t test and Fisher exact test were used, respectively. All statistical analyses were performed using custom software scripts (JavaScript, ES2020+) implemented in the analysis tool itself (Version ${appVersion}). A two-sided ${pValueText} was considered to indicate statistical significance.`;
 
         return `
             <h3 id="methoden_statistische_analyse_methoden">Statistical Analysis</h3>

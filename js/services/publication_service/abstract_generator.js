@@ -35,7 +35,7 @@ window.abstractGenerator = (() => {
                 <p>Accurate MRI-based staging of mesorectal lymph nodes in rectal cancer is crucial for treatment planning, but standard T2-weighted criteria have shown limited diagnostic performance.</p>
                 
                 <h3>Purpose</h3>
-                <p>To compare the diagnostic performance of a contrast-enhanced MRI feature (the Avocado Sign) with that of multiple T2-weighted criteria for predicting patient-level N-status in rectal cancer.</p>
+                <p>To compare the diagnostic performance of a contrast-enhanced MRI feature (the Avocado Sign) with that of multiple T2-weighted criteria for predicting patient-level mesorectal nodal status in rectal cancer.</p>
                 
                 <h3>Materials and Methods</h3>
                 <p>This secondary analysis of a retrospective, single-institution study received institutional review board approval with a waiver of informed consent. Data from ${nOverall} consecutive patients with rectal cancer who underwent 3.0-T MRI between January 2020 and November 2023 were analyzed. Two blinded radiologists evaluated the Avocado Sign on contrast-enhanced T1-weighted images. The performance of this sign was compared against two sets of T2-based criteria: (a) a computationally optimized, data-driven benchmark derived from the study cohort and (b) established criteria from the literature. Histopathologic analysis served as the reference standard. The DeLong test was used to compare the area under the receiver operating characteristic curve (AUC).</p>
@@ -44,7 +44,7 @@ window.abstractGenerator = (() => {
                 ${resultsSectionHTML}
                 
                 <h3>Conclusion</h3>
-                <p>The contrast-enhanced Avocado Sign demonstrated superior diagnostic performance for predicting the patient-level N-status compared with both optimized and literature-based T2-weighted criteria, offering a simple and accurate alternative for nodal staging in rectal cancer.</p>
+                <p>The contrast-enhanced Avocado Sign demonstrated superior diagnostic performance for predicting the patient-level mesorectal nodal status compared with both optimized and literature-based T2-weighted criteria, offering a simple and accurate alternative for nodal staging in rectal cancer.</p>
             </div>
         `;
 

@@ -176,13 +176,13 @@ window.APP_CONFIG = Object.freeze({
         PUBLICATION_TEXTS: Object.freeze({
             MIM_REGULATORY_STATEMENT: "This secondary analysis of a retrospective, single-institution study was compliant with the Health Insurance Portability and Accountability Act and approved by our institutional review board, which waived the requirement for additional written informed consent.",
             STATISTICAL_ANALYSIS_METHODS: "Descriptive statistics were used to summarize patient characteristics. Diagnostic performance metrics—including sensitivity, specificity, positive predictive value, negative predictive value, and accuracy—were calculated. The Wilson score method was used for 95% confidence intervals (CIs) of proportions. For the area under the receiver operating characteristic curve (AUC), CIs were derived using the bootstrap percentile method with [N_BOOTSTRAP] replications.",
-            STATISTICAL_ANALYSIS_COMPARISON: "The primary comparison between the AUC of the Avocado Sign and other criteria was performed using the method described by DeLong et al. for correlated ROC curves. McNemar’s test was used to compare accuracies. For associations between individual categorical features and N-status, Fisher's exact test was used. For comparison of demographic data and AUCs between independent cohorts, Welch's t-test and Fisher's exact test were used, respectively. All statistical analyses were performed using custom software scripts (JavaScript, ES2020+) implemented in the analysis tool itself (Version [APP_VERSION]). A two-sided P value of less than [P_LEVEL] was considered to indicate statistical significance."
+            STATISTICAL_ANALYSIS_COMPARISON: "The primary comparison between the AUC of the Avocado Sign and other criteria was performed using the method described by DeLong et al. for correlated ROC curves. McNemar’s test was used to compare accuracies. For associations between individual categorical features and nodal status, Fisher's exact test was used. For comparison of demographic data and AUCs between independent cohorts, Welch's t-test and Fisher's exact test were used, respectively. All statistical analyses were performed using custom software scripts (JavaScript, ES2020+) implemented in the analysis tool itself (Version [APP_VERSION]). A two-sided P value of less than [P_LEVEL] was considered to indicate statistical significance."
         }),
         chartTitles: {
             ageDistribution: 'Age Distribution',
             genderDistribution: 'Sex',
             therapyDistribution: 'Therapy',
-            statusN: 'N-Status (Pathology)',
+            statusN: 'Mesorectal nodal Status (Pathology)',
             statusAS: 'AS-Status',
             statusT2: 'T2-Status'
         },
@@ -249,7 +249,7 @@ window.APP_CONFIG = Object.freeze({
                     ci: "The 95% Confidence Interval from {lower} to {upper} {ciInterpretationText}."
                 },
                 phi: {
-                    value: "A Phi coefficient of {value} indicates a {strength} positive correlation between the presence of feature '{featureName}' and a positive N-status.",
+                    value: "A Phi coefficient of {value} indicates a {strength} positive correlation between the presence of feature '{featureName}' and a positive nodal status.",
                 },
                 ci: {
                     includesOne: "does not exclude an odds ratio of 1, so the association is not statistically significant at the P < .05 level",
@@ -302,7 +302,7 @@ window.APP_CONFIG = Object.freeze({
                 'age': { description: 'Distribution of patient ages in the [COHORT] cohort.' },
                 'gender': { description: 'Distribution of patient sex in the [COHORT] cohort.' },
                 'therapy': { description: 'Distribution of pre-surgical therapy in the [COHORT] cohort.' },
-                'status-n': { description: 'Distribution of final histopathological N-Status in the [COHORT] cohort.' },
+                'status-n': { description: 'Distribution of final histopathological mesorectal nodal status in the [COHORT] cohort.' },
                 'status-as': { description: 'Distribution of Avocado Sign status in the [COHORT] cohort.' },
                 'status-t2': { description: 'Distribution of T2 criteria status in the [COHORT] cohort.' },
                 'criteriaComparisonTable': { cardTitle: 'Comparison of diagnostic performance between the Avocado Sign and various T2 criteria sets for the [COHORT] cohort. P-values represent the statistical comparison of each set\'s AUC against the Avocado Sign\'s AUC.' },

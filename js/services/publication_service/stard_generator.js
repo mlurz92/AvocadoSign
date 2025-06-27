@@ -126,7 +126,7 @@ window.stardGenerator = (() => {
                 section: 'RESULTS',
                 item: 21,
                 label: 'Results: Participants - Distribution of severity of disease in those with the target condition; other diagnoses in those without the target condition',
-                location: 'Results / Table 1 (N-status breakdown)'
+                location: 'Results / Table 1 (Nodal status breakdown)'
             },
             {
                 section: 'RESULTS',
