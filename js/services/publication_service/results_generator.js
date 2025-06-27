@@ -13,9 +13,9 @@ window.resultsGenerator = (() => {
         const { nOverall, nSurgeryAlone, nNeoadjuvantTherapy, nPositive } = commonData;
         const descriptiveComparison = stats?.interCohortDemographicComparison;
 
-        const surgeryAlonePercentString = helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall, n_success: nSurgeryAlone, n_trials: nOverall}, 'acc', { includeCI: false });
-        const neoadjuvantPercentString = helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall, n_success: nNeoadjuvantTherapy, n_trials: nOverall}, 'acc', { includeCI: false });
-        const nPositivePercentString = helpers.formatMetricForPublication({value: nPositive / nOverall, n_success: nPositive, n_trials: nOverall}, 'acc', { includeCI: false });
+        const surgeryAlonePercentString = helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall, n_success: nSurgeryAlone, n_trials: nOverall}, 'acc', { includeCI: false, includeCount: true });
+        const neoadjuvantPercentString = helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall, n_success: nNeoadjuvantTherapy, n_trials: nOverall}, 'acc', { includeCI: false, includeCount: true });
+        const nPositivePercentString = helpers.formatMetricForPublication({value: nPositive / nOverall, n_success: nPositive, n_trials: nOverall}, 'acc', { includeCI: false, includeCount: true });
         
         const text = `
             <h3 id="ergebnisse_patientencharakteristika">Patient Characteristics</h3>
@@ -26,7 +26,7 @@ window.resultsGenerator = (() => {
             <div class="my-4 p-3 border rounded text-center bg-light" id="figure-1-flowchart-container-wrapper">
                 <p class="mb-1 fw-bold">Figure 1: Study Flowchart</p>
                 <div id="figure-1-flowchart-container" class="publication-chart-container" style="max-width: 650px;">
-                    <p class="mb-0 text-muted small">[Flowchart showing participant enrollment and cohort allocation will be rendered here.]</p>
+                    <p class="mb-0 text-muted small">[A STARD-compliant flowchart showing participant enrollment, allocation to the surgery-alone and neoadjuvant therapy groups, and inclusion in the final analysis.]</p>
                 </div>
             </div>
             <div class="my-4 p-3 border rounded bg-light" id="figure-2-examples-container-wrapper">
@@ -53,14 +53,14 @@ window.resultsGenerator = (() => {
         `;
         
         const getAgeRow = (statsObj, type) => {
-            if (!statsObj?.age || isNaN(statsObj.age.mean)) return 'N/A';
+            if (!statsObj?.age || isNaN(statsObj.age.mean)) return window.APP_CONFIG.NA_PLACEHOLDER;
             if (type === 'mean') return `${helpers.formatValueForPublication(statsObj.age.mean, 1)} ± ${helpers.formatValueForPublication(statsObj.age.sd, 1)}`;
             if (type === 'median') return `${helpers.formatValueForPublication(statsObj.age.median, 0)} (${helpers.formatValueForPublication(statsObj.age.q1, 0)}–${helpers.formatValueForPublication(statsObj.age.q3, 0)})`;
-            return 'N/A';
+            return window.APP_CONFIG.NA_PLACEHOLDER;
         };
 
         const getCountString = (count, total) => {
-            if(total === 0 || count === undefined || count === null) return '0 (N/A)';
+            if(total === 0 || count === undefined || count === null) return `0 (${window.APP_CONFIG.NA_PLACEHOLDER})`;
             return helpers.formatMetricForPublication({ value: count / total, n_success: count, n_trials: total }, 'acc', { includeCI: false });
         };
         
@@ -176,7 +176,7 @@ window.resultsGenerator = (() => {
             caption: 'Table 4. Diagnostic Performance Comparison of Avocado Sign vs T2-based Criteria',
             headers: ['Set', 'Sensitivity', 'Specificity', 'PPV', 'NPV', 'AUC (95% CI)', '<em>P</em> value (vs AS)'],
             rows: [],
-            notes: 'Data are percentages, with numerators and denominators in parentheses. AUC = Area under the receiver operating characteristic curve, AS = Avocado Sign, PPV = Positive Predictive Value, NPV = Negative Predictive Value. The <em>P</em> value (DeLong test) indicates the statistical significance of the difference in AUC compared to the Avocado Sign within the respective cohort.'
+            notes: 'Data are percentages, with numerators and denominators in parentheses. AUC = Area under the receiver operating characteristic curve, AS = Avocado Sign, NPV = Negative predictive value, PPV = Positive predictive value. The <em>P</em> value (DeLong test) indicates the statistical significance of the difference in AUC compared to the Avocado Sign within the respective cohort.'
         };
 
         results.forEach(r => {

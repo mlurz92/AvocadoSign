@@ -13,7 +13,7 @@ window.methodsGenerator = (() => {
                 ['Matrix', '394 × 448', '380 × 432', '380 × 432', '140 × 140', '326 × 384'],
                 ['Acquisition time (min)', '4:37', '4:50', '4:50', '3:57', '4:10']
             ],
-            notes: "TSE = turbo spin-echo, DWI = diffusion-weighted imaging, VIBE = volumetric interpolated breath-hold examination."
+            notes: "DWI = diffusion-weighted imaging, TSE = turbo spin-echo, VIBE = volumetric interpolated breath-hold examination."
         };
         return window.publicationHelpers.createPublicationTableHTML(tableConfig);
     }
@@ -27,8 +27,8 @@ window.methodsGenerator = (() => {
         }
 
         const regulatoryStatement = window.APP_CONFIG.UI_TEXTS.PUBLICATION_TEXTS.MIM_REGULATORY_STATEMENT;
-        const surgeryAlonePercentString = helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall, n_success: nSurgeryAlone, n_trials: nOverall }, 'acc', { includeCI: false });
-        const neoadjuvantPercentString = helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall, n_success: nNeoadjuvantTherapy, n_trials: nOverall }, 'acc', { includeCI: false });
+        const surgeryAlonePercentString = helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall, n_success: nSurgeryAlone, n_trials: nOverall }, 'acc', { includeCI: false, includeCount: true });
+        const neoadjuvantPercentString = helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall, n_success: nNeoadjuvantTherapy, n_trials: nOverall }, 'acc', { includeCI: false, includeCount: true });
 
         return `
             <h3 id="methoden_studienanlage_ethik">Study Design and Patients</h3>
@@ -41,7 +41,7 @@ window.methodsGenerator = (() => {
         const helpers = window.publicationHelpers;
         return `
             <h3 id="methoden_mrt_protokoll_akquisition">MRI Protocol and Image Analysis</h3>
-            <p>All MRI examinations were performed on a 3.0-T system and included high-resolution T2-weighted sequences, diffusion-weighted imaging, and a postcontrast T1-weighted fat-suppressed sequence. Detailed imaging parameters are provided in Table 1.</p>
+            <p>All MRI examinations were performed on a 3.0-T system (MAGNETOM Prisma Fit; Siemens Healthineers) and included high-resolution T2-weighted sequences, diffusion-weighted imaging, and a postcontrast T1-weighted fat-suppressed sequence. Detailed imaging parameters are provided in Table 1.</p>
             ${_createMriParametersTableHTML()}
             <p>Two board-certified radiologists (with 8 and 30 years of experience in abdominal MRI), blinded to histopathological outcomes and each other's findings, independently reviewed all studies; discrepancies were resolved by consensus. To minimize recall bias, T2-weighted and contrast-enhanced sequences were evaluated in separate reading sessions at least four weeks apart.</p>
             <p><strong>Avocado Sign (AS) Assessment.</strong>—On contrast-enhanced T1-weighted images, a patient's mesorectal nodal status was classified as AS-positive if at least one mesorectal lymph node demonstrated the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense node, irrespective of its size or shape (Fig 2) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
@@ -135,7 +135,7 @@ window.methodsGenerator = (() => {
 
         return `
             <h3 id="methoden_vergleichskriterien_t2">Comparative T2 Criteria Sets</h3>
-            <p>To provide a robust benchmark for the Avocado Sign, its performance was compared against multiple T2-based criteria sets in a tiered approach. First, we applied the 2016 ESGAR consensus criteria, which represent a widely recognized clinical standard, to their respective target populations within our cohort ${helpers.getReference('Beets_Tan_2018_ESGAR')}. Second, to establish the most stringent internal comparator, a data-driven benchmark was developed via a systematic, computer-assisted analysis (Brute-Force) that exhaustively tested all permutations of T2 features and logical operators to identify the combination with the highest diagnostic performance for a pre-selected metric (${bruteForceMetricForPublication}). Third, to contextualize our findings further, we applied several additional T2-based criteria sets from previously published studies to their appropriate cohorts. All evaluated criteria sets are detailed in Table 2.</p>
+            <p>To provide a robust benchmark for the Avocado Sign, its performance was compared against multiple T2-based criteria sets in a tiered approach. First, we applied the 2016 ESGAR consensus criteria, which represent a widely recognized clinical standard, to their respective target populations within our cohort ${helpers.getReference('Beets_Tan_2018')}. Second, to establish the most stringent internal comparator, a data-driven benchmark was developed via a systematic, computer-assisted analysis (Brute-Force) that exhaustively tested all permutations of T2 features and logical operators to identify the combination with the highest diagnostic performance for a pre-selected metric (${bruteForceMetricForPublication}). Third, to contextualize our findings further, we applied several additional T2-based criteria sets from previously published studies to their appropriate cohorts. All evaluated criteria sets are detailed in Table 2.</p>
             ${helpers.createPublicationTableHTML(tableConfig)}
         `;
     }
@@ -157,7 +157,7 @@ window.methodsGenerator = (() => {
             return '<h3 id="methoden_statistische_analyse_methoden">Statistical Analysis</h3><p class="text-warning">Configuration for statistical analysis is missing.</p>';
         }
         
-        const pValueText = helpers.formatPValueForPublication(statisticalSignificanceLevel);
+        const pValueText = helpers.formatPValueForPublication(statisticalSignificanceLevel).replace(/=/g, '<');
 
         const methodsText = `Descriptive statistics were used to summarize patient characteristics. Diagnostic performance metrics—including sensitivity, specificity, positive predictive value, negative predictive value, and accuracy—were calculated. The Wilson score method was used for 95% confidence intervals (CIs) of proportions. For the area under the receiver operating characteristic curve (AUC), CIs were derived using the bootstrap percentile method with ${helpers.formatValueForPublication(nBootstrap, 0)} replications.`;
             

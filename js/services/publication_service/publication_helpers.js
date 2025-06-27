@@ -7,7 +7,7 @@ window.publicationHelpers = (() => {
     function formatValueForPublication(value, digits = 0, isPercent = false, noLeadingZero = false) {
         const num = parseFloat(value);
         if (num === null || num === undefined || isNaN(num) || !isFinite(num)) {
-            return 'N/A';
+            return window.APP_CONFIG.NA_PLACEHOLDER;
         }
 
         const finalValue = isPercent ? num * 100 : num;
@@ -29,7 +29,7 @@ window.publicationHelpers = (() => {
         };
 
         if (!metric || typeof metric.value !== 'number' || isNaN(metric.value)) {
-            return 'N/A';
+            return window.APP_CONFIG.NA_PLACEHOLDER;
         }
 
         let isPercent, digits, noLeadingZero;
@@ -115,6 +115,11 @@ window.publicationHelpers = (() => {
         tableHtml += `<thead><tr>${headers.map(h => `<th>${processCellContent(h)}</th>`).join('')}</tr></thead><tbody>`;
 
         rows.forEach(row => {
+            const firstCellContent = String(row[0] || '');
+            if (firstCellContent.startsWith('<td colspan')) {
+                tableHtml += `<tr>${firstCellContent}</tr>`;
+                return;
+            }
             tableHtml += `<tr>${row.map((cell, index) => {
                 const cellData = processCellContent(cell);
                 const isIndented = cellData.startsWith('   ');
@@ -134,6 +139,7 @@ window.publicationHelpers = (() => {
                 'BF': 'Brute-Force',
                 'ESGAR': 'European Society of Gastrointestinal and Abdominal Radiology',
                 'nCRT': 'neoadjuvant chemoradiotherapy',
+                'TSE': 'turbo spin-echo',
                 'T2': 'T2-weighted',
                 'VIBE': 'volumetric interpolated breath-hold examination',
                 'DWI': 'diffusion-weighted imaging',
@@ -150,7 +156,11 @@ window.publicationHelpers = (() => {
             }
         }
         if (notes) {
-            footerContent += notes;
+            if (footerContent) {
+                footerContent += notes;
+            } else {
+                footerContent = `<em>Note.—</em>${notes}`;
+            }
         }
 
         if (footerContent) {

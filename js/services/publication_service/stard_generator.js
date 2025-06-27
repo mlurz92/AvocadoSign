@@ -120,13 +120,13 @@ window.stardGenerator = (() => {
                 section: 'RESULTS',
                 item: 20,
                 label: 'Results: Participants - Baseline demographic and clinical characteristics',
-                location: 'Results / Patient Characteristics; Table 1'
+                location: 'Results / Patient Characteristics; Table 3'
             },
             {
                 section: 'RESULTS',
                 item: 21,
                 label: 'Results: Participants - Distribution of severity of disease in those with the target condition; other diagnoses in those without the target condition',
-                location: 'Results / Table 1 (Nodal status breakdown)'
+                location: 'Results / Table 3 (Nodal status breakdown)'
             },
             {
                 section: 'RESULTS',
@@ -144,7 +144,7 @@ window.stardGenerator = (() => {
                 section: 'RESULTS',
                 item: 24,
                 label: 'Results: Test results - Estimates of diagnostic accuracy and their precision (such as 95% confidence intervals)',
-                location: 'Results / Table 3, Table 4'
+                location: 'Results / Table 4'
             },
             {
                 section: 'RESULTS',
