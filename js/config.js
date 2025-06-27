@@ -28,7 +28,9 @@ window.APP_CONFIG = Object.freeze({
         COMPARISON_STUDY_ID: 'Rutegard_2025',
         PUBLICATION_SECTION: 'title_main',
         PUBLICATION_BRUTE_FORCE_METRIC: 'Balanced Accuracy',
-        PUBLICATION_LANG: 'en'
+        PUBLICATION_LANG: 'en',
+        PUBLICATION_EDIT_MODE: false,
+        EDITED_MANUSCRIPT_HTML: null
     }),
     AVAILABLE_BRUTE_FORCE_METRICS: Object.freeze([
         { value: 'Balanced Accuracy', label: 'Balanced Accuracy (AUC)' },
@@ -50,7 +52,9 @@ window.APP_CONFIG = Object.freeze({
         STATS_COHORT2: 'avocadoSign_statsCohort2_v5.0',
         COMPARISON_VIEW: 'avocadoSign_comparisonView_v5.0',
         COMPARISON_STUDY_ID: 'avocadoSign_comparisonStudyId_v5.0',
-        FIRST_APP_START: 'avocadoSign_appFirstStart_v5.0'
+        FIRST_APP_START: 'avocadoSign_appFirstStart_v5.0',
+        PUBLICATION_EDIT_MODE: 'avocadoSign_publicationEditMode_v5.0',
+        EDITED_MANUSCRIPT_HTML: 'avocadoSign_editedManuscriptHTML_v5.0'
     }),
     PATHS: Object.freeze({
         BRUTE_FORCE_WORKER: 'workers/brute_force_worker.js'
@@ -121,22 +125,22 @@ window.APP_CONFIG = Object.freeze({
         Al_Sukhni_2012: { id: 4, text: "Al-Sukhni E, Milot L, Fruitman M, et al. Diagnostic accuracy of MRI for assessment of T category, lymph node metastases, and circumferential resection margin involvement in patients with rectal cancer: a systematic review and meta-analysis. Ann Surg Oncol. 2012;19:2212–2223. doi:10.1245/s10434-011-2210-5" },
         Stelzner_2022: { id: 5, text: "Stelzner S, Ruppert R, Kube R, et al. Selection of patients with rectal cancer for neoadjuvant therapy using pre-therapeutic MRI—results from OCUM trial. Eur J Radiol. 2022;147:110113. doi:10.1016/j.ejrad.2021.110113" },
         Lurz_Schaefer_2025: { id: 6, text: "Lurz M, Schäfer AO. The Avocado Sign: A novel imaging marker for nodal staging in rectal cancer. Eur Radiol. 2025. doi:10.1007/s00330-025-11462-y" },
-        Koh_2008: { id: 7, text: "Koh DM, Chau I, Tait D, Wotherspoon A, Cunningham D, Brown G. Evaluating mesorectal lymph nodes in rectal cancer before and after neoadjuvant chemoradiation using thin-section T2-weighted magnetic resonance imaging. Int J Radiat Oncol Biol Phys. 2008;71:456–461. doi:10.1016/j.ijrobp.2007.10.016" },
-        Barbaro_2024: { id: 8, text: "Barbaro B, Carafa MRP, Minordi LM, et al. Magnetic resonance imaging for assessment of rectal cancer nodes after chemoradiotherapy: a single center experience. Radiother Oncol. 2024;193:110124. doi:10.1016/j.radonc.2024.110124" },
-        Rutegard_2025: { id: 9, text: "Rutegård MK, Båtsman M, Blomqvist L, et al. Evaluation of MRI characterisation of histopathologically matched lymph nodes and other mesorectal nodal structures in rectal cancer. Eur Radiol. 2025;35(1):49-60. doi:10.1007/s00330-025-11361-2" },
-        Horvat_2023: { id: 10, text: "Horvat N, El Homsi M, Miranda J, Mazaheri Y, Gollub MJ, Paroder V. Rectal MRI interpretation after neoadjuvant therapy. J Magn Reson Imaging. 2023;57:353–369. doi:10.1002/jmri.28426" },
-        Hao_2025: { id: 11, text: "Hao Y, Zheng J, Li W, et al. Ultra-high b-value DWI in rectal cancer: image quality assessment and regional lymph node prediction based on radiomics. Eur Radiol. 2025;35:49-60. doi:10.1007/s00330-024-10958-3" },
-        Kim_2019: { id: 12, text: "Kim SH, Song BI, Kim BW, et al. Predictive value of [18F]FDG PET/CT for lymph node metastasis in rectal cancer. Sci Rep. 2019;9:4979. doi:10.1038/s41598-019-41422-8" },
-        Lord_2019: { id: 13, text: "Lord AC, D’Souza N, Shaw A, Day N, Brown G. The Current Status of Nodal Staging in Rectal Cancer. Curr Colorectal Cancer Rep. 2019;15:143-48. doi:10.1007/s11888-019-00441-3" },
-        Zhuang_2021: { id: 14, text: "Zhuang Z, Zhang Y, Wei M, Yang X, Wang Z. Magnetic Resonance Imaging Evaluation of the Accuracy of Various Lymph Node Staging Criteria in Rectal Cancer: A Systematic Review and Meta-Analysis. Front Oncol. 2021;11:709070. doi:10.3389/fonc.2021.709070" },
-        Lambregts_2012: { id: 15, text: "Lambregts DMJ, Heijnen LA, Maas M, et al. Gadofosveset-enhanced MRI for the assessment of rectal cancer lymph nodes: predictive criteria. Abdom Imaging. 2013;38:720–727. doi:10.1007/s00261-012-9957-4" },
-        Pangarkar_2021: { id: 16, text: "Pangarkar S, Mistry K, Choudhari A, et al. Accuracy of MRI for nodal restaging in rectal cancer: a retrospective study of 166 cases. Abdom Radiol (NY). 2021;46:498-505. doi:10.1007/s00261-020-02708-y" },
-        Grone_2017: {id: 17, text: "Gröne J, Loch FN, Taupitz M, Schmidt C, Kreis ME. Accuracy of various lymph node staging criteria in rectal cancer with magnetic resonance imaging. J Gastrointest Surg. 2017;21(11):1-8. doi:10.1007/s11605-017-3568-x"},
-        Jiang_2025: {id: 18, text: "Jiang L, Zhuang Z, Tang X, et al. Diagnostic performance of node-RADS classification for primary lymph node assessment in rectal cancer: a modality benchmarking study. J Cancer Res Clin Oncol (2025) 151:145. https://doi.org/10.1007/s00432-025-06196-9"},
-        Almlov_2020: {id: 19, text: "Almlöv K, Woisetschlager M, Loftås P, Hallböök O, Elander NO, and Sandström P. MRI lymph node evaluation for prediction of metastases in rectal cancer. Anticancer Res. 2020;40(5):2757-63. doi:10.21873/anticanres.14247"},
-        Crimi_2024: {id: 20, text: "Crimì F, Cabrelle G, Campi C, et al. Nodal staging with MRI after neoadjuvant chemo-radiotherapy for locally advanced rectal cancer: a fast and reliable method. Eur Radiol (2024) 34:3205–3214. https://doi.org/10.1007/s00330-023-10265-3"},
-        Zhang_2023: {id: 21, text: "Zhang Z, Chen Y, Wen Z, et al. MRI for nodal restaging after neoadjuvant therapy in rectal cancer with histopathologic comparison. Cancer Imaging (2023) 23:67. https://doi.org/10.1186/s40644-023-00589-0"},
-        Beets_Tan_2018_ESGAR: { id: 22, text: "Beets-Tan RGH, Lambregts DMJ, Maas M, et al. Magnetic resonance imaging for clinical management of rectal cancer: updated recommendations from the 2016 European Society of Gastrointestinal and Abdominal Radiology (ESGAR) consensus meeting. Eur Radiol. 2018;28:1465–1475. doi:10.1007/s00330-017-5026-2"}
+        Beets_Tan_2018_ESGAR: { id: 7, text: "Beets-Tan RGH, Lambregts DMJ, Maas M, et al. Magnetic resonance imaging for clinical management of rectal cancer: updated recommendations from the 2016 European Society of Gastrointestinal and Abdominal Radiology (ESGAR) consensus meeting. Eur Radiol. 2018;28:1465–1475. doi:10.1007/s00330-017-5026-2"},
+        Rutegard_2025: { id: 8, text: "Rutegård MK, Båtsman M, Blomqvist L, et al. Evaluation of MRI characterisation of histopathologically matched lymph nodes and other mesorectal nodal structures in rectal cancer. Eur Radiol. 2025;35(1):49-60. doi:10.1007/s00330-025-11361-2" },
+        Grone_2017: { id: 9, text: "Gröne J, Loch FN, Taupitz M, Schmidt C, Kreis ME. Accuracy of various lymph node staging criteria in rectal cancer with magnetic resonance imaging. J Gastrointest Surg. 2017;21(11):1-8. doi:10.1007/s11605-017-3568-x"},
+        Jiang_2025: { id: 10, text: "Jiang L, Zhuang Z, Tang X, et al. Diagnostic performance of node-RADS classification for primary lymph node assessment in rectal cancer: a modality benchmarking study. J Cancer Res Clin Oncol (2025) 151:145. https://doi.org/10.1007/s00432-025-06196-9"},
+        Pangarkar_2021: { id: 11, text: "Pangarkar S, Mistry K, Choudhari A, et al. Accuracy of MRI for nodal restaging in rectal cancer: a retrospective study of 166 cases. Abdom Radiol (NY). 2021;46:498-505. doi:10.1007/s00261-020-02708-y" },
+        Zhang_2023: { id: 12, text: "Zhang Z, Chen Y, Wen Z, et al. MRI for nodal restaging after neoadjuvant therapy in rectal cancer with histopathologic comparison. Cancer Imaging (2023) 23:67. https://doi.org/10.1186/s40644-023-00589-0"},
+        Crimi_2024: { id: 13, text: "Crimì F, Cabrelle G, Campi C, et al. Nodal staging with MRI after neoadjuvant chemo-radiotherapy for locally advanced rectal cancer: a fast and reliable method. Eur Radiol (2024) 34:3205–3214. https://doi.org/10.1007/s00330-023-10265-3"},
+        Barbaro_2024: { id: 14, text: "Barbaro B, Carafa MRP, Minordi LM, et al. Magnetic resonance imaging for assessment of rectal cancer nodes after chemoradiotherapy: a single center experience. Radiother Oncol. 2024;193:110124. doi:10.1016/j.radonc.2024.110124" },
+        Almlov_2020: { id: 15, text: "Almlöv K, Woisetschlager M, Loftås P, Hallböök O, Elander NO, and Sandström P. MRI lymph node evaluation for prediction of metastases in rectal cancer. Anticancer Res. 2020;40(5):2757-63. doi:10.21873/anticanres.14247"},
+        Koh_2008: { id: 16, text: "Koh DM, Chau I, Tait D, Wotherspoon A, Cunningham D, Brown G. Evaluating mesorectal lymph nodes in rectal cancer before and after neoadjuvant chemoradiation using thin-section T2-weighted magnetic resonance imaging. Int J Radiat Oncol Biol Phys. 2008;71:456–461. doi:10.1016/j.ijrobp.2007.10.016" },
+        Zhuang_2021: { id: 17, text: "Zhuang Z, Zhang Y, Wei M, Yang X, Wang Z. Magnetic Resonance Imaging Evaluation of the Accuracy of Various Lymph Node Staging Criteria in Rectal Cancer: A Systematic Review and Meta-Analysis. Front Oncol. 2021;11:709070. doi:10.3389/fonc.2021.709070" },
+        Lord_2019: { id: 18, text: "Lord AC, D’Souza N, Shaw A, Day N, Brown G. The Current Status of Nodal Staging in Rectal Cancer. Curr Colorectal Cancer Rep. 2019;15:143-48. doi:10.1007/s11888-019-00441-3" },
+        Lambregts_2012: { id: 19, text: "Lambregts DMJ, Heijnen LA, Maas M, et al. Gadofosveset-enhanced MRI for the assessment of rectal cancer lymph nodes: predictive criteria. Abdom Imaging. 2013;38:720–727. doi:10.1007/s00261-012-9957-4" },
+        Hao_2025: { id: 20, text: "Hao Y, Zheng J, Li W, et al. Ultra-high b-value DWI in rectal cancer: image quality assessment and regional lymph node prediction based on radiomics. Eur Radiol. 2025;35:49-60. doi:10.1007/s00330-024-10958-3" },
+        Kim_2019: { id: 21, text: "Kim SH, Song BI, Kim BW, et al. Predictive value of [18F]FDG PET/CT for lymph node metastasis in rectal cancer. Sci Rep. 2019;9:4979. doi:10.1038/s41598-019-41422-8" },
+        Horvat_2023: { id: 22, text: "Horvat N, El Homsi M, Miranda J, Mazaheri Y, Gollub MJ, Paroder V. Rectal MRI interpretation after neoadjuvant therapy. J Magn Reson Imaging. 2023;57:353–369. doi:10.1002/jmri.28426" }
     }),
     UI_TEXTS: Object.freeze({
         analysisContextBanner: {

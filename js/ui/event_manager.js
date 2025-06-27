@@ -10,6 +10,12 @@ window.eventManager = (() => {
             window.uiManager.markCriteriaSavedIndicator(window.t2CriteriaManager.isUnsaved());
         }
     }, window.APP_CONFIG.PERFORMANCE_SETTINGS.DEBOUNCE_DELAY_MS);
+    
+    const debouncedUpdateWordCount = debounce(() => {
+        if(window.publicationTab) {
+            window.publicationTab.renderWordCounts();
+        }
+    }, 500);
 
     function init(appInstance) {
         app = appInstance;
@@ -83,7 +89,10 @@ window.eventManager = (() => {
             'statistics-toggle-comparison': () => handleStatsLayoutToggle('vergleich'),
             'btn-export-manuscript-md': () => app.exportManuscript(),
             'btn-export-tables-md': () => app.exportTables(),
-            'btn-export-charts-svg': () => app.exportCharts()
+            'btn-export-charts-svg': () => app.exportCharts(),
+            'btn-edit-publication': () => handlePublicationEditStart(),
+            'btn-save-publication': () => handlePublicationSave(),
+            'btn-reset-publication': () => handlePublicationReset()
         };
 
         if (singleClickActions[button.id]) {
@@ -143,6 +152,8 @@ window.eventManager = (() => {
                 if(sizeRangeInput) sizeRangeInput.value = parseFloat(newValue);
             }
             debouncedUpdateSizeInput(newValue);
+        } else if (target.id === 'publication-content-wrapper') {
+            debouncedUpdateWordCount();
         }
     }
 
@@ -204,6 +215,35 @@ window.eventManager = (() => {
     function handlePublicationBfMetricChange(newMetric) {
         if (window.state.setPublicationBruteForceMetric(newMetric)) {
             app.refreshCurrentTab();
+        }
+    }
+
+    function handlePublicationEditStart() {
+        if (window.state.setPublicationEditMode(true)) {
+            window.uiManager.updatePublicationEditModeUI(true);
+            const contentWrapper = document.getElementById('publication-content-wrapper');
+            if (contentWrapper) {
+                contentWrapper.focus();
+            }
+        }
+    }
+
+    function handlePublicationSave() {
+        const contentWrapper = document.getElementById('publication-content-wrapper');
+        if (contentWrapper) {
+            window.state.setEditedManuscriptHTML(contentWrapper.innerHTML);
+            window.state.setPublicationEditMode(false);
+            window.uiManager.updatePublicationEditModeUI(false);
+            window.uiManager.showToast('Manuscript changes saved.', 'success');
+        }
+    }
+
+    function handlePublicationReset() {
+        if (window.confirm("Are you sure you want to discard all manual changes and revert to the auto-generated manuscript?")) {
+            window.state.resetEditedManuscriptHTML();
+            window.state.setPublicationEditMode(false);
+            app.refreshCurrentTab();
+            window.uiManager.showToast('Manuscript has been reset to the generated version.', 'info');
         }
     }
 

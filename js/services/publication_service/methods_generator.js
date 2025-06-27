@@ -27,11 +27,13 @@ window.methodsGenerator = (() => {
         }
 
         const regulatoryStatement = window.APP_CONFIG.UI_TEXTS.PUBLICATION_TEXTS.MIM_REGULATORY_STATEMENT;
+        const surgeryAlonePercentString = helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall, n_success: nSurgeryAlone, n_trials: nOverall }, 'acc', { includeCI: false });
+        const neoadjuvantPercentString = helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall, n_success: nNeoadjuvantTherapy, n_trials: nOverall }, 'acc', { includeCI: false });
 
         return `
             <h3 id="methoden_studienanlage_ethik">Study Design and Patients</h3>
             <p>${regulatoryStatement} This analysis involved a fully blinded re-evaluation of a previously described retrospective cohort of ${helpers.formatValueForPublication(nOverall, 0)} consecutive patients with histopathologically confirmed rectal cancer who underwent pelvic MRI for primary staging or restaging between January 2020 and November 2023 ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p>Inclusion criteria for this secondary analysis were the availability of high-quality T2-weighted and contrast-enhanced T1-weighted MRI sequences and a definitive histopathological reference standard from the subsequent total mesorectal excision specimen. Of the final cohort, ${helpers.formatMetricForPublication({value: nSurgeryAlone / nOverall, n_success: nSurgeryAlone, n_trials: nOverall }, 'acc', { includeCI: false })} underwent primary surgery, while ${helpers.formatMetricForPublication({value: nNeoadjuvantTherapy / nOverall, n_success: nNeoadjuvantTherapy, n_trials: nOverall }, 'acc', { includeCI: false })} received neoadjuvant chemoradiotherapy followed by restaging MRI prior to surgery.</p>
+            <p>Inclusion criteria for this secondary analysis were the availability of high-quality T2-weighted and contrast-enhanced T1-weighted MRI sequences and a definitive histopathological reference standard from the subsequent total mesorectal excision specimen. Of the final cohort, ${surgeryAlonePercentString} underwent primary surgery, while ${neoadjuvantPercentString} received neoadjuvant chemoradiotherapy followed by restaging MRI prior to surgery.</p>
         `;
     }
 
@@ -97,13 +99,11 @@ window.methodsGenerator = (() => {
             });
         };
 
-        // 1. ESGAR Criteria
         if (esgarSets.length > 0) {
             tableConfig.rows.push(['<td colspan="5" class="text-start table-group-divider fw-bold pt-2">ESGAR 2016 Criteria</td>']);
             addRowsToConfig(esgarSets);
         }
 
-        // 2. Data-driven Best-Case
         tableConfig.rows.push(['<td colspan="5" class="text-start table-group-divider fw-bold pt-2">Data-driven Best-Case T2 Criteria</td>']);
         Object.values(window.APP_CONFIG.COHORTS).forEach(cohort => {
             const cohortStats = stats[cohort.id];
@@ -128,7 +128,6 @@ window.methodsGenerator = (() => {
             }
         });
 
-        // 3. Further Literature Criteria
         if (otherSets.length > 0) {
             tableConfig.rows.push(['<td colspan="5" class="text-start table-group-divider fw-bold pt-2">Further T2 Criteria from Literature</td>']);
             addRowsToConfig(otherSets);

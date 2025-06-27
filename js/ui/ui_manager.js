@@ -336,12 +336,12 @@ window.uiManager = (() => {
         }
     }
 
-    function updatePublicationUI(currentSectionId, currentBruteForceMetric) {
+    function updatePublicationUI(currentSectionId, currentBruteForceMetric, editMode) {
         if (!window.APP_CONFIG || !window.PUBLICATION_CONFIG) return;
         
         const navContainer = document.getElementById('publication-sections-nav');
         if (navContainer) {
-            navContainer.innerHTML = window.uiComponents.createPublicationNav(currentSectionId);
+            navContainer.innerHTML = window.uiComponents.createPublicationNav(currentSectionId, editMode);
             initializeTooltips(navContainer);
         }
 
@@ -351,6 +351,22 @@ window.uiManager = (() => {
                 `<option value="${m.value}" ${m.value === currentBruteForceMetric ? 'selected' : ''}>${m.label}</option>`
             ).join('');
         }
+    }
+
+    function updatePublicationEditModeUI(editMode) {
+        const contentWrapper = document.getElementById('publication-content-wrapper');
+        const editButton = document.getElementById('btn-edit-publication');
+        const saveButton = document.getElementById('btn-save-publication');
+        const resetButton = document.getElementById('btn-reset-publication');
+
+        if (contentWrapper) {
+            contentWrapper.setAttribute('contenteditable', editMode);
+            contentWrapper.classList.toggle('is-editing', editMode);
+        }
+
+        if (editButton) editButton.style.display = editMode ? 'none' : 'inline-block';
+        if (saveButton) saveButton.style.display = editMode ? 'inline-block' : 'none';
+        if (resetButton) resetButton.style.display = editMode ? 'inline-block' : 'none';
     }
 
     function updateExportUI() {
@@ -400,6 +416,7 @@ window.uiManager = (() => {
         updateBruteForceUI,
         updateComparisonViewUI,
         updatePublicationUI,
+        updatePublicationEditModeUI,
         updateExportUI,
         showQuickGuide,
         updateElementHTML,

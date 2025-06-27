@@ -10,7 +10,6 @@ window.referencesGenerator = (() => {
 
         const singleRefRegex = /\[([A-Za-z0-9_]+)\]/g;
 
-        // Stage 1: Find all unique references in order of appearance and assign numbers
         const allMatches = [...html.matchAll(singleRefRegex)];
         allMatches.forEach(match => {
             const refKey = match[1];
@@ -19,7 +18,6 @@ window.referencesGenerator = (() => {
             }
         });
 
-        // Stage 2: Replace reference groups with formatted numbers
         const groupRefRegex = /(\[([A-Za-z0-9_]+)\])+/g;
 
         const processedHtml = html.replace(groupRefRegex, (match) => {
@@ -27,18 +25,16 @@ window.referencesGenerator = (() => {
             
             const numbers = keysInGroup
                 .map(refKey => citedRefKeys.get(refKey))
-                .filter(num => num !== undefined); // Filter out any keys that might not have a valid reference
+                .filter(num => num !== undefined);
 
             const uniqueNumbers = [...new Set(numbers)].sort((a, b) => a - b);
             
             if (uniqueNumbers.length > 0) {
                 return `(${uniqueNumbers.join(', ')})`;
             }
-            // Fallback for invalid reference keys
             return match; 
         });
 
-        // Stage 3: Generate the final, ordered reference list
         const sortedCitedRefs = Array.from(citedRefKeys.entries()).sort((a, b) => a[1] - b[1]);
 
         let referencesHtml = '';
@@ -48,7 +44,6 @@ window.referencesGenerator = (() => {
                 if (!refData || !refData.text) {
                     return `<li>Reference for key '${key}' not found.</li>`;
                 }
-                // The number is implicitly handled by the <ol> tag's automatic numbering
                 return `<li>${refData.text}</li>`;
             }).join('');
             referencesHtml = `<section id="references_main"><h2>References</h2><ol>${listItems}</ol></section>`;

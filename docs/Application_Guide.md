@@ -1,4 +1,4 @@
-# Nodal Staging Analysis Tool: Application Guide (Version 5.0.0)
+# Nodal Staging Analysis Tool: Application Guide (v5.0.0)
 
 ## 1. Introduction
 
@@ -99,11 +99,15 @@ This system guarantees that direct statistical tests between diagnostic methods 
     *   **Embedded Content:** Tables and figures (including a STARD-compliant flowchart and example MRI images) are generated and embedded directly within the text flow at the appropriate locations.
     *   **BF Metric Selection:** A dropdown menu allows the user to select which brute-force optimization result (e.g., optimized for Balanced Accuracy or F1-Score) should be cited in the text as the "data-driven benchmark."
     *   **Word Count Monitoring:** The navigation sidebar displays a live word/item count for each section with a defined limit, providing color-coded feedback (green/orange/red) to aid in adhering to *Radiology*'s strict submission guidelines.
+    *   **Manual Editing:**
+        *   **Edit Button:** Enables a `contenteditable` mode for the entire manuscript body, allowing for direct manual changes to the text.
+        *   **Save Button:** Saves the manually edited version of the manuscript to the browser's local storage. This saved version will be loaded on subsequent visits.
+        *   **Reset Button:** Discards all manual changes and reverts the manuscript to the original, auto-generated version.
 
 ### 3.6. Export Tab
 *   **Purpose:** To provide functionalities for exporting various components of the generated publication and analysis results for use in other applications.
 *   **Components & Workflow:**
-    *   **"Export Full Manuscript as Markdown" Button:** Initiates the download of the entire generated manuscript, including all text and formatted tables (figures are included as text descriptions), as a single Markdown (`.md`) file.
+    *   **"Export Full Manuscript as Markdown" Button:** Initiates the download of the entire generated manuscript, including all text and formatted tables (figures are included as text descriptions), as a single Markdown (`.md`) file. If the manuscript has been manually edited and saved, the edited version is exported.
     *   **"Export Tables as Markdown" Button:** Extracts all tables embedded within the generated manuscript content, converts each into Markdown table format, and downloads them as individual Markdown (`.md`) files. Each file is named based on its table caption.
     *   **"Export Charts as SVG" Button:** Collects all dynamically rendered charts (histograms, pie charts, bar charts, ROC curves, flowcharts) from across the application, extracts their underlying SVG (Scalable Vector Graphics) code, and downloads each as a separate, high-quality SVG (`.svg`) file, ideal for use in publications and presentations.
 

@@ -2,9 +2,11 @@ window.publicationTab = (() => {
 
     function renderWordCounts() {
         const sectionsWithLimits = window.PUBLICATION_CONFIG.sections.filter(s => s.limit && s.countType);
+        const contentArea = document.getElementById('publication-content-area');
+        if (!contentArea) return;
 
         sectionsWithLimits.forEach(section => {
-            const contentElement = document.getElementById(section.id);
+            const contentElement = contentArea.querySelector(`#${section.id}`);
             const navElement = document.querySelector(`.publication-section-link[data-section-id="${section.id}"]`);
 
             if (contentElement && navElement) {
@@ -38,18 +40,31 @@ window.publicationTab = (() => {
         });
     }
 
-    function render(data, currentSectionId) {
+    function render(data, currentSectionId, editMode, editedHTML) {
         const { preRenderedHTML, allCohortStats, bruteForceMetricForPublication } = data;
         
-        if (!preRenderedHTML) {
-            return '<div class="alert alert-warning">Publication content could not be pre-rendered. Please check for errors.</div>';
+        const manuscriptContent = editedHTML || preRenderedHTML;
+        
+        if (!manuscriptContent) {
+            return '<div class="alert alert-warning">Publication content could not be rendered. Please check for errors.</div>';
         }
-
+        
         const finalHTML = `
             <div class="row mb-3">
                 <div class="col-md-3">
                     <div class="sticky-top" style="top: var(--sticky-header-offset);">
-                        ${window.uiComponents.createPublicationNav(currentSectionId)}
+                        <div id="publication-edit-controls" class="mb-3 d-flex justify-content-between">
+                             <button id="btn-edit-publication" class="btn btn-sm btn-outline-secondary" data-tippy-content="Enable manual editing of the manuscript text.">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </button>
+                            <button id="btn-save-publication" class="btn btn-sm btn-primary" style="display: none;" data-tippy-content="Save your changes to the browser's local storage.">
+                                <i class="fas fa-save me-1"></i> Save
+                            </button>
+                            <button id="btn-reset-publication" class="btn btn-sm btn-outline-danger" style="display: none;" data-tippy-content="Discard your changes and revert to the auto-generated manuscript.">
+                                <i class="fas fa-undo me-1"></i> Reset
+                            </button>
+                        </div>
+                        ${window.uiComponents.createPublicationNav(currentSectionId, editMode)}
                         <div class="mt-3">
                             <label for="publication-bf-metric-select" class="form-label small text-muted">${window.APP_CONFIG.UI_TEXTS.publicationTab.bfMetricSelectLabel}</label>
                             <select class="form-select form-select-sm" id="publication-bf-metric-select">
@@ -60,8 +75,8 @@ window.publicationTab = (() => {
                 </div>
                 <div class="col-md-9">
                     <div id="publication-content-area" class="bg-white p-4 border rounded">
-                        <div class="publication-content-wrapper">
-                            ${preRenderedHTML}
+                        <div id="publication-content-wrapper" class="publication-content-wrapper">
+                            ${manuscriptContent}
                         </div>
                     </div>
                 </div>
@@ -80,6 +95,7 @@ window.publicationTab = (() => {
                 }
             }
             renderWordCounts();
+            window.uiManager.updatePublicationEditModeUI(editMode);
 
             const contentArea = document.getElementById('publication-content-area');
             const elementToScroll = document.getElementById(currentSectionId);
@@ -96,7 +112,8 @@ window.publicationTab = (() => {
     }
 
     return Object.freeze({
-        render
+        render,
+        renderWordCounts
     });
 
 })();

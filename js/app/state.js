@@ -16,7 +16,9 @@ window.state = (() => {
             statsCohort2: window.APP_CONFIG.DEFAULT_SETTINGS.STATS_COHORT2,
             comparisonView: window.APP_CONFIG.DEFAULT_SETTINGS.COMPARISON_VIEW,
             comparisonStudyId: window.APP_CONFIG.DEFAULT_SETTINGS.COMPARISON_STUDY_ID,
-            activeTabId: 'publication'
+            activeTabId: 'publication',
+            publicationEditMode: window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_EDIT_MODE,
+            editedManuscriptHTML: window.APP_CONFIG.DEFAULT_SETTINGS.EDITED_MANUSCRIPT_HTML
         };
 
         const loadedSection = loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.PUBLICATION_SECTION);
@@ -34,7 +36,9 @@ window.state = (() => {
             comparisonStudyId: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.COMPARISON_STUDY_ID) ?? defaultState.comparisonStudyId,
             dataTableSort: cloneDeep(defaultState.dataTableSort),
             analysisTableSort: cloneDeep(defaultState.analysisTableSort),
-            activeTabId: defaultState.activeTabId
+            activeTabId: defaultState.activeTabId,
+            publicationEditMode: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.PUBLICATION_EDIT_MODE) ?? defaultState.publicationEditMode,
+            editedManuscriptHTML: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.EDITED_MANUSCRIPT_HTML) ?? defaultState.editedManuscriptHTML
         };
         analysisContext = null;
     }
@@ -186,9 +190,29 @@ window.state = (() => {
             if (newTabId !== 'comparison') {
                 clearAnalysisContext();
             }
+            // Reset edit mode when leaving publication tab
+            if (newTabId !== 'publication' && getPublicationEditMode()) {
+                setPublicationEditMode(false);
+            }
             return true;
         }
         return false;
+    }
+
+    function getPublicationEditMode() { return currentState.publicationEditMode; }
+    function setPublicationEditMode(newMode) {
+        return _setter('publicationEditMode', window.APP_CONFIG.STORAGE_KEYS.PUBLICATION_EDIT_MODE, !!newMode);
+    }
+
+    function getEditedManuscriptHTML() { return currentState.editedManuscriptHTML; }
+    function setEditedManuscriptHTML(html) {
+        return _setter('editedManuscriptHTML', window.APP_CONFIG.STORAGE_KEYS.EDITED_MANUSCRIPT_HTML, html);
+    }
+
+    function resetEditedManuscriptHTML() {
+        currentState.editedManuscriptHTML = null;
+        localStorage.removeItem(window.APP_CONFIG.STORAGE_KEYS.EDITED_MANUSCRIPT_HTML);
+        return true;
     }
 
     return Object.freeze({
@@ -220,6 +244,11 @@ window.state = (() => {
         getComparisonStudyId,
         setComparisonStudyId,
         getActiveTabId,
-        setActiveTabId
+        setActiveTabId,
+        getPublicationEditMode,
+        setPublicationEditMode,
+        getEditedManuscriptHTML,
+        setEditedManuscriptHTML,
+        resetEditedManuscriptHTML
     });
 })();

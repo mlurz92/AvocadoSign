@@ -15,7 +15,7 @@ This application serves as a specialized research instrument for the in-depth an
 *   **Methodologically Sound Comparisons:** A robust "Analysis Context" system ensures that all statistical comparisons between diagnostic methods are performed exclusively on the correct, identical patient cohorts, a critical requirement for scientific validity.
 *   **Automated Criteria Optimization:** An integrated brute-force algorithm, running in a dedicated Web Worker, systematically identifies the mathematically optimal T2w criteria combination for a user-selected diagnostic metric (e.g., Balanced Accuracy, F1-Score).
 *   **Comprehensive Statistical Analysis:** Automated calculation of all relevant diagnostic performance metrics (Sensitivity, Specificity, PPV, NPV, Accuracy, AUC) including 95% confidence intervals and appropriate statistical comparison tests (e.g., DeLong, McNemar).
-*   **Automated Publication Assistant:** A dedicated module that generates a complete, formatted, English-language manuscript draft (including text, tables, and figures) that precisely adheres to the scientific style guidelines of the journal *Radiology*.
+*   **Automated Publication Assistant:** A dedicated module that generates a complete, formatted, English-language manuscript draft (including text, tables, and figures) that precisely adheres to the scientific style guidelines of the journal *Radiology*. This includes a manual editing feature to finalize the text before export.
 *   **Versatile Export Functionality:** Enables the export of the full manuscript as Markdown, individual tables as Markdown, and all rendered charts (histograms, pie charts, bar charts, ROC curves, flowcharts) as high-quality Scalable Vector Graphics (SVG) files.
 
 ### 1.3. Disclaimer: Research Instrument Only
@@ -38,11 +38,11 @@ No installation or server-side setup is required. The application is a self-cont
 
 The application is built with vanilla JavaScript (ES2020+) and follows a modular architecture that separates data logic, service functions, and UI rendering. This ensures maintainability and scalability.
 
-*   **App Controller (`main.js`):** The central orchestrator that manages the application lifecycle, data flow, and UI updates.
-*   **State Manager (`state.js`):** A centralized module for managing the global application state, including the active cohort, sorting preferences, and the critical "Analysis Context" for ensuring methodologically sound comparisons.
-*   **Core Modules (`/js/core/`):** Handle fundamental data processing, management of user-defined T2 criteria, and management of pre-defined literature-based criteria.
-*   **Service Layer (`/js/services/`):** Contains the complex business logic for statistical calculations, brute-force optimization (which offloads computation to a Web Worker), and the comprehensive publication generation service.
-*   **UI Layer (`/js/ui/`):** Responsible for rendering all UI components and tabs. It dynamically generates HTML content based on the current application state and data.
-*   **Web Worker (`/workers/`):** The `brute_force_worker.js` runs the computationally intensive optimization process in a separate thread to keep the main UI responsive.
+*   **App Controller (`js/app/main.js`):** The central orchestrator that manages the application lifecycle, data flow, and UI updates.
+*   **State Manager (`js/app/state.js`):** A centralized module for managing the global application state, including the active cohort, sorting preferences, and the critical "Analysis Context" for ensuring methodologically sound comparisons.
+*   **Core Modules (`js/core/`):** Handle fundamental data processing, management of user-defined T2 criteria, and management of pre-defined literature-based criteria.
+*   **Service Layer (`js/services/`):** Contains the complex business logic for statistical calculations, brute-force optimization (which offloads computation to a Web Worker), and the comprehensive publication generation service.
+*   **UI Layer (`js/ui/`):** Responsible for rendering all UI components and tabs. It dynamically generates HTML content based on the current application state and data.
+*   **Web Worker (`workers/`):** The `brute_force_worker.js` runs the computationally intensive optimization process in a separate thread to keep the main UI responsive.
 
 For a detailed breakdown of every file and feature, please consult the **[Application Guide](./docs/Application_Guide.md)**.

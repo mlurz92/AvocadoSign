@@ -113,14 +113,12 @@ window.resultsGenerator = (() => {
             'Zhuang_2021': 'Zhuang et al (2021)'
         };
 
-        // 1. Avocado Sign
         const asResults = Object.values(window.APP_CONFIG.COHORTS).map(cohort => {
             const asPerf = stats[cohort.id]?.performanceAS;
             return asPerf ? generateRowData(`Avocado Sign (${cohort.displayName})`, undefined, asPerf) : null;
         }).filter(Boolean);
         addResults(asResults, 'Avocado Sign');
 
-        // 2. ESGAR Consensus Criteria
         const esgarSets = allLitSets.filter(set => set.group === 'ESGAR Criteria');
         const esgarResults = esgarSets.map(set => {
             const cohortForSet = set.applicableCohort || 'Overall';
@@ -137,7 +135,6 @@ window.resultsGenerator = (() => {
         }).filter(Boolean);
         addResults(esgarResults, 'ESGAR Consensus Criteria');
 
-        // 3. Data-driven Best-Case
         const bfResults = [];
         Object.values(window.APP_CONFIG.COHORTS).forEach(cohort => {
             const cohortStats = stats[cohort.id];
@@ -153,7 +150,6 @@ window.resultsGenerator = (() => {
         });
         addResults(bfResults, `Data-driven Best-Case T2 Criteria (optimized for ${bruteForceMetricForPublication})`);
 
-        // 4. Further Literature-Based Criteria
         const otherLitSets = allLitSets.filter(set => set.group !== 'ESGAR Criteria');
         const litSurgeryAlone = [], litNeoadjuvant = [], litOverall = [];
         otherLitSets.forEach(set => {
@@ -171,9 +167,9 @@ window.resultsGenerator = (() => {
                 }
             }
         });
-        addResults(litSurgeryAlone, 'Further Literature-Based T2 Criteria (Surgery-alone Cohort)');
-        addResults(litNeoadjuvant, 'Further Literature-Based T2 Criteria (Neoadjuvant-therapy Cohort)');
-        addResults(litOverall, 'Further Literature-Based T2 Criteria (Overall Cohort)');
+        addResults(litSurgeryAlone, 'Further T2 Criteria from Literature (Surgery-alone Cohort)');
+        addResults(litNeoadjuvant, 'Further T2 Criteria from Literature (Neoadjuvant-therapy Cohort)');
+        addResults(litOverall, 'Further T2 Criteria from Literature (Overall Cohort)');
 
         const tableConfig = {
             id: 'table-results-consolidated-comparison',
@@ -195,7 +191,7 @@ window.resultsGenerator = (() => {
             const helpers = window.publicationHelpers;
             const pValueTooltip = (r.pValue !== undefined) ? getInterpretationTooltip('pValue', {value: r.pValue, testName: 'DeLong'}, {comparisonName: 'AUC', method1: 'AS', method2: 'T2 Set'}) : 'Comparison not applicable';
             const pValueCellContent = (r.pValue !== undefined) ? `${helpers.formatPValueForPublication(r.pValue)}` : na_stat;
-
+            
             const rowData = [
                 r.name,
                 helpers.formatMetricForPublication(r.sens, 'sens', {includeCI: false}),
@@ -219,7 +215,7 @@ window.resultsGenerator = (() => {
         const overallStats = stats[window.APP_CONFIG.COHORTS.OVERALL.id];
         const helpers = window.publicationHelpers;
         const interobserverKappa = overallStats?.interobserverKappa;
-        const interobserverKappaCI = overallStats?.interobserverKappa.ci;
+        const interobserverKappaCI = overallStats?.interobserverKappa?.ci;
 
         const text = `
             <h3 id="ergebnisse_vergleich_as_vs_t2">Diagnostic Performance and Comparison</h3>

@@ -34,7 +34,6 @@ class App {
             }
             
             this.recalculateAllStats();
-            this._preRenderPublicationTab();
             this.refreshCurrentTab();
             
             if (!loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.FIRST_APP_START)) {
@@ -129,7 +128,6 @@ class App {
                     this.showBruteForceDetails(payload.metric, payload.cohort);
                     window.uiManager.showToast('Optimization finished.', 'success');
                     this.recalculateAllStats();
-                    this._preRenderPublicationTab();
                     this.refreshCurrentTab();
                 } else {
                     window.uiManager.showToast('Optimization finished with no valid results.', 'warning');
@@ -175,12 +173,12 @@ class App {
         const logic = window.t2CriteriaManager.getAppliedLogic();
         const bruteForceResults = window.bruteForceManager.getAllResults();
         this.allPublicationStats = window.statisticsService.calculateAllPublicationStats(this.processedData, criteria, logic, bruteForceResults);
+        this.preRenderedPublicationHTML = null; // Invalidate cache
     }
 
-    _preRenderPublicationTab() {
+    _generatePublicationHTML() {
         if (!this.allPublicationStats) {
-            this.preRenderedPublicationHTML = '<div class="alert alert-warning">Statistics not available. Cannot generate publication content.</div>';
-            return;
+            return '<div class="alert alert-warning">Statistics not available. Cannot generate publication content.</div>';
         }
         const commonData = {
             appName: window.APP_CONFIG.APP_NAME,
@@ -195,6 +193,7 @@ class App {
             rawData: this.rawData
         };
         this.preRenderedPublicationHTML = window.publicationService.generateFullPublicationHTML(this.allPublicationStats, commonData);
+        return this.preRenderedPublicationHTML;
     }
     
     _prepareComparisonData() {
@@ -274,7 +273,7 @@ class App {
         if (activeTabId === 'comparison') {
             window.uiManager.updateComparisonViewUI(window.state.getComparisonView(), window.state.getComparisonStudyId());
         } else if (activeTabId === 'publication') {
-            window.uiManager.updatePublicationUI(window.state.getPublicationSection(), window.state.getPublicationBruteForceMetric());
+            window.uiManager.updatePublicationUI(window.state.getPublicationSection(), window.state.getPublicationBruteForceMetric(), window.state.getPublicationEditMode());
         } else if (activeTabId === 'export') {
             window.uiManager.updateExportUI();
         }
@@ -296,7 +295,7 @@ class App {
         const allBruteForceResults = window.bruteForceManager.getAllResults();
         
         const publicationData = {
-            preRenderedHTML: this.getPreRenderedPublicationHTML(),
+            preRenderedHTML: this.preRenderedPublicationHTML || this._generatePublicationHTML(),
             allCohortStats: this.allPublicationStats,
             bruteForceMetricForPublication: window.state.getPublicationBruteForceMetric()
         };
@@ -311,7 +310,7 @@ class App {
             case 'analysis': window.uiManager.renderTabContent('analysis', () => window.analysisTab.render(currentDataForTab, window.t2CriteriaManager.getCurrentCriteria(), window.t2CriteriaManager.getCurrentLogic(), window.state.getAnalysisTableSort(), activeCohort, window.bruteForceManager.isWorkerAvailable(), this.allPublicationStats[activeCohort], allBruteForceResults)); break;
             case 'statistics': window.uiManager.renderTabContent('statistics', () => window.statisticsTab.render(this.processedData, criteria, logic, window.state.getStatsLayout(), window.state.getStatsCohort1(), window.state.getStatsCohort2(), globalCohort)); break;
             case 'comparison': window.uiManager.renderTabContent('comparison', () => window.comparisonTab.render(window.state.getComparisonView(), currentComparisonData, window.state.getComparisonStudyId())); break;
-            case 'publication': window.uiManager.renderTabContent('publication', () => window.publicationTab.render(publicationData, window.state.getPublicationSection())); break;
+            case 'publication': window.uiManager.renderTabContent('publication', () => window.publicationTab.render(publicationData, window.state.getPublicationSection(), window.state.getPublicationEditMode(), window.state.getEditedManuscriptHTML())); break;
             case 'export': window.uiManager.renderTabContent('export', () => window.exportTab.render()); break;
         }
     }
@@ -332,7 +331,6 @@ class App {
     applyAndRefreshAll() {
         window.t2CriteriaManager.applyCriteria();
         this.recalculateAllStats();
-        this._preRenderPublicationTab();
         this.refreshCurrentTab();
         window.uiManager.markCriteriaSavedIndicator(false);
         window.uiManager.showToast('T2 criteria applied & saved.', 'success');
@@ -397,19 +395,20 @@ class App {
 
     refreshCurrentTab() {
         this.recalculateAllStats();
-        this._preRenderPublicationTab();
         this.renderCurrentTab();
         this.updateUI();
     }
     
     exportManuscript() {
-        this._preRenderPublicationTab();
-        window.exportService.exportManuscriptAsMarkdown(this.preRenderedPublicationHTML);
+        const editedHTML = window.state.getEditedManuscriptHTML();
+        const contentToExport = editedHTML || this.preRenderedPublicationHTML || this._generatePublicationHTML();
+        window.exportService.exportManuscriptAsMarkdown(contentToExport);
     }
 
     exportTables() {
-        this._preRenderPublicationTab();
-        window.exportService.exportTablesAsMarkdown(this.preRenderedPublicationHTML);
+        const editedHTML = window.state.getEditedManuscriptHTML();
+        const contentToExport = editedHTML || this.preRenderedPublicationHTML || this._generatePublicationHTML();
+        window.exportService.exportTablesAsMarkdown(contentToExport);
     }
 
     async _ensureChartsAreRenderedForExport() {
@@ -492,5 +491,4 @@ class App {
 
     getRawData() { return this.rawData; }
     getProcessedData() { return this.processedData; }
-    getPreRenderedPublicationHTML() { return this.preRenderedPublicationHTML; }
 }
