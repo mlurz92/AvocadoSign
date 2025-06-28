@@ -41,11 +41,11 @@ window.methodsGenerator = (() => {
         const helpers = window.publicationHelpers;
         return `
             <h3 id="methoden_mrt_protokoll_akquisition">MRI Protocol and Image Analysis</h3>
-            <p>All MRI examinations were performed on a 3.0-T system (MAGNETOM Prisma Fit; Siemens Healthineers) and included high-resolution T2-weighted sequences, diffusion-weighted imaging, and a postcontrast T1-weighted fat-suppressed sequence. Detailed imaging parameters are provided in Table 1.</p>
+            <p>All MRI examinations were performed on a 3.0-T system (MAGNETOM Prisma Fit; Siemens Healthineers) and included high-resolution T2-weighted sequences, diffusion-weighted imaging, and a postcontrast T1-weighted fat-suppressed sequence. The imaging protocol was designed to acquire high-resolution T2-weighted images conforming to the definition provided by the SAR Colorectal and Anal Cancer Disease-Focused Panel ${helpers.getReference('Lee_2023')}. Detailed imaging parameters are provided in Table 1.</p>
             ${_createMriParametersTableHTML()}
             <p>Two board-certified radiologists (with 8 and 30 years of experience in abdominal MRI), blinded to histopathological outcomes and each other's findings, independently reviewed all studies; discrepancies were resolved by consensus. To minimize recall bias, T2-weighted and contrast-enhanced sequences were evaluated in separate reading sessions at least four weeks apart.</p>
             <p><strong>Avocado Sign (AS) Assessment.</strong>—On contrast-enhanced T1-weighted images, a patient's mesorectal nodal status was classified as AS-positive if at least one mesorectal lymph node demonstrated the Avocado Sign, defined as a distinct hypointense core within an otherwise homogeneously hyperintense node, irrespective of its size or shape (Fig 2) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p><strong>T2 Criteria Assessment.</strong>—On T2-weighted images, all visible mesorectal nodes were evaluated for five standard morphologic features: size, shape, border, internal homogeneity, and signal intensity. A patient's nodal status was classified as T2-positive if at least one lymph node fulfilled a given set of combined T2-based criteria.</p>
+            <p><strong>T2 Criteria Assessment.</strong>—On T2-weighted images, all visible mesorectal nodes were evaluated for five standard morphologic features: size, shape, border, internal homogeneity, and signal intensity. A patient's nodal status was classified as T2-positive if at least one lymph node fulfilled a given set of combined T2-based criteria. The final patient-level nodal status was categorized as either positive or negative, in accordance with current SAR reporting recommendations that advise against specifying N sub-stages on MRI due to limited accuracy ${helpers.getReference('Lee_2023')}.</p>
         `;
     }
 
@@ -59,7 +59,7 @@ window.methodsGenerator = (() => {
 
         const tableConfig = {
             id: 'table-methods-t2-literature',
-            caption: 'Table 2. T2-weighted Criteria Sets Used for Comparison',
+            caption: 'Table 2. T2 Criteria Sets used for Comparison',
             headers: ['Criteria Set', 'Study', 'Applicable Cohort', 'Key Criteria Summary', 'Logic'],
             rows: []
         };
@@ -105,23 +105,24 @@ window.methodsGenerator = (() => {
         }
 
         tableConfig.rows.push(['<td colspan="5" class="text-start table-group-divider fw-bold pt-2">Data-driven Best-Case T2 Criteria</td>']);
-        Object.values(window.APP_CONFIG.COHORTS).forEach(cohort => {
-            const cohortStats = stats[cohort.id];
+        const cohortOrder = ['surgeryAlone', 'neoadjuvantTherapy', 'Overall'];
+        cohortOrder.forEach(cohortId => {
+            const cohortStats = stats[cohortId];
             const bfDef = cohortStats?.bruteforceDefinitions?.[bruteForceMetricForPublication];
             if (bfDef) {
                 const criteriaDisplay = window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, false);
                 tableConfig.rows.push([
-                    `Best Case (optimized for ${bruteForceMetricForPublication})`,
+                    'Best Case T2 Criteria (AUC optimized)',
                     '—',
-                    getCohortDisplayName(cohort.id),
+                    getCohortDisplayName(cohortId),
                     criteriaDisplay,
                     window.APP_CONFIG.UI_TEXTS.t2LogicDisplayNames[bfDef.logic] || bfDef.logic
                 ]);
             } else {
                  tableConfig.rows.push([
-                    `Best Case (optimized for ${bruteForceMetricForPublication})`,
+                    'Best Case T2 Criteria (AUC optimized)',
                     '—',
-                    getCohortDisplayName(cohort.id),
+                    getCohortDisplayName(cohortId),
                     'Not yet calculated',
                     'N/A'
                 ]);
@@ -129,7 +130,7 @@ window.methodsGenerator = (() => {
         });
 
         if (otherSets.length > 0) {
-            tableConfig.rows.push(['<td colspan="5" class="text-start table-group-divider fw-bold pt-2">Further T2 Criteria from Literature</td>']);
+            tableConfig.rows.push(['<td colspan="5" class="text-start table-group-divider fw-bold pt-2">Additional T2 Criteria from Key Studies</td>']);
             addRowsToConfig(otherSets);
         }
 

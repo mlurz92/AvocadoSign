@@ -17,7 +17,7 @@ window.studyT2CriteriaManager = (() => {
                 signal: { active: false }
             },
             studyInfo: {
-                refKey: 'Beets_Tan_2018_ESGAR',
+                refKey: 'Beets_Tan_2018',
                 patientCohort: 'Treatment-naïve / Primary Surgery (n=29)',
                 investigationType: 'Consensus Guideline Application',
                 focus: 'Application of ESGAR 2016 primary staging criteria',
@@ -40,7 +40,7 @@ window.studyT2CriteriaManager = (() => {
                 signal: { active: false }
             },
             studyInfo: {
-                refKey: 'Beets_Tan_2018_ESGAR',
+                refKey: 'Beets_Tan_2018',
                 patientCohort: 'Neoadjuvant Therapy (n=77)',
                 investigationType: 'Consensus Guideline Application',
                 focus: 'Application of ESGAR 2016 restaging criteria',
@@ -63,7 +63,7 @@ window.studyT2CriteriaManager = (() => {
                 signal: { active: false }
             },
             studyInfo: {
-                refKey: 'Beets_Tan_2018_ESGAR',
+                refKey: 'Beets_Tan_2018',
                 patientCohort: 'Overall (n=106)',
                 investigationType: 'Consensus Guideline Application',
                 focus: 'Application of ESGAR 2016 criteria based on patient therapy type',

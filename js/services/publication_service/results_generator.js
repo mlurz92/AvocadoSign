@@ -85,6 +85,7 @@ window.resultsGenerator = (() => {
         const results = [];
         const allLitSets = window.studyT2CriteriaManager.getAllStudyCriteriaSets();
         const { bruteForceMetricForPublication } = commonData;
+        const cohortOrder = ['surgeryAlone', 'neoadjuvantTherapy', 'Overall'];
 
         const addResults = (items, groupTitle) => {
             if (items.length > 0) {
@@ -113,9 +114,9 @@ window.resultsGenerator = (() => {
             'Zhuang_2021': 'Zhuang et al (2021)'
         };
 
-        const asResults = Object.values(window.APP_CONFIG.COHORTS).map(cohort => {
-            const asPerf = stats[cohort.id]?.performanceAS;
-            return asPerf ? generateRowData(`Avocado Sign (${cohort.displayName})`, undefined, asPerf) : null;
+        const asResults = cohortOrder.map(cohortId => {
+            const asPerf = stats[cohortId]?.performanceAS;
+            return asPerf ? generateRowData(`Avocado Sign (${getCohortDisplayName(cohortId)})`, undefined, asPerf) : null;
         }).filter(Boolean);
         addResults(asResults, 'Avocado Sign');
 
@@ -136,19 +137,14 @@ window.resultsGenerator = (() => {
         addResults(esgarResults, 'ESGAR Consensus Criteria');
 
         const bfResults = [];
-        Object.values(window.APP_CONFIG.COHORTS).forEach(cohort => {
-            const cohortStats = stats[cohort.id];
+        cohortOrder.forEach(cohortId => {
+            const cohortStats = stats[cohortId];
             const bfPerf = cohortStats?.performanceT2Bruteforce?.[bruteForceMetricForPublication];
             const bfComp = cohortStats?.comparisonASvsT2Bruteforce?.[bruteForceMetricForPublication];
-            const bfDef = cohortStats?.bruteforceDefinitions?.[bruteForceMetricForPublication];
-            let nameContent = `Best Case T2 (${cohort.displayName})`;
-            if (bfDef) {
-                const criteriaDisplay = window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, true);
-                nameContent += `<br><code class="small fw-normal" style="font-size: 0.8em;">${criteriaDisplay}</code>`;
-            }
+            const nameContent = `Best-Case T2 Criteria (${getCohortDisplayName(cohortId)})`;
             bfResults.push(generateRowData(nameContent, bfComp?.delong?.pValue, bfPerf, !bfPerf));
         });
-        addResults(bfResults, `Data-driven Best-Case T2 Criteria (optimized for ${bruteForceMetricForPublication})`);
+        addResults(bfResults, 'Data-driven Best-Case T2 Criteria');
 
         const otherLitSets = allLitSets.filter(set => set.group !== 'ESGAR Criteria');
         const litSurgeryAlone = [], litNeoadjuvant = [], litOverall = [];
@@ -167,9 +163,9 @@ window.resultsGenerator = (() => {
                 }
             }
         });
-        addResults(litSurgeryAlone, 'Further T2 Criteria from Literature (Surgery-alone Cohort)');
-        addResults(litNeoadjuvant, 'Further T2 Criteria from Literature (Neoadjuvant-therapy Cohort)');
-        addResults(litOverall, 'Further T2 Criteria from Literature (Overall Cohort)');
+        addResults(litSurgeryAlone, 'T2 Criteria from Key Studies (Surgery-alone Cohort)');
+        addResults(litNeoadjuvant, 'T2 Criteria from Key Studies (Neoadjuvant-therapy Cohort)');
+        addResults(litOverall, 'T2 Criteria from Key Studies (Overall Cohort)');
 
         const tableConfig = {
             id: 'table-results-consolidated-comparison',
