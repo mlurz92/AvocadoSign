@@ -9,7 +9,7 @@ Der wissenschaftliche Fokus der Anwendung liegt auf der rigorosen Evaluierung de
 *   **Etablierte, literaturbasierte Kriterien:** Richtlinien und Kriterien aus einflussreichen Studien und Fachgesellschaften (z.B. ESGAR 2016, SAR Restaging).
 *   **Datengetriebene, kohortenspezifisch optimierte Kriterien:** Rechnerisch ermittelte "Best-Case"-Szenarien für T2w-Kriterien, die für jede spezifische Patientenkohorte mittels einer integrierten Brute-Force-Analyse identifiziert werden.
 
-Die Anwendung unterstützt den gesamten wissenschaftlichen Workflow – von der initialen Datenexploration über die detaillierte statistische Analyse bis hin zur Erstellung eines vollständigen, publikationsreifen Manuskriptentwurfs, der nach den Stilrichtlinien des Fachjournals *Radiology* formatiert ist.
+Die Anwendung unterstützt den gesamten wissenschaftlichen Workflow – von der initialen Datenexploration über fortgeschrittene explorative Analysen bis hin zur Erstellung eines vollständigen, publikationsreifen Manuskriptentwurfs, der nach den Stilrichtlinien des Fachjournals *Radiology* formatiert ist.
 
 ### 1.2. Wichtiger Hinweis: Nur für Forschungszwecke
 **Haftungsausschluss:** Diese Anwendung ist ausschließlich für **Forschungs- und Bildungszwecke** konzipiert. Die dargestellten Daten, Statistiken und generierten Texte basieren auf einem statischen, pseudonymisierten Forschungsdatensatz. **Die Ergebnisse dürfen unter keinen Umständen für die klinische Diagnosestellung, direkte Behandlungsentscheidungen oder andere primäre medizinische Anwendungen verwendet werden.** Die wissenschaftliche und klinische Verantwortung für die Interpretation und Nutzung der generierten Ergebnisse liegt allein beim Anwender.
@@ -20,15 +20,15 @@ Die Benutzeroberfläche ist darauf ausgelegt, einen intuitiven und methodisch ei
 
 ### 2.1. Anwendungs-Layout
 *   **Header:** Eine fixierte Kopfzeile am oberen Rand enthält den Anwendungstitel, eine Schaltfläche für die Kurzanleitung ("Quick Guide") und die Steuerelemente für die globale Kohortenauswahl.
-*   **Navigationsleiste (Tabs):** Unterhalb des Headers befindet sich eine horizontale Navigationsleiste mit Reitern (Tabs), die einen schnellen Wechsel zwischen den sechs Hauptmodulen ermöglicht: `Data`, `Analysis`, `Statistics`, `Comparison`, `Publication` und `Export`.
+*   **Navigationsleiste (Tabs):** Unterhalb des Headers befindet sich eine horizontale Navigationsleiste mit Reitern (Tabs), die einen schnellen Wechsel zwischen den sieben Hauptmodulen ermöglicht: `Data`, `Analysis`, `Statistics`, `Insights`, `Comparison`, `Publication` und `Export`.
 *   **Inhaltsbereich:** Der zentrale Arbeitsbereich, in dem die spezifischen Inhalte und Werkzeuge des jeweils aktiven Tabs angezeigt werden.
 
 ### 2.2. Globaler Kohorten-Kontext vs. Analyse-Kontext
 Die Anwendung verwendet ein entscheidendes duales System, um sowohl Flexibilität für den Benutzer als auch wissenschaftliche Strenge zu gewährleisten:
 
-*   **Globaler Kohorten-Kontext:** Drei Schaltflächen im Header (`Overall`, `Surgery alone`, `Neoadjuvant therapy`) filtern den gesamten Datensatz für die allgemeine Exploration in den Tabs `Data`, `Analysis` und `Statistics` (in der "Single View"). Diese Auswahl stellt die primäre, vom Benutzer definierte Ansicht der Daten dar.
+*   **Globaler Kohorten-Kontext:** Drei Schaltflächen im Header (`Overall`, `Surgery alone`, `Neoadjuvant therapy`) filtern den gesamten Datensatz für die allgemeine Exploration in den Tabs `Data`, `Analysis`, `Statistics` (in der "Single View") und `Insights` (für kohortenspezifische Analysen wie Feature Importance). Diese Auswahl stellt die primäre, vom Benutzer definierte Ansicht der Daten dar.
 
-*   **Analyse-Kontext (Methodische Sperre):** Für spezifische, wissenschaftlich valide Vergleiche aktiviert die Anwendung automatisch einen temporären **Analyse-Kontext**. Dies ist ein Kernmerkmal des `Comparison`-Tabs und der "Comparison View" des `Statistics`-Tabs.
+*   **Analyse-Kontext (Methodische Sperre):** Für spezifische, wissenschaftlich valide Vergleiche aktiviert die Anwendung automatisch einen temporären **Analyse-Kontext**. Dies ist ein Kernmerkmal der Tabs `Comparison` und `Insights`.
     *   **Aktivierung:** Wenn ein literaturbasiertes T2-Kriterium zum Vergleich ausgewählt wird (z.B. ESGAR 2016), stellt die Anwendung den Kontext automatisch auf die methodisch korrekte Patientenkohorte ein (z.B. "Surgery alone"). Ebenso sperrt die Auswahl eines datengetriebenen "Best Case"-Kriteriums den Kontext auf die Kohorte, auf der es optimiert wurde.
     *   **Auswirkung:** Während ein Analyse-Kontext aktiv ist, sind die Schaltflächen zur globalen Kohortenauswahl im Header **deaktiviert (gesperrt)**, um ungültige Vergleiche zu verhindern. Alle statistischen Berechnungen und Diagramme innerhalb dieses Kontexts werden ausschließlich auf der gesperrten Kohorte durchgeführt.
     *   **Transparenz:** Ein gut sichtbares Banner innerhalb des aktiven Tabs zeigt deutlich an, welcher Kontext aktiv ist (z.B. "Analyse ist auf die 'Surgery alone'-Kohorte (N=29) gesperrt"), sodass der Benutzer jederzeit über die exakte Patientengruppe informiert ist.
@@ -76,7 +76,22 @@ Dieses System garantiert, dass direkte statistische Tests zwischen diagnostische
         *   **Zusätzlicher diagnostischer Wert:** Eine spezielle Analysekarte (für die 'Surgery alone'-Kohorte), die zeigt, wie gut das Avocado Sign in Fällen abschneidet, in denen die Standard-ESGAR-2016-T2-Kriterien versagt haben.
     *   **Kriterien-Vergleichstabelle (nur in "Single View"):** Diese Tabelle vergleicht die Leistung des Avocado Signs mit den angewandten T2-Kriterien und vordefinierten Kriteriensätzen aus der Literatur. Für literaturbasierte Kriterien ruft die Anwendung automatisch die Leistungsdaten ab, die auf der **methodisch korrekten Kohorte** berechnet wurden, und kennzeichnet dies transparent in der Tabelle (z.B. "ESGAR 2016 (Surgery alone, n=29)"), auch wenn diese von der aktuell ausgewählten globalen Kohorte abweicht.
 
-### 3.4. Comparison Tab
+### 3.4. Insights Tab
+*   **Zweck:** Führt fortgeschrittene, explorative Analysen durch, um tiefere Einblicke in die Daten zu gewinnen und die wissenschaftliche Argumentation zu stärken.
+*   **Komponenten & Workflow:**
+    *   **Analyseauswahl:** Ein Umschalter am oberen Rand des Tabs ermöglicht den Wechsel zwischen den drei Analysemodulen.
+    *   **Power-Analyse:**
+        *   **Zweck:** Beurteilt die statistische Aussagekraft der Studie.
+        *   **Funktionen:** Berechnet entweder die **Post-hoc-Power** basierend auf den beobachteten Ergebnissen oder schätzt die **notwendige Stichprobengröße** für eine zukünftige Studie mit vordefinierter Power und Effektstärke.
+        *   **Kontext:** Nutzt den **Analyse-Kontext**, um die Power für spezifische, methodisch korrekte Vergleiche (z.B. AS vs. ESGAR 2016) zu berechnen.
+    *   **Diskrepanz-Analyse (Mismatch Analysis):**
+        *   **Zweck:** Identifiziert und charakterisiert die Fälle, in denen das Avocado Sign und die T2-Kriterien zu unterschiedlichen Ergebnissen kommen.
+        *   **Darstellung:** Eine 2x2-Konkordanzmatrix visualisiert die Übereinstimmung. Die Zellen der Matrix sind klickbar und öffnen ein Modal-Fenster mit einer detaillierten Liste der entsprechenden Patienten, um eine Fall-basierte Analyse zu ermöglichen.
+    *   **Merkmals-Wichtigkeitsanalyse (Feature Importance):**
+        *   **Zweck:** Quantifiziert die prädiktive Kraft jedes einzelnen T2-Merkmals (Größe, Form, Rand etc.).
+        *   **Darstellung:** Ein horizontales Balkendiagramm zeigt das Odds Ratio (mit 95% Konfidenzintervall) für jedes Merkmal an und sortiert sie nach ihrer Wichtigkeit. Die Analyse wird auf der aktuell ausgewählten globalen Kohorte durchgeführt.
+
+### 3.5. Comparison Tab
 *   **Zweck:** Formatiert ausgewählte Analyseergebnisse visuell für Präsentationen und direkte Vergleiche und erzwingt dabei die methodische Korrektheit über den **Analyse-Kontext**.
 *   **Komponenten & Workflow:**
     *   **Ansichtsauswahl:** Radio-Buttons ermöglichen es, den Fokus entweder auf die alleinige Leistung des AS über alle Kohorten hinweg ("AS Performance") oder auf den direkten Vergleich mit T2-Kriterien ("AS vs. T2 Comparison") zu legen.
@@ -87,7 +102,7 @@ Dieses System garantiert, dass direkte statistische Tests zwischen diagnostische
         *   Eine **Leistungsmetrik-Tabelle** mit detaillierten Werten, 95% Konfidenzintervallen und einer dedizierten p-Wert-Spalte für den direkten statistischen Vergleich jeder Metrik.
         *   Eine **Info-Karte zur Vergleichsbasis**, die die Quelle und Definition des ausgewählten T2-Kriteriensatzes detailliert beschreibt.
 
-### 3.5. Publication Tab
+### 3.6. Publication Tab
 *   **Zweck:** Ein integrierter Assistent zur Erstellung eines vollständigen wissenschaftlichen Manuskriptentwurfs gemäß den Stilrichtlinien des Journals *Radiology*.
 *   **Komponenten & Workflow:**
     *   **Titelseite & Gliederung:** Die Ansicht ist wie ein Manuskript aufgebaut, beginnend mit einer *Radiology*-konformen Titelseite (einschließlich Key Results und einer automatisch generierten Abkürzungsliste) und ist klar in Hauptabschnitte (Abstract, Introduction, Materials and Methods, etc.) gegliedert, die über eine fixierte Seitenleiste navigierbar sind.
@@ -100,7 +115,7 @@ Dieses System garantiert, dass direkte statistische Tests zwischen diagnostische
         *   **Save-Button:** Speichert die manuell bearbeitete Version des Manuskripts im lokalen Speicher des Browsers. Diese gespeicherte Version wird bei nachfolgenden Besuchen geladen.
         *   **Reset-Button:** Verwirft alle manuellen Änderungen und setzt das Manuskript auf die ursprüngliche, automatisch generierte Version zurück.
 
-### 3.6. Export Tab
+### 3.7. Export Tab
 *   **Zweck:** Bietet Funktionalitäten zum Exportieren verschiedener Komponenten der generierten Publikation und Analyseergebnisse zur Verwendung in anderen Anwendungen.
 *   **Komponenten & Workflow:**
     *   **"Export Full Manuscript as Markdown"-Schaltfläche:** Initiiert den Download des gesamten generierten Manuskripts, einschließlich aller Texte und formatierten Tabellen (Abbildungen sind als Textbeschreibungen enthalten), als einzelne Markdown-Datei (`.md`). Wenn das Manuskript manuell bearbeitet und gespeichert wurde, wird die bearbeitete Version exportiert.
@@ -119,14 +134,14 @@ Die Anwendung wurde mit Vanilla JavaScript (ES2020+), HTML5 und CSS3 erstellt un
     *   `t2_criteria_manager.js`: Verwaltet den Zustand und die Logik für die benutzerdefinierten T2-Kriterien.
     *   `study_criteria_manager.js`: Verwaltet die Definitionen und die Logik für alle vordefinierten, literaturbasierten Kriterien.
 *   **Service-Schicht (`js/services/`):**
-    *   `statistics_service.js`: Enthält die gesamte statistische Berechnungslogik (diagnostische Metriken, Konfidenzintervalle, Vergleichstests).
+    *   `statistics_service.js`: Enthält die gesamte statistische Berechnungslogik (diagnostische Metriken, Konfidenzintervalle, Vergleichstests, Power-Analysen).
     *   `brute_force_manager.js`: Verwaltet den Web Worker für den Optimierungsprozess.
     *   `publication_service.js`: Orchestriert die Generierung des Manuskripts durch Aufruf seiner verschiedenen Submodule (z.B. `abstract_generator.js`, `results_generator.js`).
     *   `export_service.js`: Bietet robuste HTML-zu-Markdown- und SVG-Extraktionsfunktionen.
 *   **UI-Schicht (`js/ui/`):**
     *   `ui_manager.js`: Ein zentraler Manager für alle DOM-Manipulationen und UI-Updates.
     *   `components/`: Module zum Rendern wiederverwendbarer UI-Elemente wie Tabellen und Diagramme.
-    *   `tabs/`: Module, die für das Rendern des spezifischen Inhalts jedes der sechs Haupt-Tabs verantwortlich sind.
+    *   `tabs/`: Module, die für das Rendern des spezifischen Inhalts jedes der sieben Haupt-Tabs verantwortlich sind (einschließlich des neuen `insights_tab.js`).
 *   **Web Worker (`workers/brute_force_worker.js`):** Führt den rechenintensiven Optimierungsprozess in einem separaten Thread aus, um die Haupt-UI reaktionsschnell zu halten.
 
 ## 5. Setup & Systemanforderungen

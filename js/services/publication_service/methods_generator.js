@@ -164,10 +164,13 @@ window.methodsGenerator = (() => {
             
         const comparisonText = `The primary comparison between the AUC of the Avocado Sign and other criteria was performed using the method described by DeLong et al for correlated ROC curves. McNemar’s test was used to compare accuracies. For associations between individual categorical features and nodal status, the Fisher exact test was used. For comparison of demographic data and AUCs between independent cohorts, the Welch t test and Fisher exact test were used, respectively. All statistical analyses were performed using custom software scripts (JavaScript, ES2020+) implemented in the analysis tool itself (Version ${appVersion}). A two-sided ${pValueText} was considered to indicate statistical significance.`;
 
+        const advancedAnalysisText = `To further explore the data, three secondary analyses were conducted: (a) a post-hoc power analysis was performed to evaluate the statistical power of the primary AUC comparisons; (b) a mismatch analysis was conducted to characterize cases where the Avocado Sign and T2 criteria yielded discordant results; and (c) a feature importance analysis using odds ratios was performed to quantify the predictive contribution of each individual T2-weighted morphologic feature.`;
+
         return `
             <h3 id="methoden_statistische_analyse_methoden">Statistical Analysis</h3>
             <p>${methodsText}</p>
             <p>${comparisonText}</p>
+            <p>${advancedAnalysisText}</p>
         `;
     }
 
