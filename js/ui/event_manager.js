@@ -137,6 +137,7 @@ window.eventManager = (() => {
             'publication-bf-metric-select': () => handlePublicationBfMetricChange(target.value),
             'power-analysis-study-select': () => handlePowerAnalysisStudyChange(target.value),
             'mismatch-analysis-study-select': () => handleMismatchAnalysisStudyChange(target.value),
+            'feature-importance-cohort-select': () => handleFeatureImportanceCohortChange(target.value),
             'power-mode-posthoc': () => window.insightsTab.renderPowerAnalysis(app.allPublicationStats),
             'power-mode-samplesize': () => window.insightsTab.renderPowerAnalysis(app.allPublicationStats)
         };
@@ -249,6 +250,12 @@ window.eventManager = (() => {
     function handleMismatchAnalysisStudyChange(studyId) {
         if (window.state.setInsightsMismatchStudyId(studyId)) {
             if(window.insightsTab) window.insightsTab.renderMismatchAnalysis(app.allPublicationStats, app.getProcessedData());
+        }
+    }
+
+    function handleFeatureImportanceCohortChange(cohortId) {
+        if (window.state.setInsightsFeatureImportanceCohort(cohortId)) {
+            if(window.insightsTab) window.insightsTab.renderFeatureImportance(app.allPublicationStats);
         }
     }
 

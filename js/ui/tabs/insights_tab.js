@@ -8,19 +8,25 @@ window.insightsTab = (() => {
         if (studyId.startsWith('bf_')) {
             cohortId = studyId.split('_')[1];
             const bfMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
-            performanceT2 = allStats[cohortId]?.performanceT2Bruteforce?.[bfMetric];
-            comparisonASvsT2 = allStats[cohortId]?.comparisonASvsT2Bruteforce?.[bfMetric];
-            n = allStats[cohortId]?.descriptive?.patientCount || 0;
+            const cohortStats = allStats[cohortId];
+            if (!cohortStats) return null;
+            performanceT2 = cohortStats.performanceT2Bruteforce?.[bfMetric];
+            comparisonASvsT2 = cohortStats.comparisonASvsT2Bruteforce?.[bfMetric];
+            n = cohortStats.descriptive?.patientCount || 0;
         } else {
             const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(studyId);
             if (!studySet) return null;
             cohortId = studySet.applicableCohort || 'Overall';
-            performanceT2 = allStats[cohortId]?.performanceT2Literature?.[studyId];
-            comparisonASvsT2 = allStats[cohortId]?.comparisonASvsT2Literature?.[studyId];
-            n = allStats[cohortId]?.descriptive?.patientCount || 0;
+            const cohortStats = allStats[cohortId];
+            if (!cohortStats) return null;
+            performanceT2 = cohortStats.performanceT2Literature?.[studyId];
+            comparisonASvsT2 = cohortStats.comparisonASvsT2Literature?.[studyId];
+            n = cohortStats.descriptive?.patientCount || 0;
         }
 
         const performanceAS = allStats[cohortId]?.performanceAS;
+        if (!performanceAS || !performanceT2 || !comparisonASvsT2) return null;
+        
         return { cohortId, n, performanceAS, performanceT2, comparisonASvsT2 };
     }
 
@@ -177,14 +183,14 @@ window.insightsTab = (() => {
     }
 
     function _renderFeatureImportance(allStats) {
-        const currentCohort = window.state.getCurrentCohort();
+        const selectedCohort = window.state.getInsightsFeatureImportanceCohort();
         const chartContainer = document.getElementById('feature-importance-chart-container');
         const tableContainer = document.getElementById('feature-importance-table-container');
         const interpretationContainer = document.getElementById('feature-importance-interpretation-container');
 
         if (!chartContainer || !tableContainer || !interpretationContainer) return;
         
-        const stats = allStats[currentCohort];
+        const stats = allStats[selectedCohort];
         if (!stats || !stats.associationsApplied) {
             chartContainer.innerHTML = '<p class="text-muted small p-3 text-center">Feature importance data not available for this cohort.</p>';
             tableContainer.innerHTML = '';
@@ -211,7 +217,7 @@ window.insightsTab = (() => {
             tableHTML += `<tr>
                 <td>${item.featureName}</td>
                 <td data-tippy-content="${getInterpretationTooltip('or', item.or, {featureName: item.featureName})}">${fORCI(item.or)}</td>
-                <td data-tippy-content="${getInterpretationTooltip('pValue', item, {featureName: item.featureName})}">${getPValueText(item.pValue, false)} ${getStatisticalSignificanceSymbol(item.pValue)}</td>
+                <td data-tippy-content="${getInterpretationTooltip('pValue', item, {featureName: escapeHTML(item.featureName)})}">${getPValueText(item.pValue, false)} ${getStatisticalSignificanceSymbol(item.pValue)}</td>
             </tr>`;
         });
         tableHTML += '</tbody></table></div>';
@@ -219,7 +225,7 @@ window.insightsTab = (() => {
         
         const strongestFeature = sortedData[0];
         if(strongestFeature){
-            const interpretationText = `<strong>Interpretation:</strong> In the <strong>${getCohortDisplayName(currentCohort)}</strong> cohort, the presence of the <strong>${strongestFeature.featureName}</strong> feature shows the strongest association with a positive nodal status. Patients with this feature have ${formatNumber(strongestFeature.or.value, 1)} times the odds of being N-positive compared to patients without it.`;
+            const interpretationText = `<strong>Interpretation:</strong> In the <strong>${getCohortDisplayName(selectedCohort)}</strong> cohort, the presence of the <strong>${strongestFeature.featureName}</strong> feature shows the strongest association with a positive nodal status. Patients with this feature have ${formatNumber(strongestFeature.or.value, 1)} times the odds of being N-positive compared to patients without it.`;
             interpretationContainer.innerHTML = `<p class="mb-0">${interpretationText}</p>`;
         } else {
             interpretationContainer.innerHTML = '';
@@ -246,9 +252,9 @@ window.insightsTab = (() => {
                 _renderMismatchAnalysis(allStats, processedData);
                 break;
             case 'feature-importance':
-                const currentCohort = window.state.getCurrentCohort();
-                const cardTitle = `${window.APP_CONFIG.UI_TEXTS.insightsTab.featureImportance.cardTitle} (${getCohortDisplayName(currentCohort)})`;
-                cardHTML = window.uiComponents.createStatisticsCard('feature-importance', cardTitle, window.uiComponents.createFeatureImportanceCardHTML(), true);
+                const selectedCohort = window.state.getInsightsFeatureImportanceCohort();
+                const cardTitle = `${window.APP_CONFIG.UI_TEXTS.insightsTab.featureImportance.cardTitle}`;
+                cardHTML = window.uiComponents.createStatisticsCard('feature-importance', cardTitle, window.uiComponents.createFeatureImportanceCardHTML(selectedCohort), true);
                 contentArea.innerHTML = `<div class="row justify-content-center"><div class="col-xl-10">${cardHTML}</div></div>`;
                 _renderFeatureImportance(allStats);
                 break;

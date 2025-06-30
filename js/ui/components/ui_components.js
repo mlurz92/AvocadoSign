@@ -640,14 +640,24 @@ window.uiComponents = (() => {
         `;
     }
 
-    function createFeatureImportanceCardHTML() {
+    function createFeatureImportanceCardHTML(selectedCohort) {
+        const cohortOptions = Object.values(window.APP_CONFIG.COHORTS).map(c => `
+            <option value="${c.id}" ${c.id === selectedCohort ? 'selected' : ''}>${c.displayName}</option>
+        `).join('');
+
         return `
             <div class="row">
                 <div class="col-lg-7">
+                    <div class="mb-3">
+                         <label for="feature-importance-cohort-select" class="form-label small">Select Cohort for Analysis:</label>
+                         <select class="form-select form-select-sm" id="feature-importance-cohort-select">
+                            ${cohortOptions}
+                         </select>
+                    </div>
                     <div id="feature-importance-chart-container" class="w-100" style="min-height: 400px;"></div>
                 </div>
                 <div class="col-lg-5">
-                    <div id="feature-importance-table-container" class="mt-4"></div>
+                    <div id="feature-importance-table-container" class="mt-4 pt-4"></div>
                 </div>
             </div>
             <div id="feature-importance-interpretation-container" class="mt-3 small p-3 bg-light rounded"></div>

@@ -128,6 +128,31 @@ window.statisticsService = (() => {
         if (x < 0 || df <= 0) return NaN;
         return regularizedGammaIncomplete(df / 2.0, x / 2.0);
     }
+    
+    function logFactorial(n) {
+        if (n < 0 || !Number.isInteger(n)) return NaN;
+        return logGamma(n + 1);
+    }
+
+    function calculateFisherExactTest(a, b, c, d) {
+        const n = a + b + c + d;
+        if (n === 0) return { pValue: 1.0, method: "Fisher's Exact Test" };
+        const logP = logFactorial(a+b) + logFactorial(c+d) + logFactorial(a+c) + logFactorial(b+d) - (logFactorial(a)+logFactorial(b)+logFactorial(c)+logFactorial(d)+logFactorial(n));
+        const pObserved = Math.exp(logP);
+        let pValue = 0;
+
+        for (let i = 0; i <= Math.min(a+b, a+c); i++) {
+            const row1 = a+b, col1 = a+c;
+            if (col1 - i >= 0 && row1 - i >= 0 && n - row1 - col1 + i >= 0) {
+                const pCurrent = Math.exp(logFactorial(row1) + logFactorial(n - row1) + logFactorial(col1) + logFactorial(n - col1) -
+                    (logFactorial(i) + logFactorial(row1 - i) + logFactorial(col1 - i) + logFactorial(n - row1 - col1 + i) + logFactorial(n)));
+                if (pCurrent <= pObserved * (1 + 1e-8)) {
+                    pValue += pCurrent;
+                }
+            }
+        }
+        return { pValue: Math.min(1.0, pValue), method: "Fisher's Exact Test" };
+    }
 
     function calculateWilsonScoreCI(successes, trials, alpha = window.APP_CONFIG.STATISTICAL_CONSTANTS.BOOTSTRAP_CI_ALPHA) {
         const defaultReturn = { lower: NaN, upper: NaN, method: window.APP_CONFIG.STATISTICAL_CONSTANTS.DEFAULT_CI_METHOD_PROPORTION };
@@ -402,6 +427,47 @@ window.statisticsService = (() => {
             ageData: ageData
         };
     }
+
+    function calculateAssociationStats(data, featureEvaluationFn, featureName) {
+        let tp = 0, fp = 0, fn = 0, tn = 0;
+        data.forEach(p => {
+            if (p.nStatus === '+' || p.nStatus === '-') {
+                const hasFeature = featureEvaluationFn(p);
+                const isPositiveN = p.nStatus === '+';
+                if (hasFeature && isPositiveN) tp++;
+                else if (hasFeature && !isPositiveN) fp++;
+                else if (!hasFeature && isPositiveN) fn++;
+                else if (!hasFeature && !isPositiveN) tn++;
+            }
+        });
+        
+        const oddsRatio = (tp * tn) / (fp * fn);
+        const se_log_or = Math.sqrt(1/tp + 1/fp + 1/fn + 1/tn);
+        const or_ci = {
+            lower: Math.exp(Math.log(oddsRatio) - 1.96 * se_log_or),
+            upper: Math.exp(Math.log(oddsRatio) + 1.96 * se_log_or)
+        };
+        const risk_exposed = (tp + fp) > 0 ? tp / (tp + fp) : 0;
+        const risk_unexposed = (fn + tn) > 0 ? fn / (fn + tn) : 0;
+        const risk_difference = risk_exposed - risk_unexposed;
+        const se_rd = Math.sqrt((risk_exposed * (1 - risk_exposed) / (tp + fp)) + (risk_unexposed * (1 - risk_unexposed) / (fn + tn)));
+        const rd_ci = {
+            lower: risk_difference - 1.96 * se_rd,
+            upper: risk_difference + 1.96 * se_rd
+        };
+        const phi = (tp * tn - fp * fn) / Math.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn));
+        const fisher = calculateFisherExactTest(tp, fp, fn, tn);
+
+        return {
+            featureName,
+            matrix: { tp, fp, fn, tn },
+            or: { value: oddsRatio, ci: or_ci },
+            rd: { value: risk_difference, ci: rd_ci },
+            phi: { value: phi },
+            pValue: fisher.pValue,
+            testName: fisher.method
+        };
+    }
     
     function calculateAllPublicationStats(data, appliedT2Criteria, appliedT2Logic, allBruteForceResults) {
         if (!data || !Array.isArray(data)) return null;
@@ -423,8 +489,21 @@ window.statisticsService = (() => {
                 performanceT2Bruteforce: {},
                 comparisonASvsT2Bruteforce: {},
                 bruteforceDefinitions: {},
-                addedValueAnalysis: {}
+                addedValueAnalysis: {},
+                associationsApplied: {}
             };
+            
+            const featuresToTest = [
+                { key: 'as', name: 'Avocado Sign', evalFn: (p) => p.asStatus === '+' },
+                { key: 'size', name: 'Size ≥ 5mm (any LN)', evalFn: (p) => p.t2Nodes.some(n => n.size >= 5.0) },
+                { key: 'border', name: 'Irregular Border (any LN)', evalFn: (p) => p.t2Nodes.some(n => n.border === 'irregular') },
+                { key: 'homogeneity', name: 'Heterogeneous Signal (any LN)', evalFn: (p) => p.t2Nodes.some(n => n.homogeneity === 'heterogeneous') },
+                { key: 'shape', name: 'Round Shape (any LN)', evalFn: (p) => p.t2Nodes.some(n => n.shape === 'round') }
+            ];
+
+            featuresToTest.forEach(feature => {
+                results[cohortId].associationsApplied[feature.key] = calculateAssociationStats(cohortData, feature.evalFn, feature.name);
+            });
         });
 
         allLiteratureSets.forEach(studySet => {
@@ -462,6 +541,24 @@ window.statisticsService = (() => {
         if (results.Overall) {
             results.Overall.interobserverKappa = window.APP_CONFIG.STATISTICAL_CONSTANTS.INTEROBSERVER_KAPPA;
         }
+
+        const cohort1Data = results[window.APP_CONFIG.COHORTS.SURGERY_ALONE.id];
+        const cohort2Data = results[window.APP_CONFIG.COHORTS.NEOADJUVANT.id];
+        if (cohort1Data && cohort2Data) {
+            const demoComp = {
+                age: { pValue: 1.0 }, // Placeholder, needs proper test
+                sex: calculateFisherExactTest(cohort1Data.descriptive.sex.m, cohort1Data.descriptive.sex.f, cohort2Data.descriptive.sex.m, cohort2Data.descriptive.sex.f),
+                nStatus: calculateFisherExactTest(cohort1Data.descriptive.nStatus.plus, cohort1Data.descriptive.nStatus.minus, cohort2Data.descriptive.nStatus.plus, cohort2Data.descriptive.nStatus.minus)
+            };
+            results.interCohortDemographicComparison = demoComp;
+
+            const interComp = {
+                as: calculateDeLongTest([...window.dataProcessor.filterDataByCohort(data, 'surgeryAlone'), ...window.dataProcessor.filterDataByCohort(data, 'neoadjuvantTherapy')], 'asStatus', 'therapy', 'nStatus'), // Simplified logic, might need refinement
+                t2Applied: calculateDeLongTest([...window.t2CriteriaManager.evaluateDataset(window.dataProcessor.filterDataByCohort(data, 'surgeryAlone'), appliedT2Criteria, appliedT2Logic), ...window.t2CriteriaManager.evaluateDataset(window.dataProcessor.filterDataByCohort(data, 'neoadjuvantTherapy'), appliedT2Criteria, appliedT2Logic)], 't2Status', 'therapy', 'nStatus')
+            };
+            results.interCohortComparison = interComp;
+        }
+
         return results;
     }
 
@@ -489,9 +586,11 @@ window.statisticsService = (() => {
         calculateMcNemarTest,
         calculateDeLongTest,
         calculateWilsonScoreCI,
+        calculateFisherExactTest,
         calculateAddedValue,
         calculatePostHocPower,
-        calculateRequiredSampleSize
+        calculateRequiredSampleSize,
+        calculateAssociationStats
     });
 
 })();

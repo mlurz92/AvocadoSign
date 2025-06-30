@@ -19,6 +19,7 @@ window.state = (() => {
             insightsView: window.APP_CONFIG.DEFAULT_SETTINGS.INSIGHTS_VIEW,
             insightsPowerStudyId: window.APP_CONFIG.DEFAULT_SETTINGS.INSIGHTS_POWER_STUDY_ID,
             insightsMismatchStudyId: window.APP_CONFIG.DEFAULT_SETTINGS.INSIGHTS_MISMATCH_STUDY_ID,
+            insightsFeatureImportanceCohort: window.APP_CONFIG.DEFAULT_SETTINGS.COHORT,
             activeTabId: window.APP_CONFIG.DEFAULT_SETTINGS.ACTIVE_TAB_ID,
             publicationEditMode: window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_EDIT_MODE,
             editedManuscriptHTML: window.APP_CONFIG.DEFAULT_SETTINGS.EDITED_MANUSCRIPT_HTML,
@@ -41,6 +42,7 @@ window.state = (() => {
             insightsView: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_VIEW) ?? defaultState.insightsView,
             insightsPowerStudyId: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_POWER_STUDY_ID) ?? defaultState.insightsPowerStudyId,
             insightsMismatchStudyId: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_MISMATCH_STUDY_ID) ?? defaultState.insightsMismatchStudyId,
+            insightsFeatureImportanceCohort: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_FEATURE_IMPORTANCE_COHORT) ?? defaultState.insightsFeatureImportanceCohort,
             dataTableSort: cloneDeep(defaultState.dataTableSort),
             analysisTableSort: cloneDeep(defaultState.analysisTableSort),
             activeTabId: defaultState.activeTabId,
@@ -231,6 +233,12 @@ window.state = (() => {
     function getInsightsMismatchStudyId() { return currentState.insightsMismatchStudyId; }
     function setInsightsMismatchStudyId(newStudyId) { return _setter('insightsMismatchStudyId', window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_MISMATCH_STUDY_ID, newStudyId); }
 
+    function getInsightsFeatureImportanceCohort() { return currentState.insightsFeatureImportanceCohort; }
+    function setInsightsFeatureImportanceCohort(newCohort) {
+        const isValid = Object.values(window.APP_CONFIG.COHORTS).some(c => c.id === newCohort);
+        return isValid ? _setter('insightsFeatureImportanceCohort', window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_FEATURE_IMPORTANCE_COHORT, newCohort) : false;
+    }
+    
     function getMismatchData() { return currentState.mismatchData; }
     function setMismatchData(data) {
         currentState.mismatchData = data;
@@ -279,6 +287,8 @@ window.state = (() => {
         setInsightsPowerStudyId,
         getInsightsMismatchStudyId,
         setInsightsMismatchStudyId,
+        getInsightsFeatureImportanceCohort,
+        setInsightsFeatureImportanceCohort,
         getMismatchData,
         setMismatchData
     });
