@@ -4,7 +4,6 @@ class App {
         this.processedData = [];
         this.allPublicationStats = null;
         this.bruteForceModal = null;
-        this.insightsModal = null;
         this.libraryStatus = {};
         this.preRenderedPublicationHTML = null;
     }
@@ -29,11 +28,10 @@ class App {
                 window.uiManager.showToast("Warning: No valid patient data loaded.", "warning");
             }
 
-            const bfModalElement = document.getElementById('brute-force-modal');
-            if (bfModalElement) this.bruteForceModal = new bootstrap.Modal(bfModalElement);
-            
-            const insightsModalElement = document.getElementById('insights-modal');
-            if (insightsModalElement) this.insightsModal = new bootstrap.Modal(insightsModalElement);
+            const modalElement = document.getElementById('brute-force-modal');
+            if (modalElement) {
+                this.bruteForceModal = new bootstrap.Modal(modalElement);
+            }
             
             this.recalculateAllStats();
             this.refreshCurrentTab();
@@ -75,7 +73,7 @@ class App {
                 stardGenerator: window.stardGenerator, publicationService: window.publicationService, uiManager: window.uiManager, 
                 uiComponents: window.uiComponents, tableRenderer: window.tableRenderer, chartRenderer: window.chartRenderer, 
                 flowchartRenderer: window.flowchartRenderer, dataTab: window.dataTab, analysisTab: window.analysisTab, 
-                statisticsTab: window.statisticsTab, insightsTab: window.insightsTab, comparisonTab: window.comparisonTab, 
+                statisticsTab: window.statisticsTab, comparisonTab: window.comparisonTab, 
                 eventManager: window.eventManager, APP_CONFIG: window.APP_CONFIG, 
                 PUBLICATION_CONFIG: window.PUBLICATION_CONFIG
             };
@@ -198,69 +196,66 @@ class App {
         return this.preRenderedPublicationHTML;
     }
     
-    _prepareContextualData(contextTab) {
+    _prepareComparisonData() {
         const globalCohort = window.state.getCurrentCohort(); 
+        const selectedStudyId = window.state.getComparisonStudyId();
         const patientCount = (this.allPublicationStats[globalCohort]?.descriptive?.patientCount) || 0;
         
-        let selectedStudyId;
-        if (contextTab === 'comparison') {
-            selectedStudyId = window.state.getComparisonStudyId();
-        } else if (contextTab === 'insights') {
-            const insightsView = window.state.getInsightsView();
-            if (insightsView === 'power-analysis') selectedStudyId = window.state.getInsightsPowerStudyId();
-            else if (insightsView === 'mismatch-analysis') selectedStudyId = window.state.getInsightsMismatchStudyId();
-        }
-
         let performanceAS, performanceT2, comparisonASvsT2, comparisonCriteriaSet, t2ShortName;
         let cohortForComparison = globalCohort;
         let patientCountForComparison = patientCount;
 
-        if (selectedStudyId) {
-            if (selectedStudyId.startsWith('bf_')) {
-                const cohortId = selectedStudyId.split('_')[1];
-                cohortForComparison = cohortId;
-                const bfMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
-                const statsForBfCohort = this.allPublicationStats[cohortId];
+        if (selectedStudyId.startsWith('bf_')) {
+            const cohortId = selectedStudyId.split('_')[1];
+            cohortForComparison = cohortId;
+            const bfMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
+            const statsForBfCohort = this.allPublicationStats[cohortId];
+            
+            if (statsForBfCohort) {
+                patientCountForComparison = statsForBfCohort.descriptive?.patientCount || 0;
+                performanceAS = statsForBfCohort.performanceAS;
+                performanceT2 = statsForBfCohort.performanceT2Bruteforce?.[bfMetric];
+                comparisonASvsT2 = statsForBfCohort.comparisonASvsT2Bruteforce?.[bfMetric];
+                const bfDef = statsForBfCohort.bruteforceDefinitions?.[bfMetric];
                 
-                if (statsForBfCohort) {
-                    patientCountForComparison = statsForBfCohort.descriptive?.patientCount || 0;
-                    performanceAS = statsForBfCohort.performanceAS;
-                    performanceT2 = statsForBfCohort.performanceT2Bruteforce?.[bfMetric];
-                    comparisonASvsT2 = statsForBfCohort.comparisonASvsT2Bruteforce?.[bfMetric];
-                    const bfDef = statsForBfCohort.bruteforceDefinitions?.[bfMetric];
-                    
-                    if (bfDef) {
-                        comparisonCriteriaSet = {
-                            id: selectedStudyId,
-                            name: `Best Case T2 (${getCohortDisplayName(cohortId)})`,
-                            displayShortName: `BF T2 (${getCohortDisplayName(cohortId)})`,
-                            criteria: bfDef.criteria,
-                            logic: bfDef.logic,
-                            studyInfo: { isDynamic: true, patientCohort: `${getCohortDisplayName(cohortId)} (N=${patientCountForComparison})`, keyCriteriaSummary: window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, false) }
-                        };
-                        t2ShortName = comparisonCriteriaSet.displayShortName;
-                    }
+                if (bfDef) {
+                    comparisonCriteriaSet = {
+                        id: selectedStudyId,
+                        name: `Best Case T2 (${getCohortDisplayName(cohortId)})`,
+                        displayShortName: `BF T2 (${getCohortDisplayName(cohortId)})`,
+                        criteria: bfDef.criteria,
+                        logic: bfDef.logic,
+                        studyInfo: {
+                            isDynamic: true,
+                            patientCohort: `${getCohortDisplayName(cohortId)} (N=${patientCountForComparison})`,
+                            keyCriteriaSummary: window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, false)
+                        }
+                    };
+                    t2ShortName = comparisonCriteriaSet.displayShortName;
                 }
-            } else {
-                const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(selectedStudyId);
-                if (studySet) {
-                    cohortForComparison = studySet.applicableCohort || window.APP_CONFIG.COHORTS.OVERALL.id;
-                    const statsForStudyCohort = this.allPublicationStats[cohortForComparison];
-                    if (statsForStudyCohort) {
-                        patientCountForComparison = statsForStudyCohort.descriptive?.patientCount || 0;
-                        performanceAS = statsForStudyCohort.performanceAS;
-                        performanceT2 = statsForStudyCohort.performanceT2Literature?.[selectedStudyId];
-                        comparisonASvsT2 = statsForStudyCohort.comparisonASvsT2Literature?.[selectedStudyId];
-                        comparisonCriteriaSet = studySet;
-                        t2ShortName = studySet.displayShortName || studySet.name;
-                    }
+            }
+        } else {
+            const studySet = window.studyT2CriteriaManager.getStudyCriteriaSetById(selectedStudyId);
+            if (studySet) {
+                cohortForComparison = studySet.applicableCohort || window.APP_CONFIG.COHORTS.OVERALL.id;
+                const statsForStudyCohort = this.allPublicationStats[cohortForComparison];
+                if (statsForStudyCohort) {
+                    patientCountForComparison = statsForStudyCohort.descriptive?.patientCount || 0;
+                    performanceAS = statsForStudyCohort.performanceAS;
+                    performanceT2 = statsForStudyCohort.performanceT2Literature?.[selectedStudyId];
+                    comparisonASvsT2 = statsForStudyCohort.comparisonASvsT2Literature?.[selectedStudyId];
+                    comparisonCriteriaSet = studySet;
+                    t2ShortName = studySet.displayShortName || studySet.name;
                 }
             }
         }
 
         return {
-            globalCohort, patientCount, processedData: this.processedData,
-            allCohortStats: this.allPublicationStats,
+            globalCohort, patientCount,
+            processedData: this.processedData,
+            statsGesamt: this.allPublicationStats[window.APP_CONFIG.COHORTS.OVERALL.id], 
+            statsSurgeryAlone: this.allPublicationStats[window.APP_CONFIG.COHORTS.SURGERY_ALONE.id], 
+            statsNeoadjuvantTherapy: this.allPublicationStats[window.APP_CONFIG.COHORTS.NEOADJUVANT.id],
             statsCurrentCohort: this.allPublicationStats[globalCohort],
             performanceAS, performanceT2, comparison: comparisonASvsT2,
             comparisonCriteriaSet, cohortForComparison, patientCountForComparison, t2ShortName
@@ -277,8 +272,6 @@ class App {
         
         if (activeTabId === 'comparison') {
             window.uiManager.updateComparisonViewUI(window.state.getComparisonView(), window.state.getComparisonStudyId());
-        } else if (activeTabId === 'insights') {
-            window.uiManager.updateInsightsViewUI(window.state.getInsightsView(), window.state.getInsightsPowerStudyId(), window.state.getInsightsMismatchStudyId());
         } else if (activeTabId === 'publication') {
             window.uiManager.updatePublicationUI(window.state.getPublicationSection(), window.state.getPublicationBruteForceMetric(), window.state.getPublicationEditMode());
         } else if (activeTabId === 'export') {
@@ -307,17 +300,16 @@ class App {
             bruteForceMetricForPublication: window.state.getPublicationBruteForceMetric()
         };
 
-        let contextualData = null;
-        if (tabId === 'comparison' || tabId === 'insights') {
-            contextualData = this._prepareContextualData(tabId);
+        let currentComparisonData = null;
+        if (tabId === 'comparison') {
+            currentComparisonData = this._prepareComparisonData();
         }
 
         switch (tabId) {
             case 'data': window.uiManager.renderTabContent('data', () => window.dataTab.render(currentDataForTab, window.state.getDataTableSort())); break;
             case 'analysis': window.uiManager.renderTabContent('analysis', () => window.analysisTab.render(currentDataForTab, window.t2CriteriaManager.getCurrentCriteria(), window.t2CriteriaManager.getCurrentLogic(), window.state.getAnalysisTableSort(), activeCohort, window.bruteForceManager.isWorkerAvailable(), this.allPublicationStats[activeCohort], allBruteForceResults)); break;
             case 'statistics': window.uiManager.renderTabContent('statistics', () => window.statisticsTab.render(this.processedData, criteria, logic, window.state.getStatsLayout(), window.state.getStatsCohort1(), window.state.getStatsCohort2(), globalCohort)); break;
-            case 'insights': window.uiManager.renderTabContent('insights', () => window.insightsTab.render(this.allPublicationStats, this.processedData)); break;
-            case 'comparison': window.uiManager.renderTabContent('comparison', () => window.comparisonTab.render(window.state.getComparisonView(), contextualData, window.state.getComparisonStudyId())); break;
+            case 'comparison': window.uiManager.renderTabContent('comparison', () => window.comparisonTab.render(window.state.getComparisonView(), currentComparisonData, window.state.getComparisonStudyId())); break;
             case 'publication': window.uiManager.renderTabContent('publication', () => window.publicationTab.render(publicationData, window.state.getPublicationSection(), window.state.getPublicationEditMode(), window.state.getEditedManuscriptHTML())); break;
             case 'export': window.uiManager.renderTabContent('export', () => window.exportTab.render()); break;
         }
@@ -395,34 +387,6 @@ class App {
         }
     }
 
-    showMismatchDetails(action) {
-        const mismatchData = window.state.getMismatchData();
-        if (!mismatchData) return;
-
-        let patientsToShow = [];
-        let title = "Mismatch Details";
-
-        if (action === 'show-mismatch-as-superior') {
-            patientsToShow = mismatchData.asSuperior;
-            title = "Mismatch Details: AS Correct, T2 Incorrect";
-        } else if (action === 'show-mismatch-t2-superior') {
-            patientsToShow = mismatchData.t2Superior;
-            title = "Mismatch Details: T2 Correct, AS Incorrect";
-        } else if (action === 'show-mismatch-concordant-correct') {
-            patientsToShow = mismatchData.concordantCorrect;
-            title = "Concordant Correct Details";
-        } else if (action === 'show-mismatch-concordant-incorrect') {
-            patientsToShow = mismatchData.concordantIncorrect;
-            title = "Concordant Incorrect Details";
-        }
-        
-        const content = window.uiComponents.createMismatchModalContent(patientsToShow, title);
-        window.uiManager.updateElementHTML('insights-modal-body', content);
-        const modalTitleEl = document.getElementById('insightsModalLabel');
-        if (modalTitleEl) modalTitleEl.textContent = title;
-        if (this.insightsModal) this.insightsModal.show();
-    }
-
     handlePublicationSectionChange(sectionId) {
         if (window.state.setPublicationSection(sectionId)) {
             this.refreshCurrentTab();
@@ -470,7 +434,7 @@ class App {
             }
         });
 
-        const comparisonData = this._prepareContextualData('comparison');
+        const comparisonData = this._prepareComparisonData();
         if (comparisonData && comparisonData.performanceAS && comparisonData.performanceT2) {
             const tempCompBarId = 'export-comp-bar';
             hiddenContainer.innerHTML += `<div id="${tempCompBarId}" style="width: 450px; height: 350px;"></div>`;

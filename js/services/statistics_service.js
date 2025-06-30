@@ -300,7 +300,7 @@ window.statisticsService = (() => {
     }
 
     function calculateDeLongTest(data, key1, key2, referenceKey) {
-        const defaultReturn = { pValue: NaN, Z: NaN, diffAUC: NaN, method: "DeLong Test (Invalid Input)", auc1: NaN, auc2: NaN, var_auc1: NaN, var_auc2: NaN, cov_auc1_auc2: NaN, n_pos: 0, n_neg: 0 };
+        const defaultReturn = { pValue: NaN, Z: NaN, diffAUC: NaN, method: "DeLong Test (Invalid Input)" };
         if (!data || data.length === 0 || !key1 || !key2 || !referenceKey) return defaultReturn;
 
         const validData = data.filter(p => p?.[referenceKey] === '+' || p?.[referenceKey] === '-');
@@ -308,7 +308,7 @@ window.statisticsService = (() => {
         const negatives = validData.filter(p => p?.[referenceKey] === '-');
 
         if (positives.length === 0 || negatives.length === 0) {
-            return { ...defaultReturn, method: "DeLong Test (No positive or negative reference cases)", n_pos: positives.length, n_neg: negatives.length };
+            return { ...defaultReturn, method: "DeLong Test (No positive or negative reference cases)" };
         }
 
         const getScores = (patient, testKey) => (patient?.[testKey] === '+') ? 1 : (patient?.[testKey] === '-') ? 0 : NaN;
@@ -321,10 +321,19 @@ window.statisticsService = (() => {
             for (let i = 0; i < positives.length; i++) {
                 const score_pos = getScores(positives[i], testKey);
                 if (isNaN(score_pos)) continue;
+
                 for (let j = 0; j < negatives.length; j++) {
                     const score_neg = getScores(negatives[j], testKey);
                     if (isNaN(score_neg)) continue;
-                    let score = (score_pos > score_neg) ? 1.0 : (score_pos === score_neg) ? 0.5 : 0.0;
+
+                    let score = 0;
+                    if (score_pos > score_neg) {
+                        score = 1.0;
+                    } else if (score_pos === score_neg) {
+                        score = 0.5;
+                    } else {
+                        score = 0.0;
+                    }
                     structuralPairs += score;
                     V10[i] += score;
                     V01[j] += score;
@@ -333,6 +342,7 @@ window.statisticsService = (() => {
 
             const n_pos = positives.length;
             const n_neg = negatives.length;
+
             const auc = (n_pos * n_neg > 0) ? structuralPairs / (n_pos * n_neg) : NaN;
 
             V10.forEach((val, i) => V10[i] = (n_neg > 0) ? val / n_neg : NaN);
@@ -346,7 +356,7 @@ window.statisticsService = (() => {
             const c2 = getAUCComponents(key2);
 
             if (isNaN(c1.auc) || isNaN(c2.auc)) {
-                return { ...defaultReturn, method: "DeLong Test (AUC calculation failed)", n_pos: positives.length, n_neg: negatives.length };
+                return { ...defaultReturn, method: "DeLong Test (AUC calculation failed due to insufficient scores)" };
             }
 
             const calculateVariance = (V_arr, mean) => {
@@ -358,75 +368,42 @@ window.statisticsService = (() => {
             const calculateCovariance = (V_X_orig, V_Y_orig, meanX, meanY) => {
                 const V_X = V_X_orig.filter(v => isFinite(v));
                 const V_Y = V_Y_orig.filter(v => isFinite(v));
+
                 if (V_X.length !== V_Y.length || V_X.length < 2) return NaN;
+
                 let sum = 0;
-                for (let i = 0; i < V_X.length; i++) sum += (V_X[i] - meanX) * (V_Y[i] - meanY);
+                for (let i = 0; i < V_X.length; i++) {
+                    sum += (V_X[i] - meanX) * (V_Y[i] - meanY);
+                }
                 return sum / (V_X.length - 1);
             };
-            
-            const var_V10_1 = calculateVariance(c1.V10, c1.auc);
-            const var_V01_1 = calculateVariance(c1.V01, c1.auc);
-            const var_auc1 = (var_V10_1 / positives.length) + (var_V01_1 / negatives.length);
 
-            const var_V10_2 = calculateVariance(c2.V10, c2.auc);
-            const var_V01_2 = calculateVariance(c2.V01, c2.auc);
-            const var_auc2 = (var_V10_2 / positives.length) + (var_V01_2 / negatives.length);
+            const S10_1 = calculateVariance(c1.V10, c1.auc);
+            const S01_1 = calculateVariance(c1.V01, c1.auc);
+            const S10_2 = calculateVariance(c2.V10, c2.auc);
+            const S01_2 = calculateVariance(c2.V01, c2.auc);
 
-            const cov_V10 = calculateCovariance(c1.V10, c2.V10, c1.auc, c2.auc);
-            const cov_V01 = calculateCovariance(c1.V01, c2.V01, c1.auc, c2.auc);
-            const cov_auc1_auc2 = (cov_V10 / positives.length) + (cov_V01 / negatives.length);
+            const Cov10 = calculateCovariance(c1.V10, c2.V10, c1.auc, c2.auc);
+            const Cov01 = calculateCovariance(c1.V01, c2.V01, c1.auc, c2.auc);
 
-            if ([var_auc1, var_auc2, cov_auc1_auc2].some(isNaN)) {
-                 return { ...defaultReturn, method: "DeLong Test (Variance/Covariance failed)", auc1: c1.auc, auc2: c2.auc, n_pos: positives.length, n_neg: negatives.length };
+            if ([S10_1, S01_1, S10_2, S01_2, Cov10, Cov01].some(isNaN)) {
+                 return { ...defaultReturn, method: "DeLong Test (Variance/Covariance calculation failed due to insufficient data or scores)" };
             }
 
-            const varDiff = var_auc1 + var_auc2 - 2 * cov_auc1_auc2;
+            const varDiff = (S10_1 + S10_2 - 2 * Cov10) / positives.length + (S01_1 + S01_2 - 2 * Cov01) / negatives.length;
+
             if (isNaN(varDiff) || varDiff <= 1e-12) {
-                return { pValue: 1.0, Z: 0, diffAUC: c1.auc - c2.auc, method: "DeLong Test (Zero Variance)", auc1: c1.auc, auc2: c2.auc, var_auc1, var_auc2, cov_auc1_auc2, n_pos: positives.length, n_neg: negatives.length };
+                return { pValue: 1.0, Z: 0, diffAUC: c1.auc - c2.auc, method: "DeLong Test (Zero Variance or numerical issue)" };
             }
 
             const z = (c1.auc - c2.auc) / Math.sqrt(varDiff);
             const pValue = 2.0 * normalCDF(-Math.abs(z));
-            return { pValue, Z: z, diffAUC: c1.auc - c2.auc, method: "DeLong Test", auc1: c1.auc, auc2: c2.auc, var_auc1, var_auc2, cov_auc1_auc2, n_pos: positives.length, n_neg: negatives.length };
+            return { pValue, Z: z, diffAUC: c1.auc - c2.auc, method: "DeLong Test" };
         } catch (error) {
             return { ...defaultReturn, method: `DeLong Test (Execution Error: ${error.message})` };
         }
     }
-    
-    function calculatePostHocPower(deLongResult, alpha = 0.05) {
-        if (!deLongResult || [deLongResult.var_auc1, deLongResult.var_auc2, deLongResult.cov_auc1_auc2, deLongResult.diffAUC].some(v => v === undefined || isNaN(v))) {
-            return NaN;
-        }
-        const varDiff = deLongResult.var_auc1 + deLongResult.var_auc2 - 2 * deLongResult.cov_auc1_auc2;
-        if (varDiff <= 0) return NaN;
-        const seDiff = Math.sqrt(varDiff);
-        const z_alpha_2 = Math.abs(inverseNormalCDF(alpha / 2.0));
-        const effect_size_z = deLongResult.diffAUC / seDiff;
-        const power = normalCDF(effect_size_z - z_alpha_2) + normalCDF(-effect_size_z - z_alpha_2);
-        return power;
-    }
 
-    function calculateRequiredSampleSize(deLongResult, power = 0.8, alpha = 0.05) {
-        if (!deLongResult || [deLongResult.var_auc1, deLongResult.var_auc2, deLongResult.cov_auc1_auc2, deLongResult.diffAUC, deLongResult.n_pos, deLongResult.n_neg].some(v => v === undefined || isNaN(v))) {
-            return NaN;
-        }
-        const totalN = deLongResult.n_pos + deLongResult.n_neg;
-        if (totalN === 0 || deLongResult.diffAUC === 0) return NaN;
-        
-        const var_auc1_unit = deLongResult.var_auc1 * totalN;
-        const var_auc2_unit = deLongResult.var_auc2 * totalN;
-        const cov_auc1_auc2_unit = deLongResult.cov_auc1_auc2 * totalN;
-        
-        const var_diff_unit = var_auc1_unit + var_auc2_unit - 2 * cov_auc1_auc2_unit;
-        if (var_diff_unit <= 0) return NaN;
-        
-        const z_alpha_2 = Math.abs(inverseNormalCDF(alpha / 2.0));
-        const z_beta = Math.abs(inverseNormalCDF(1 - power));
-        
-        const requiredN = Math.pow(z_alpha_2 + z_beta, 2) * var_diff_unit / Math.pow(deLongResult.diffAUC, 2);
-        return Math.ceil(requiredN);
-    }
-    
     function calculateZTestForAUCComparison(auc1, se1, n1, auc2, se2, n2) {
         const defaultReturn = { pValue: NaN, Z: NaN, method: "Z-Test (AUC - Independent Samples, Invalid Input)" };
         if (auc1 === null || auc2 === null || se1 === null || se1 === undefined || se2 === null || se2 === undefined || isNaN(auc1) || isNaN(auc2) || isNaN(se1) || isNaN(se2) || n1 < 2 || n2 < 2) return defaultReturn;
@@ -639,7 +616,7 @@ window.statisticsService = (() => {
 
         cohorts.forEach(cohortId => {
             const cohortData = window.dataProcessor.filterDataByCohort(data, cohortId);
-            const evaluatedDataApplied = window.t2CriteriaManager.evaluateDataset(cohortData, appliedT2Criteria, appliedT2Logic);
+            const evaluatedDataApplied = window.t2CriteriaManager.evaluateDataset(cloneDeep(cohortData), appliedT2Criteria, appliedT2Logic);
             
             results[cohortId] = {
                 descriptive: calculateDescriptiveStats(evaluatedDataApplied),
@@ -660,7 +637,7 @@ window.statisticsService = (() => {
             const cohortForSet = studySet.applicableCohort || window.APP_CONFIG.COHORTS.OVERALL.id;
             const dataForSet = window.dataProcessor.filterDataByCohort(data, cohortForSet);
             if (dataForSet.length > 0) {
-                const evaluatedDataStudy = window.studyT2CriteriaManager.evaluateDatasetWithStudyCriteria(dataForSet, studySet);
+                const evaluatedDataStudy = window.studyT2CriteriaManager.evaluateDatasetWithStudyCriteria(cloneDeep(dataForSet), studySet);
                 results[cohortForSet].performanceT2Literature[studySet.id] = calculateDiagnosticPerformance(evaluatedDataStudy, 't2Status', 'nStatus');
                 results[cohortForSet].comparisonASvsT2Literature[studySet.id] = compareDiagnosticMethods(evaluatedDataStudy, 'asStatus', 't2Status', 'nStatus');
                 results[cohortForSet].addedValueAnalysis[studySet.id] = calculateAddedValue(evaluatedDataStudy);
@@ -674,7 +651,7 @@ window.statisticsService = (() => {
                 Object.keys(cohortBfResults).forEach(metricName => {
                     const bfResult = cohortBfResults[metricName];
                     if (bfResult && bfResult.bestResult?.criteria) {
-                        const evaluatedDataBF = window.t2CriteriaManager.evaluateDataset(cohortData, bfResult.bestResult.criteria, bfResult.bestResult.logic);
+                        const evaluatedDataBF = window.t2CriteriaManager.evaluateDataset(cloneDeep(cohortData), bfResult.bestResult.criteria, bfResult.bestResult.logic);
                         results[cohortId].performanceT2Bruteforce[metricName] = calculateDiagnosticPerformance(evaluatedDataBF, 't2Status', 'nStatus');
                         results[cohortId].comparisonASvsT2Bruteforce[metricName] = compareDiagnosticMethods(evaluatedDataBF, 'asStatus', 't2Status', 'nStatus');
                         results[cohortId].bruteforceDefinitions[metricName] = { 
@@ -816,9 +793,7 @@ window.statisticsService = (() => {
         calculateDeLongTest,
         calculateWilsonScoreCI,
         calculateZTestForAUCComparison,
-        calculateAddedValue,
-        calculatePostHocPower,
-        calculateRequiredSampleSize
+        calculateAddedValue
     });
 
 })();

@@ -121,7 +121,8 @@ window.chartRenderer = (() => {
         const color = d3.scaleOrdinal().domain(validData.map(d => d.label)).range(colorScheme);
         const pie = d3.pie().value(d => d.value).sort(null);
         const arcGenerator = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius).cornerRadius(options.cornerRadius ?? 2);
-        
+        const labelArcGenerator = d3.arc().innerRadius(innerRadius + (outerRadius - innerRadius) * 0.6).outerRadius(innerRadius + (outerRadius - innerRadius) * 0.6);
+
         const pieGroup = chartArea.append("g").attr("class", "pie-group").attr("transform", `translate(${innerWidth / 2},${innerHeight / 2})`);
         const arcs = pieGroup.selectAll(".arc").data(pie(validData)).join("g").attr("class", "arc");
 
@@ -323,52 +324,11 @@ window.chartRenderer = (() => {
             .style("opacity", 1);
     }
 
-    function renderFeatureImportanceChart(data, targetElementId, options = {}) {
-        const setupOptions = { ...options, margin: { top: 20, right: 20, bottom: 40, left: 150, ...options.margin } };
-        const containerSetup = createSvgContainer(targetElementId, setupOptions);
-        if (!containerSetup) return;
-        const { svg, chartArea, innerWidth, innerHeight, margin } = containerSetup;
-        const tooltip = createTooltip();
-
-        const sortedData = data.filter(d => d.or && isFinite(d.or.value)).sort((a, b) => b.or.value - a.or.value);
-        if (sortedData.length === 0) {
-            chartArea.append('text').attr('x', innerWidth / 2).attr('y', innerHeight / 2).attr('text-anchor', 'middle').attr('class', 'text-muted small').text('No feature data to display.');
-            return;
-        }
-
-        const maxOR = d3.max(sortedData, d => d.or.ci?.upper ?? d.or.value);
-        const x = d3.scaleLog().domain([0.1, Math.max(10, maxOR * 1.1)]).range([0, innerWidth]).base(10);
-        const y = d3.scaleBand().domain(sortedData.map(d => d.featureName)).range([0, innerHeight]).padding(0.3);
-
-        chartArea.append("g").attr("class", "x-axis axis").attr("transform", `translate(0, ${innerHeight})`).call(d3.axisBottom(x).ticks(5, "~g")).selectAll("text").style("font-size", window.APP_CONFIG.CHART_SETTINGS.TICK_LABEL_FONT_SIZE);
-        svg.append("text").attr("class", "axis-label x-axis-label").attr("text-anchor", "middle").attr("x", margin.left + innerWidth / 2).attr("y", innerHeight + margin.top + 30).style("font-size", window.APP_CONFIG.CHART_SETTINGS.AXIS_LABEL_FONT_SIZE).text(window.APP_CONFIG.UI_TEXTS.insightsTab.featureImportance.chartXAxisLabel);
-
-        chartArea.append("g").attr("class", "y-axis axis").call(d3.axisLeft(y).tickSize(0)).select(".domain").remove();
-
-        chartArea.append("line").attr("x1", x(1)).attr("x2", x(1)).attr("y1", 0).attr("y2", innerHeight).attr("stroke", "#dc3545").attr("stroke-width", 1.5).style("stroke-dasharray", "4, 4");
-
-        const bars = chartArea.selectAll(".bar-group").data(sortedData).join("g").attr("class", "bar-group");
-        bars.append("line").attr("class", "ci-line").attr("x1", d => x(d.or.ci?.lower ?? d.or.value)).attr("x2", d => x(d.or.ci?.upper ?? d.or.value)).attr("y1", d => y(d.featureName) + y.bandwidth() / 2).attr("y2", d => y(d.featureName) + y.bandwidth() / 2).attr("stroke", "#6c757d").attr("stroke-width", 1);
-        bars.append("rect").attr("class", "bar").attr("x", x(0.1)).attr("y", d => y(d.featureName)).attr("width", 0).attr("height", y.bandwidth()).attr("fill", d => d.pValue < 0.05 ? window.APP_CONFIG.CHART_SETTINGS.AS_COLOR : '#adb5bd').style("opacity", 0.7)
-            .on("mouseover", function(event, d) {
-                tooltip.transition().duration(50).style("opacity", 0.95);
-                const pValueText = getPValueText(d.pValue, false);
-                tooltip.html(`<strong>${d.featureName}</strong><br>Odds Ratio: ${formatNumber(d.or.value, 2)}<br>95% CI: ${formatNumber(d.or.ci.lower, 2)} - ${formatNumber(d.or.ci.upper, 2)}<br>p-value: ${pValueText}`).style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 15) + "px");
-                d3.select(this).style("opacity", 1);
-            })
-            .on("mouseout", function() {
-                tooltip.transition().duration(200).style("opacity", 0);
-                d3.select(this).style("opacity", 0.7);
-            })
-            .transition().duration(window.APP_CONFIG.CHART_SETTINGS.ANIMATION_DURATION_MS).ease(d3.easeCubicOut).attr("x", d => x(Math.min(1, d.or.value))).attr("width", d => Math.abs(x(d.or.value) - x(1)));
-    }
-
     return Object.freeze({
         renderAgeDistributionChart,
         renderPieChart,
         renderComparisonBarChart,
-        renderDiagnosticPerformanceChart,
-        renderFeatureImportanceChart
+        renderDiagnosticPerformanceChart
     });
 
 })();

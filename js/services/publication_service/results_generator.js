@@ -185,7 +185,7 @@ window.resultsGenerator = (() => {
                 return;
             }
             const helpers = window.publicationHelpers;
-            const pValueTooltip = (r.pValue !== undefined) ? getInterpretationTooltip('pValue', {value: r.pValue, testName: 'DeLong'}, {comparisonName: 'AUC', method1: 'AS', method2: r.name}) : 'Comparison not applicable';
+            const pValueTooltip = (r.pValue !== undefined) ? getInterpretationTooltip('pValue', {value: r.pValue, testName: 'DeLong'}, {comparisonName: 'AUC', method1: 'AS', method2: 'T2 Set'}) : 'Comparison not applicable';
             const pValueCellContent = (r.pValue !== undefined) ? `${helpers.formatPValueForPublication(r.pValue)}` : na_stat;
             
             const rowData = [
@@ -213,25 +213,10 @@ window.resultsGenerator = (() => {
         const interobserverKappa = overallStats?.interobserverKappa;
         const interobserverKappaCI = overallStats?.interobserverKappa?.ci;
 
-        const comparisonEsgarHybrid = overallStats?.comparisonASvsT2Literature?.['ESGAR_2016_Overall'];
-        let mismatchText = '';
-        if (comparisonEsgarHybrid && comparisonEsgarHybrid.mcnemar) {
-            const { b, c } = comparisonEsgarHybrid.mcnemar.discordantCounts || { b: 0, c: 0 };
-            const totalDiscordant = b + c;
-            if (totalDiscordant > 0) {
-                const asSuperiorCount = b; // AS correct, T2 incorrect
-                const t2SuperiorCount = c; // AS incorrect, T2 correct
-                const asSuperiorPercent = helpers.formatMetricForPublication({ value: asSuperiorCount / totalDiscordant, n_success: asSuperiorCount, n_trials: totalDiscordant }, 'acc', { includeCI: false });
-                const t2SuperiorPercent = helpers.formatMetricForPublication({ value: t2SuperiorCount / totalDiscordant, n_success: t2SuperiorCount, n_trials: totalDiscordant }, 'acc', { includeCI: false });
-                
-                mismatchText = ` A mismatch analysis of the ${totalDiscordant} cases where the two methods disagreed showed that the Avocado Sign was correct in ${asSuperiorPercent} of these cases, whereas the ESGAR criteria were correct in only ${t2SuperiorPercent} (${helpers.formatPValueForPublication(comparisonEsgarHybrid.mcnemar.pValue)}).`;
-            }
-        }
-
         const text = `
             <h3 id="ergebnisse_vergleich_as_vs_t2">Diagnostic Performance and Comparison</h3>
             <p>The diagnostic performance of the Avocado Sign was evaluated for each patient subgroup. For the entire cohort (n=${commonData.nOverall}), the area under the receiver operating characteristic curve (AUC) was ${helpers.formatMetricForPublication(overallStats?.performanceAS?.auc, 'auc', {includeCount: false})}. The interobserver agreement for the sign was previously reported as almost perfect for this cohort (Cohen’s kappa = ${helpers.formatValueForPublication(interobserverKappa?.value, 2, false, true)}; 95% CI: ${helpers.formatValueForPublication(interobserverKappaCI?.lower, 2, false, true)}, ${helpers.formatValueForPublication(interobserverKappaCI?.upper, 2, false, true)}) ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p>A detailed comparison of the diagnostic performance of the Avocado Sign against both literature-based and data-driven T2 criteria is presented in Table 4. The Avocado Sign consistently yielded a greater AUC than the established literature-based T2 criteria within their respective, methodologically appropriate cohorts.${mismatchText}</p>
+            <p>A detailed comparison of the diagnostic performance of the Avocado Sign against both literature-based and data-driven T2 criteria is presented in Table 4. The Avocado Sign consistently yielded a greater AUC than the established literature-based T2 criteria within their respective, methodologically appropriate cohorts. Its performance was also comparable with the data-driven best-case benchmarks.</p>
         `;
 
         const comparisonTableHTML = _createConsolidatedComparisonTableHTML(stats, commonData);

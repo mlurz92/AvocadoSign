@@ -534,102 +534,6 @@ window.uiComponents = (() => {
         `;
     }
 
-    function createPowerAnalysisCardHTML(selectedStudyId) {
-        const texts = window.APP_CONFIG.UI_TEXTS.insightsTab.powerAnalysis;
-        const allStudySets = [...window.studyT2CriteriaManager.getAllStudyCriteriaSets()];
-        const bfResults = window.bruteForceManager.getAllResults();
-        const bfMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
-
-        const bfOptions = Object.keys(bfResults).map(cohortId => {
-            if (bfResults[cohortId]?.[bfMetric]) {
-                return { id: `bf_${cohortId}`, name: `Best Case T2 (${getCohortDisplayName(cohortId)})` };
-            }
-            return null;
-        }).filter(Boolean);
-
-        const createOptions = (sets) => sets.map(set => `<option value="${set.id}" ${selectedStudyId === set.id ? 'selected' : ''}>${set.name || set.id}</option>`).join('');
-        const litOptions = createOptions(allStudySets);
-        const bfOptionsHTML = createOptions(bfOptions);
-
-        return `
-            <div class="p-3">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="power-analysis-mode" class="form-label small fw-bold">${texts.modeLabel}</label>
-                        <div class="btn-group w-100 btn-group-sm">
-                            <input type="radio" class="btn-check" name="power-analysis-mode" id="power-mode-posthoc" value="posthoc" checked>
-                            <label class="btn btn-outline-secondary" for="power-mode-posthoc">${texts.modePostHoc}</label>
-                            <input type="radio" class="btn-check" name="power-analysis-mode" id="power-mode-samplesize" value="samplesize">
-                            <label class="btn btn-outline-secondary" for="power-mode-samplesize">${texts.modeSampleSize}</label>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="power-comparison-select" class="form-label small fw-bold">${texts.comparisonSelectLabel}</label>
-                        <select class="form-select form-select-sm" id="power-comparison-select">
-                            <optgroup label="Data-driven Best-Case Criteria">${bfOptionsHTML}</optgroup>
-                            <optgroup label="Literature-Based Criteria">${litOptions}</optgroup>
-                        </select>
-                    </div>
-                    <div class="col-12"><hr class="my-1"></div>
-                    <div class="col-md-6">
-                        <div id="power-analysis-inputs">
-                             <!-- Inputs will be rendered dynamically -->
-                        </div>
-                    </div>
-                    <div class="col-md-6 d-flex align-items-center justify-content-center">
-                        <div id="power-analysis-results" class="text-center">
-                            <!-- Results will be rendered here -->
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-    }
-
-    function createMismatchAnalysisCardHTML(selectedStudyId) {
-        const texts = window.APP_CONFIG.UI_TEXTS.insightsTab.mismatchAnalysis;
-        const allStudySets = [...window.studyT2CriteriaManager.getAllStudyCriteriaSets()];
-        const bfResults = window.bruteForceManager.getAllResults();
-        const bfMetric = window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_BRUTE_FORCE_METRIC;
-
-        const bfOptions = Object.keys(bfResults).map(cohortId => {
-            if (bfResults[cohortId]?.[bfMetric]) {
-                return { id: `bf_${cohortId}`, name: `Best Case T2 (${getCohortDisplayName(cohortId)})` };
-            }
-            return null;
-        }).filter(Boolean);
-
-        const createOptions = (sets) => sets.map(set => `<option value="${set.id}" ${selectedStudyId === set.id ? 'selected' : ''}>${set.name || set.id}</option>`).join('');
-        const litOptions = createOptions(allStudySets);
-        const bfOptionsHTML = createOptions(bfOptions);
-
-        return `
-            <div class="p-3">
-                <div class="row">
-                    <div class="col-md-8 offset-md-2 mb-3">
-                        <label for="mismatch-comparison-select" class="form-label small fw-bold">${texts.selectLabel}</label>
-                        <select class="form-select form-select-sm" id="mismatch-comparison-select">
-                            <optgroup label="Data-driven Best-Case Criteria">${bfOptionsHTML}</optgroup>
-                            <optgroup label="Literature-Based Criteria">${litOptions}</optgroup>
-                        </select>
-                    </div>
-                    <div class="col-12" id="mismatch-analysis-results">
-                        <!-- Mismatch matrix will be rendered here -->
-                    </div>
-                </div>
-            </div>`;
-    }
-
-    function createFeatureImportanceCardHTML() {
-        const texts = window.APP_CONFIG.UI_TEXTS.insightsTab.featureImportance;
-        return `
-            <div class="p-3">
-                <p class="small text-muted mb-2">${texts.description}</p>
-                <div id="feature-importance-chart-container" class="w-100" style="min-height: 300px;">
-                    <!-- Feature importance chart will be rendered here -->
-                </div>
-            </div>`;
-    }
-
     return Object.freeze({
         createDashboardCard,
         createT2CriteriaControls,
@@ -640,9 +544,6 @@ window.uiComponents = (() => {
         createBruteForceRunnerCardHTML,
         createAnalysisContextBannerHTML,
         createAddedValueCardHTML,
-        createExportTabContentHTML,
-        createPowerAnalysisCardHTML,
-        createMismatchAnalysisCardHTML,
-        createFeatureImportanceCardHTML
+        createExportTabContentHTML
     });
 })();

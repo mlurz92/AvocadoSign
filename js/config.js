@@ -24,9 +24,6 @@ window.APP_CONFIG = Object.freeze({
         STATS_LAYOUT: 'einzel',
         STATS_COHORT1: 'Overall',
         STATS_COHORT2: 'neoadjuvantTherapy',
-        INSIGHTS_VIEW: 'power-analysis',
-        INSIGHTS_POWER_STUDY_ID: 'ESGAR_2016_Overall',
-        INSIGHTS_MISMATCH_STUDY_ID: 'ESGAR_2016_Overall',
         COMPARISON_VIEW: 'as-vs-t2',
         COMPARISON_STUDY_ID: 'Rutegard_2025',
         PUBLICATION_SECTION: 'title_main',
@@ -47,20 +44,17 @@ window.APP_CONFIG = Object.freeze({
         APPLIED_LOGIC: 'avocadoSign_appliedT2Logic_v5.0',
         BRUTE_FORCE_RESULTS: 'avocadoSign_bruteForceResults_v5.0',
         CURRENT_COHORT: 'avocadoSign_currentCohort_v5.0',
-        STATS_LAYOUT: 'avocadoSign_statsLayout_v5.0',
-        STATS_COHORT1: 'avocadoSign_statsCohort1_v5.0',
-        STATS_COHORT2: 'avocadoSign_statsCohort2_v5.0',
-        INSIGHTS_VIEW: 'avocadoSign_insightsView_v5.0',
-        INSIGHTS_POWER_STUDY_ID: 'avocadoSign_insightsPowerStudyId_v5.0',
-        INSIGHTS_MISMATCH_STUDY_ID: 'avocadoSign_insightsMismatchStudyId_v5.0',
-        COMPARISON_VIEW: 'avocadoSign_comparisonView_v5.0',
-        COMPARISON_STUDY_ID: 'avocadoSign_comparisonStudyId_v5.0',
         PUBLICATION_SECTION: 'avocadoSign_publicationSection_v5.0',
         PUBLICATION_BRUTE_FORCE_METRIC: 'avocadoSign_publicationBfMetric_v5.0',
         PUBLICATION_LANG: 'avocadoSign_publicationLang_v5.0',
+        STATS_LAYOUT: 'avocadoSign_statsLayout_v5.0',
+        STATS_COHORT1: 'avocadoSign_statsCohort1_v5.0',
+        STATS_COHORT2: 'avocadoSign_statsCohort2_v5.0',
+        COMPARISON_VIEW: 'avocadoSign_comparisonView_v5.0',
+        COMPARISON_STUDY_ID: 'avocadoSign_comparisonStudyId_v5.0',
+        FIRST_APP_START: 'avocadoSign_appFirstStart_v5.0',
         PUBLICATION_EDIT_MODE: 'avocadoSign_publicationEditMode_v5.0',
-        EDITED_MANUSCRIPT_HTML: 'avocadoSign_editedManuscriptHTML_v5.0',
-        FIRST_APP_START: 'avocadoSign_appFirstStart_v5.0'
+        EDITED_MANUSCRIPT_HTML: 'avocadoSign_editedManuscriptHTML_v5.0'
     }),
     PATHS: Object.freeze({
         BRUTE_FORCE_WORKER: 'workers/brute_force_worker.js'
@@ -128,10 +122,9 @@ window.APP_CONFIG = Object.freeze({
         Schrag_2023: { id: 1, text: "Schrag D, Shi Q, Weiser MR, et al. Preoperative treatment of locally advanced rectal cancer. N Engl J Med. 2023;389:322–334. doi:10.1056/NEJMoa2303269" },
         Garcia_Aguilar_2022: { id: 2, text: "Garcia-Aguilar J, Patil S, Gollub MJ, et al. Organ preservation in patients with rectal adenocarcinoma treated with total neoadjuvant therapy. J Clin Oncol. 2022;40:2546–2556. doi:10.1200/JCO.22.00032" },
         Beets_Tan_2018: { id: 3, text: "Beets-Tan RGH, Lambregts DMJ, Maas M, et al. Magnetic resonance imaging for clinical management of rectal cancer: updated recommendations from the 2016 European Society of Gastrointestinal and Abdominal Radiology (ESGAR) consensus meeting. Eur Radiol. 2018;28:1465–1475. doi:10.1007/s00330-017-5026-2" },
-        Lee_2023: { id: 4, text: "Lee S, Kassam Z, Baheti AD, et al. Rectal cancer lexicon 2023 revised and updated consensus statement from the Society of Abdominal Radiology Colorectal and Anal Cancer Disease-Focused Panel. Abdom Radiol (NY). 2023;48(9):2792-2806. doi:10.1007/s00261-023-03893-2" },
-        Al_Sukhni_2012: { id: 5, text: "Al-Sukhni E, Milot L, Fruitman M, et al. Diagnostic accuracy of MRI for assessment of T category, lymph node metastases, and circumferential resection margin involvement in patients with rectal cancer: a systematic review and meta-analysis. Ann Surg Oncol. 2012;19:2212–2223. doi:10.1245/s10434-011-2210-5" },
-        Stelzner_2022: { id: 6, text: "Stelzner S, Ruppert R, Kube R, et al. Selection of patients with rectal cancer for neoadjuvant therapy using pre-therapeutic MRI—results from OCUM trial. Eur J Radiol. 2022;147:110113. doi:10.1016/j.ejrad.2021.110113" },
-        Lurz_Schaefer_2025: { id: 7, text: "Lurz M, Schäfer AO. The Avocado Sign: A novel imaging marker for nodal staging in rectal cancer. Eur Radiol. 2025. doi:10.1007/s00330-025-11462-y" },
+        Al_Sukhni_2012: { id: 4, text: "Al-Sukhni E, Milot L, Fruitman M, et al. Diagnostic accuracy of MRI for assessment of T category, lymph node metastases, and circumferential resection margin involvement in patients with rectal cancer: a systematic review and meta-analysis. Ann Surg Oncol. 2012;19:2212–2223. doi:10.1245/s10434-011-2210-5" },
+        Stelzner_2022: { id: 5, text: "Stelzner S, Ruppert R, Kube R, et al. Selection of patients with rectal cancer for neoadjuvant therapy using pre-therapeutic MRI—results from OCUM trial. Eur J Radiol. 2022;147:110113. doi:10.1016/j.ejrad.2021.110113" },
+        Lurz_Schaefer_2025: { id: 6, text: "Lurz M, Schäfer AO. The Avocado Sign: A novel imaging marker for nodal staging in rectal cancer. Eur Radiol. 2025. doi:10.1007/s00330-025-11462-y" },
         Rutegard_2025: { id: 8, text: "Rutegård MK, Båtsman M, Blomqvist L, et al. Evaluation of MRI characterisation of histopathologically matched lymph nodes and other mesorectal nodal structures in rectal cancer. Eur Radiol. 2025;35(1):49-60. doi:10.1007/s00330-025-11361-2" },
         Grone_2017: { id: 9, text: "Gröne J, Loch FN, Taupitz M, Schmidt C, Kreis ME. Accuracy of various lymph node staging criteria in rectal cancer with magnetic resonance imaging. J Gastrointest Surg. 2017;21(11):1-8. doi:10.1007/s11605-017-3568-x" },
         Jiang_2025: { id: 10, text: "Jiang L, Zhuang Z, Tang X, et al. Diagnostic performance of node-RADS classification for primary lymph node assessment in rectal cancer: a modality benchmarking study. J Cancer Res Clin Oncol (2025) 151:145. https://doi.org/10.1007/s00432-025-06196-9" },
@@ -141,7 +134,9 @@ window.APP_CONFIG = Object.freeze({
         Barbaro_2024: { id: 14, text: "Barbaro B, Carafa MRP, Minordi LM, et al. Magnetic resonance imaging for assessment of rectal cancer nodes after chemoradiotherapy: a single center experience. Radiother Oncol. 2024;193:110124. doi:10.1016/j.radonc.2024.110124" },
         Almlov_2020: { id: 15, text: "Almlöv K, Woisetschlager M, Loftås P, Hallböök O, Elander N, and Sandström P. MRI lymph node evaluation for prediction of metastases in rectal cancer. Anticancer Res. 2020;40(5):2757-63. doi:10.21873/anticanres.14247" },
         Koh_2008: { id: 16, text: "Koh DM, Chau I, Tait D, Wotherspoon A, Cunningham D, Brown G. Evaluating mesorectal lymph nodes in rectal cancer before and after neoadjuvant chemoradiation using thin-section T2-weighted magnetic resonance imaging. Int J Radiat Oncol Biol Phys. 2008;71:456–461. doi:10.1016/j.ijrobp.2007.10.016" },
-        Zhuang_2021: { id: 17, text: "Zhuang Z, Zhang Y, Wei M, Yang X, Wang Z. Magnetic Resonance Imaging Evaluation of the Accuracy of Various Lymph Node Staging Criteria in Rectal Cancer: A Systematic Review and Meta-Analysis. Front Oncol. 2021;11:709070. doi:10.3389/fonc.2021.709070" }
+        Zhuang_2021: { id: 17, text: "Zhuang Z, Zhang Y, Wei M, Yang X, Wang Z. Magnetic Resonance Imaging Evaluation of the Accuracy of Various Lymph Node Staging Criteria in Rectal Cancer: A Systematic Review and Meta-Analysis. Front Oncol. 2021;11:709070. doi:10.3389/fonc.2021.709070" },
+        Lee_2023: { id: 18, text: "Lee S, Kassam Z, Baheti AD, et al. Rectal cancer lexicon 2023 revised and updated consensus statement from the Society of Abdominal Radiology Colorectal and Anal Cancer Disease-Focused Panel. Abdom Radiol (NY). 2023;48(9):2792-2806. doi:10.1007/s00261-023-03893-2" },
+        Brown_2003: { id: 19, text: "Brown G, Richards CJ, Bourne MW, et al. Morphologic predictors of lymph node status in rectal cancer with use of high-spatial-resolution MR imaging with histopathologic comparison. Radiology. 2003;227(2):371-377. doi: 10.1148/radiol.2272011747" }
     }),
     UI_TEXTS: Object.freeze({
         analysisContextBanner: {
@@ -173,33 +168,6 @@ window.APP_CONFIG = Object.freeze({
             exportSuccess: 'Export successful!',
             exportFailed: 'Export failed. Please try again.',
             exportNotAvailable: 'Export function not available.'
-        },
-        insightsTab: {
-            powerAnalysis: {
-                cardTitle: 'Power Analysis & Sample Size Estimation',
-                description: 'Evaluate the statistical power of a comparison or estimate the required sample size for a future study.',
-                modeLabel: 'Analysis Mode:',
-                modePostHoc: 'Post-hoc Power',
-                modeSampleSize: 'Sample Size Estimation',
-                comparisonSelectLabel: 'Comparison Basis:',
-                alphaLabel: 'Significance Level (α):',
-                powerLabel: 'Desired Power:',
-                effectSizeLabel: 'Expected AUC Difference:',
-                postHocResult: 'Calculated Power:',
-                sampleSizeResult: 'Required N:'
-            },
-            mismatchAnalysis: {
-                cardTitle: 'Mismatch Analysis',
-                description: 'Analyze cases where Avocado Sign and T2 criteria disagree to understand their respective strengths and weaknesses.',
-                selectLabel: 'T2 Criteria for Mismatch Analysis:',
-                modalTitle: 'Mismatch Patient Details'
-            },
-            featureImportance: {
-                cardTitle: 'T2 Feature Importance',
-                description: 'Quantifies the predictive power of individual T2-weighted features for determining N-status, measured by Odds Ratio.',
-                chartYAxisLabel: 'T2-weighted Feature',
-                chartXAxisLabel: 'Odds Ratio (log scale)'
-            }
         },
         PUBLICATION_TEXTS: Object.freeze({
             MIM_REGULATORY_STATEMENT: "This secondary analysis of a retrospective, single-institution study was compliant with the Health Insurance Portability and Accountability Act and approved by our institutional review board, which waived the requirement for additional written informed consent.",
