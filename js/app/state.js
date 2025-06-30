@@ -16,13 +16,17 @@ window.state = (() => {
             statsCohort2: window.APP_CONFIG.DEFAULT_SETTINGS.STATS_COHORT2,
             comparisonView: window.APP_CONFIG.DEFAULT_SETTINGS.COMPARISON_VIEW,
             comparisonStudyId: window.APP_CONFIG.DEFAULT_SETTINGS.COMPARISON_STUDY_ID,
-            activeTabId: 'publication',
+            insightsView: window.APP_CONFIG.DEFAULT_SETTINGS.INSIGHTS_VIEW,
+            insightsPowerStudyId: window.APP_CONFIG.DEFAULT_SETTINGS.INSIGHTS_POWER_STUDY_ID,
+            insightsMismatchStudyId: window.APP_CONFIG.DEFAULT_SETTINGS.INSIGHTS_MISMATCH_STUDY_ID,
+            activeTabId: window.APP_CONFIG.DEFAULT_SETTINGS.ACTIVE_TAB_ID,
             publicationEditMode: window.APP_CONFIG.DEFAULT_SETTINGS.PUBLICATION_EDIT_MODE,
-            editedManuscriptHTML: window.APP_CONFIG.DEFAULT_SETTINGS.EDITED_MANUSCRIPT_HTML
+            editedManuscriptHTML: window.APP_CONFIG.DEFAULT_SETTINGS.EDITED_MANUSCRIPT_HTML,
+            mismatchData: null
         };
 
         const loadedSection = loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.PUBLICATION_SECTION);
-        const isValidSection = window.PUBLICATION_CONFIG.sections.some(s => s.id === loadedSection || s.subSections.some(sub => sub.id === loadedSection));
+        const isValidSection = window.PUBLICATION_CONFIG.sections.some(s => s.id === loadedSection || (s.subSections && s.subSections.some(sub => sub.id === loadedSection)));
 
         currentState = {
             currentCohort: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.CURRENT_COHORT) ?? defaultState.currentCohort,
@@ -34,11 +38,15 @@ window.state = (() => {
             statsCohort2: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.STATS_COHORT2) ?? defaultState.statsCohort2,
             comparisonView: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.COMPARISON_VIEW) ?? defaultState.comparisonView,
             comparisonStudyId: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.COMPARISON_STUDY_ID) ?? defaultState.comparisonStudyId,
+            insightsView: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_VIEW) ?? defaultState.insightsView,
+            insightsPowerStudyId: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_POWER_STUDY_ID) ?? defaultState.insightsPowerStudyId,
+            insightsMismatchStudyId: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_MISMATCH_STUDY_ID) ?? defaultState.insightsMismatchStudyId,
             dataTableSort: cloneDeep(defaultState.dataTableSort),
             analysisTableSort: cloneDeep(defaultState.analysisTableSort),
             activeTabId: defaultState.activeTabId,
             publicationEditMode: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.PUBLICATION_EDIT_MODE) ?? defaultState.publicationEditMode,
-            editedManuscriptHTML: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.EDITED_MANUSCRIPT_HTML) ?? defaultState.editedManuscriptHTML
+            editedManuscriptHTML: loadFromLocalStorage(window.APP_CONFIG.STORAGE_KEYS.EDITED_MANUSCRIPT_HTML) ?? defaultState.editedManuscriptHTML,
+            mismatchData: defaultState.mismatchData
         };
         analysisContext = null;
     }
@@ -95,7 +103,7 @@ window.state = (() => {
 
     function getPublicationSection() { return currentState.publicationSection; }
     function setPublicationSection(newSectionId) {
-        const isValid = window.PUBLICATION_CONFIG.sections.some(s => s.id === newSectionId || s.subSections.some(sub => sub.id === newSectionId));
+        const isValid = window.PUBLICATION_CONFIG.sections.some(s => s.id === newSectionId || (s.subSections && s.subSections.some(sub => sub.id === newSectionId)));
         return isValid ? _setter('publicationSection', window.APP_CONFIG.STORAGE_KEYS.PUBLICATION_SECTION, newSectionId) : false;
     }
 
@@ -187,10 +195,9 @@ window.state = (() => {
     function setActiveTabId(newTabId) {
         if (typeof newTabId === 'string' && currentState.activeTabId !== newTabId) {
             currentState.activeTabId = newTabId;
-            if (newTabId !== 'comparison') {
+            if (newTabId !== 'comparison' && newTabId !== 'insights') {
                 clearAnalysisContext();
             }
-            // Reset edit mode when leaving publication tab
             if (newTabId !== 'publication' && getPublicationEditMode()) {
                 setPublicationEditMode(false);
             }
@@ -214,6 +221,22 @@ window.state = (() => {
         localStorage.removeItem(window.APP_CONFIG.STORAGE_KEYS.EDITED_MANUSCRIPT_HTML);
         return true;
     }
+    
+    function getInsightsView() { return currentState.insightsView; }
+    function setInsightsView(newView) { return _setter('insightsView', window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_VIEW, newView); }
+
+    function getInsightsPowerStudyId() { return currentState.insightsPowerStudyId; }
+    function setInsightsPowerStudyId(newStudyId) { return _setter('insightsPowerStudyId', window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_POWER_STUDY_ID, newStudyId); }
+
+    function getInsightsMismatchStudyId() { return currentState.insightsMismatchStudyId; }
+    function setInsightsMismatchStudyId(newStudyId) { return _setter('insightsMismatchStudyId', window.APP_CONFIG.STORAGE_KEYS.INSIGHTS_MISMATCH_STUDY_ID, newStudyId); }
+
+    function getMismatchData() { return currentState.mismatchData; }
+    function setMismatchData(data) {
+        currentState.mismatchData = data;
+        return true;
+    }
+
 
     return Object.freeze({
         init,
@@ -249,6 +272,14 @@ window.state = (() => {
         setPublicationEditMode,
         getEditedManuscriptHTML,
         setEditedManuscriptHTML,
-        resetEditedManuscriptHTML
+        resetEditedManuscriptHTML,
+        getInsightsView,
+        setInsightsView,
+        getInsightsPowerStudyId,
+        setInsightsPowerStudyId,
+        getInsightsMismatchStudyId,
+        setInsightsMismatchStudyId,
+        getMismatchData,
+        setMismatchData
     });
 })();

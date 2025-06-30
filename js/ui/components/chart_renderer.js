@@ -323,12 +323,128 @@ window.chartRenderer = (() => {
             .duration(400)
             .style("opacity", 1);
     }
+    
+    function renderFeatureImportanceChart(data, targetElementId, options = {}) {
+        const setupOptions = { ...options, margin: { top: 20, right: 20, bottom: 40, left: 180, ...options.margin } };
+        const containerSetup = createSvgContainer(targetElementId, setupOptions);
+        if (!containerSetup) return;
+        const { svg, chartArea, innerWidth, innerHeight, width, height, margin } = containerSetup;
+        const tooltip = createTooltip();
+    
+        if (!Array.isArray(data) || data.length === 0) {
+            chartArea.append('text').attr('x', innerWidth / 2).attr('y', innerHeight / 2).attr('text-anchor', 'middle').attr('class', 'text-muted small').text('No feature data available.');
+            return;
+        }
+    
+        const validData = data
+            .filter(d => d.or && isFinite(d.or.value) && d.or.ci && isFinite(d.or.ci.lower) && isFinite(d.or.ci.upper))
+            .sort((a, b) => b.or.value - a.or.value);
+            
+        if (validData.length === 0) {
+             chartArea.append('text').attr('x', innerWidth / 2).attr('y', innerHeight / 2).attr('text-anchor', 'middle').attr('class', 'text-muted small').text('No valid feature data to display.');
+            return;
+        }
+    
+        const y = d3.scaleBand()
+            .range([0, innerHeight])
+            .domain(validData.map(d => d.featureName))
+            .padding(0.4);
+    
+        chartArea.append("g")
+            .attr("class", "y-axis axis")
+            .call(d3.axisLeft(y).tickSize(0).tickPadding(10))
+            .selectAll("text")
+            .style("font-size", window.APP_CONFIG.CHART_SETTINGS.TICK_LABEL_FONT_SIZE);
+    
+        const xMin = d3.min(validData, d => d.or.ci.lower);
+        const xMax = d3.max(validData, d => d.or.ci.upper);
+        const domainMin = Math.max(0.1, xMin > 1 ? 0.5 : xMin * 0.8);
+        const domainMax = Math.min(50, xMax * 1.2);
+        
+        const x = d3.scaleLog()
+            .domain([domainMin, domainMax])
+            .range([0, innerWidth]);
+    
+        const tickValues = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50].filter(v => v >= domainMin && v <= domainMax);
+
+        chartArea.append("g")
+            .attr("class", "x-axis axis")
+            .attr("transform", `translate(0, ${innerHeight})`)
+            .call(d3.axisBottom(x).tickValues(tickValues).tickFormat(d3.format("~g")).tickSizeOuter(0))
+            .selectAll("text")
+            .style("font-size", window.APP_CONFIG.CHART_SETTINGS.TICK_LABEL_FONT_SIZE);
+    
+        svg.append("text")
+            .attr("class", "axis-label x-axis-label")
+            .attr("text-anchor", "middle")
+            .attr("x", margin.left + innerWidth / 2)
+            .attr("y", height - 5)
+            .style("font-size", window.APP_CONFIG.CHART_SETTINGS.AXIS_LABEL_FONT_SIZE)
+            .text(window.APP_CONFIG.UI_TEXTS.insightsTab.featureImportance.chartXAxisLabel);
+
+        if (window.APP_CONFIG.CHART_SETTINGS.ENABLE_GRIDLINES) {
+            chartArea.append("g").attr("class", "grid x-grid").call(d3.axisBottom(x).tickValues(tickValues).tickSize(-innerHeight).tickFormat(""));
+        }
+    
+        chartArea.append("line")
+            .attr("x1", x(1))
+            .attr("x2", x(1))
+            .attr("y1", 0)
+            .attr("y2", innerHeight)
+            .attr("stroke", "#6c757d")
+            .attr("stroke-width", 1.5)
+            .attr("stroke-dasharray", "3,3");
+    
+        const featureGroup = chartArea.selectAll(".feature-group")
+            .data(validData)
+            .join("g")
+            .attr("class", "feature-group")
+            .attr("transform", d => `translate(0, ${y(d.featureName)})`);
+
+        featureGroup.append("line")
+            .attr("class", "ci-line")
+            .attr("x1", d => x(d.or.ci.lower))
+            .attr("x2", d => x(d.or.ci.upper))
+            .attr("y1", y.bandwidth() / 2)
+            .attr("y2", y.bandwidth() / 2)
+            .attr("stroke", "#6c757d")
+            .attr("stroke-width", 1);
+    
+        featureGroup.selectAll(".ci-cap")
+            .data(d => [d.or.ci.lower, d.or.ci.upper])
+            .join("line")
+            .attr("class", "ci-cap")
+            .attr("x1", d => x(d))
+            .attr("x2", d => x(d))
+            .attr("y1", y.bandwidth() / 2 - 4)
+            .attr("y2", y.bandwidth() / 2 + 4)
+            .attr("stroke", "#6c757d")
+            .attr("stroke-width", 1);
+    
+        featureGroup.append("rect")
+            .attr("class", "or-point")
+            .attr("x", d => x(d.or.value) - 4)
+            .attr("y", y.bandwidth() / 2 - 4)
+            .attr("width", 8)
+            .attr("height", 8)
+            .attr("fill", d => d.featureName.includes('AS') ? window.APP_CONFIG.CHART_SETTINGS.AS_COLOR : window.APP_CONFIG.CHART_SETTINGS.T2_COLOR)
+            .on("mouseover", (event, d) => {
+                tooltip.transition().duration(50).style("opacity", .95);
+                tooltip.html(getInterpretationTooltip('or', {...d.or, featureName: escapeHTML(d.featureName)}))
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 15) + "px");
+            })
+            .on("mouseout", () => {
+                tooltip.transition().duration(200).style("opacity", 0);
+            });
+    }
 
     return Object.freeze({
         renderAgeDistributionChart,
         renderPieChart,
         renderComparisonBarChart,
-        renderDiagnosticPerformanceChart
+        renderDiagnosticPerformanceChart,
+        renderFeatureImportanceChart
     });
 
 })();

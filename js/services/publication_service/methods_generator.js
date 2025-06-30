@@ -13,7 +13,7 @@ window.methodsGenerator = (() => {
                 ['Matrix', '394 × 448', '380 × 432', '380 × 432', '140 × 140', '326 × 384'],
                 ['Acquisition time (min)', '4:37', '4:50', '4:50', '3:57', '4:10']
             ],
-            notes: "DWI = diffusion-weighted imaging, TSE = turbo spin-echo, VIBE = volumetric interpolated breath-hold examination."
+            notes: "TSE = turbo spin-echo, DWI = diffusion-weighted imaging, VIBE = volumetric interpolated breath-hold examination."
         };
         return window.publicationHelpers.createPublicationTableHTML(tableConfig);
     }
@@ -33,7 +33,7 @@ window.methodsGenerator = (() => {
         return `
             <h3 id="methoden_studienanlage_ethik">Study Design and Patients</h3>
             <p>${regulatoryStatement} This analysis involved a fully blinded re-evaluation of a previously described retrospective cohort of ${helpers.formatValueForPublication(nOverall, 0)} consecutive patients with histopathologically confirmed rectal cancer who underwent pelvic MRI for primary staging or restaging between January 2020 and November 2023 ${helpers.getReference('Lurz_Schaefer_2025')}.</p>
-            <p>Inclusion criteria for this secondary analysis were the availability of high-quality T2-weighted and contrast-enhanced T1-weighted MRI sequences and a definitive histopathological reference standard from the subsequent total mesorectal excision specimen. Of the final cohort, ${surgeryAlonePercentString} underwent primary surgery, while ${neoadjuvantPercentString} received neoadjuvant chemoradiotherapy followed by restaging MRI prior to surgery.</p>
+            <p>Inclusion criteria for this secondary analysis were the availability of high-quality T2-weighted and contrast-enhanced T1-weighted MRI sequences and a definitive histopathological reference standard from the subsequent total mesorectal excision specimen. Of the final cohort, ${surgeryAlonePercentString} underwent primary surgery, while ${neoadjuvantPercentString} received standard long-term neoadjuvant chemoradiotherapy.</p>
         `;
     }
 
@@ -112,7 +112,7 @@ window.methodsGenerator = (() => {
             if (bfDef) {
                 const criteriaDisplay = window.studyT2CriteriaManager.formatCriteriaForDisplay(bfDef.criteria, bfDef.logic, false);
                 tableConfig.rows.push([
-                    'Best Case T2 Criteria (AUC optimized)',
+                    `Best Case T2 Criteria (AUC optimized)`,
                     '—',
                     getCohortDisplayName(cohortId),
                     criteriaDisplay,
@@ -120,7 +120,7 @@ window.methodsGenerator = (() => {
                 ]);
             } else {
                  tableConfig.rows.push([
-                    'Best Case T2 Criteria (AUC optimized)',
+                    `Best Case T2 Criteria (AUC optimized)`,
                     '—',
                     getCohortDisplayName(cohortId),
                     'Not yet calculated',
@@ -149,20 +149,8 @@ window.methodsGenerator = (() => {
     }
 
     function generateStatisticalAnalysisHTML(stats, commonData) {
-        const helpers = window.publicationHelpers;
-        const statisticalSignificanceLevel = window.APP_CONFIG?.STATISTICAL_CONSTANTS?.SIGNIFICANCE_LEVEL;
-        const nBootstrap = window.APP_CONFIG?.STATISTICAL_CONSTANTS?.BOOTSTRAP_CI_REPLICATIONS;
-        const appVersion = window.APP_CONFIG?.APP_VERSION;
-
-        if (!statisticalSignificanceLevel || !nBootstrap || !appVersion) {
-            return '<h3 id="methoden_statistische_analyse_methoden">Statistical Analysis</h3><p class="text-warning">Configuration for statistical analysis is missing.</p>';
-        }
-        
-        const pValueText = helpers.formatPValueForPublication(statisticalSignificanceLevel).replace(/=/g, '<');
-
-        const methodsText = `Descriptive statistics were used to summarize patient characteristics. Diagnostic performance metrics—including sensitivity, specificity, positive predictive value, negative predictive value, and accuracy—were calculated. The Wilson score method was used for 95% confidence intervals (CIs) of proportions. For the area under the receiver operating characteristic curve (AUC), CIs were derived using the bootstrap percentile method with ${helpers.formatValueForPublication(nBootstrap, 0)} replications.`;
-            
-        const comparisonText = `The primary comparison between the AUC of the Avocado Sign and other criteria was performed using the method described by DeLong et al for correlated ROC curves. McNemar’s test was used to compare accuracies. For associations between individual categorical features and nodal status, the Fisher exact test was used. For comparison of demographic data and AUCs between independent cohorts, the Welch t test and Fisher exact test were used, respectively. All statistical analyses were performed using custom software scripts (JavaScript, ES2020+) implemented in the analysis tool itself (Version ${appVersion}). A two-sided ${pValueText} was considered to indicate statistical significance.`;
+        const methodsText = window.APP_CONFIG.UI_TEXTS.PUBLICATION_TEXTS.STATISTICAL_ANALYSIS_METHODS;
+        const comparisonText = window.APP_CONFIG.UI_TEXTS.PUBLICATION_TEXTS.STATISTICAL_ANALYSIS_COMPARISON;
 
         return `
             <h3 id="methoden_statistische_analyse_methoden">Statistical Analysis</h3>

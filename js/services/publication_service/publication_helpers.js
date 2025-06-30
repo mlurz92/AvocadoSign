@@ -1,7 +1,25 @@
 window.publicationHelpers = (() => {
 
     function formatPValueForPublication(pValue) {
-        return getPValueText(pValue, true);
+        const p = parseFloat(pValue);
+        if (p === null || p === undefined || isNaN(p) || !isFinite(p)) {
+            return '<em>P</em> > .99';
+        }
+        if (p < 0.001) return '<em>P</em> < .001';
+        if (p > 0.99) return '<em>P</em> > .99';
+
+        const pRoundedTo2 = parseFloat(p.toFixed(2));
+        if (p < 0.05 && pRoundedTo2 >= 0.05) {
+            return `<em>P</em> = .${p.toFixed(3).substring(2)}`;
+        }
+
+        let formattedP;
+        if (p < 0.01) {
+            formattedP = p.toFixed(3).substring(1);
+        } else {
+            formattedP = p.toFixed(2).substring(1);
+        }
+        return `<em>P</em> = ${formattedP}`;
     }
 
     function formatValueForPublication(value, digits = 0, isPercent = false, noLeadingZero = false) {

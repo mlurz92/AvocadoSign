@@ -88,7 +88,7 @@ tr[aria-expanded="true"] .row-toggle-icon { transform: rotate(180deg); }
 .highlight-suspect-feature { background-color: var(--status-red-bg); border-radius: var(--border-radius-sm); padding: 1px 4px; margin: -1px -4px; }
 .element-flash-highlight { animation: flashHighlight 1.5s ease-out; }
 @keyframes flashHighlight {
-    0%, 70% { background-color: rgba(244, 162, 97, 0.2); box-shadow: 0 0 8px rgba(244, 162, 97, 0.4); }
+    0%, 70% { background-color: rgba(var(--warning-color-rgb), 0.2); box-shadow: 0 0 8px rgba(var(--warning-color-rgb), 0.4); }
     100% { background-color: transparent; box-shadow: none; }
 }
 
@@ -107,26 +107,15 @@ tr[aria-expanded="true"] .row-toggle-icon { transform: rotate(180deg); }
     border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 .tippy-box[data-theme~='warning'] { 
-    background-color: rgba(244, 162, 97, 0.9); 
+    background-color: rgba(var(--warning-color-rgb), 0.9); 
     color: var(--text-dark); 
     border-color: var(--warning-color); 
 }
 
-.toast.bg-info {
-    background-color: rgba(var(--info-color-rgb), var(--toast-opacity)) !important;
-}
-
-.toast.bg-warning {
-    background-color: rgba(var(--warning-color-rgb), var(--toast-opacity)) !important;
-}
-
-.toast.bg-success {
-    background-color: rgba(var(--success-color-rgb), var(--toast-opacity)) !important;
-}
-
-.toast.bg-danger {
-    background-color: rgba(var(--danger-color-rgb), var(--toast-opacity)) !important;
-}
+.toast.bg-info { background-color: rgba(var(--info-color-rgb), var(--toast-opacity)) !important; }
+.toast.bg-warning { background-color: rgba(var(--warning-color-rgb), var(--toast-opacity)) !important; }
+.toast.bg-success { background-color: rgba(var(--success-color-rgb), var(--toast-opacity)) !important; }
+.toast.bg-danger { background-color: rgba(var(--danger-color-rgb), var(--toast-opacity)) !important; }
 
 .modal-glass .modal-content { 
     background-color: rgba(255, 255, 255, var(--modal-bg-opacity)) !important;
@@ -156,14 +145,47 @@ tr[aria-expanded="true"] .row-toggle-icon { transform: rotate(180deg); }
     transition: background-color var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
 }
 
-.publication-chart-container {
-    max-width: 600px;
-    margin: 1rem auto;
+.publication-chart-container { max-width: 600px; margin: 1rem auto; }
+#figure-2-examples-container { max-width: 800px; }
+
+.mismatch-grid {
+    display: grid;
+    grid-template-areas:
+        ". header-top header-top"
+        "header-y-correct cell-cc cell-ci"
+        "header-y-incorrect cell-ic cell-ii";
+    grid-template-columns: auto 1fr 1fr;
+    grid-template-rows: auto 1fr 1fr;
+    gap: 0.75rem;
+    max-width: 500px;
+    margin: 1rem auto 0;
+    align-items: stretch;
 }
 
-#figure-2-examples-container {
-    max-width: 800px;
+.mismatch-header-top { grid-area: header-top; padding-bottom: 0.25rem; }
+.mismatch-header-left {
+    grid-area: header-y;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    justify-self: center;
+    align-self: center;
+    grid-row: 2 / 4;
 }
+.mismatch-header-item { align-self: end; padding-bottom: 0.25rem; text-align: center; }
+.mismatch-grid > .mismatch-header-item:nth-of-type(2) { grid-column: 2; }
+.mismatch-grid > .mismatch-header-item:nth-of-type(3) { grid-column: 3; }
+.mismatch-grid > .mismatch-header-item:nth-of-type(4) { grid-area: header-y-correct; justify-self: end; align-self: center; }
+.mismatch-grid > .mismatch-header-item:nth-of-type(5) { grid-area: header-y-incorrect; justify-self: end; align-self: center; }
+.mismatch-cell {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    aspect-ratio: 1 / 1;
+    min-height: 120px;
+}
+.mismatch-cell:hover { transform: scale(1.05); box-shadow: var(--shadow-md); }
+.mismatch-grid > div:nth-of-type(6) { grid-area: cell-cc; }
+.mismatch-grid > div:nth-of-type(7) { grid-area: cell-ci; }
+.mismatch-grid > div:nth-of-type(8) { grid-area: cell-ic; }
+.mismatch-grid > div:nth-of-type(9) { grid-area: cell-ii; }
 
 @media (max-width: 1200px) { body { --base-font-size: 13px; } }
 @media (max-width: 991.98px) {

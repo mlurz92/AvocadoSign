@@ -1,48 +1,56 @@
-# Nodal Staging Analysis Tool (v5.0.0)
+# Nodal Staging Analysis Tool (v5.2.0-radiology-final)
 
-Dieses Repository enthält den Quellcode für das Analysewerkzeug **"Nodal Staging: Avocado Sign vs. T2 Criteria"**. Hierbei handelt es sich um eine eigenständige, clientseitige Webanwendung, die für die fortgeschrittene und reproduzierbare Forschung im Bereich der medizinischen Bildgebung, speziell für das Nodal-Staging des Rektumkarzinoms, entwickelt wurde.
+This repository contains the source code for the analysis tool **"Nodal Staging: Avocado Sign vs. T2 Criteria"**. This is a standalone, client-side web application designed for advanced, reproducible research in medical imaging, specifically for the nodal staging of rectal cancer.
 
-Für eine umfassende Anleitung zum wissenschaftlichen Hintergrund, den Anwendungsfunktionen, dem Benutzer-Workflow und den technischen Details lesen Sie bitte den detaillierten **[Anwendungsleitfaden](./docs/Application_Guide.md)**.
+**Live Application:** The application is directly accessible on the web at: **[avocadosign.pages.dev](https://avocadosign.pages.dev)**
 
-## 1. Projektübersicht
+For a comprehensive guide on the scientific background, application features, user workflow, and technical details, please refer to the detailed **[Application Guide](./docs/Application_Guide.md)**.
 
-### 1.1. Zweck
-Diese Anwendung dient als spezialisiertes Forschungsinstrument für die tiefgehende Analyse und den Vergleich der diagnostischen Leistungsfähigkeit verschiedener MRT-basierter Kriterien zur Beurteilung des mesorektalen Lymphknotenstatus (N-Status). Ihr primäres wissenschaftliches Ziel ist die rigorose Evaluierung eines neuartigen, kontrastmittelbasierten Markers – des **Avocado Signs (AS)** – im Vergleich zu einem umfassenden Spektrum morphologischer Kriterien aus T2-gewichteten (T2w) Sequenzen. Diese Vergleichsstandards umfassen sowohl etablierte, literaturbasierte Richtlinien (z.B. ESGAR, SAR) als auch datengestützte, rechnerisch optimierte Benchmarks.
+## 1. Project Overview
 
-### 1.2. Kernfunktionen
-*   **Interaktive Datenexploration:** Eine hochperformante, sortierbare und filterbare Tabellenansicht des vollständigen Patientendatensatzes mit erweiterbaren Details zu den Merkmalen einzelner Lymphknoten.
-*   **Dynamische Kriteriendefinition:** Ein interaktives Bedienfeld ermöglicht die Echtzeit-Definition und Kombination von T2w-Malignitätskriterien (Größe, Form, Rand, Homogenität) und den sie verbindenden logischen Operatoren (AND/OR).
-*   **Methodisch fundierte Vergleiche:** Ein robustes "Analyse-Kontext"-System stellt sicher, dass alle statistischen Vergleiche zwischen diagnostischen Methoden ausschließlich auf den korrekten, identischen Patientenkohorten durchgeführt werden – eine entscheidende Voraussetzung für die wissenschaftliche Validität.
-*   **Automatisierte Kriterienoptimierung:** Ein integrierter Brute-Force-Algorithmus, der in einem dedizierten Web Worker läuft, identifiziert systematisch die mathematisch optimale Kombination von T2w-Kriterien für eine vom Benutzer ausgewählte diagnostische Metrik (z.B. Balanced Accuracy, F1-Score).
-*   **Umfassende statistische Analyse:** Automatisierte Berechnung aller relevanten Metriken zur diagnostischen Leistungsfähigkeit (Sensitivität, Spezifität, PPV, NPV, Genauigkeit, AUC) einschließlich 95%-Konfidenzintervallen und geeigneten statistischen Vergleichstests (z.B. DeLong, McNemar).
-*   **Automatisierter Publikationsassistent:** Ein dediziertes Modul, das einen vollständigen, formatierten, englischsprachigen Manuskriptentwurf (einschließlich Text, Tabellen und Abbildungen) generiert, der sich präzise an die wissenschaftlichen Stilrichtlinien des Journals *Radiology* hält. Dies beinhaltet eine manuelle Bearbeitungsfunktion, um den Text vor dem Export zu finalisieren.
-*   **Vielseitige Exportfunktionalität:** Ermöglicht den Export des vollständigen Manuskripts als Markdown, einzelner Tabellen als Markdown und aller gerenderten Diagramme (Histogramme, Tortendiagramme, Balkendiagramme, ROC-Kurven, Flussdiagramme) als hochwertige Scalable Vector Graphics (SVG)-Dateien.
+### 1.1. Purpose
+This application serves as a specialized research instrument for the in-depth analysis and comparison of the diagnostic performance of various MRI-based criteria for assessing the mesorectal lymph node status (N-status). Its primary scientific goal is the rigorous evaluation of a novel, contrast-based marker—the **Avocado Sign (AS)**—in comparison to a comprehensive spectrum of morphological criteria from T2-weighted (T2w) sequences. These comparison standards include both established, literature-based guidelines (e.g., ESGAR, SAR) and data-driven, computationally optimized benchmarks.
 
-### 1.3. Haftungsausschluss: Nur für Forschungszwecke
-**Diese Anwendung ist ausschließlich für Forschungs- und Bildungszwecke konzipiert.** Die dargestellten Daten, Statistiken und generierten Texte basieren auf einem statischen, pseudonymisierten Forschungsdatensatz. **Die Ergebnisse dürfen unter keinen Umständen für die klinische Diagnosestellung, direkte Behandlungsentscheidungen oder andere primäre medizinische Anwendungen verwendet werden.** Die wissenschaftliche und klinische Verantwortung für die Interpretation und Nutzung der generierten Ergebnisse liegt allein beim Anwender.
+### 1.2. Core Features
+* **Interactive Data Exploration:** A high-performance, sortable, and filterable table view of the complete patient dataset with expandable details on individual lymph node characteristics.
+* **Dynamic Criteria Definition:** An interactive control panel allows for the real-time definition and combination of T2w malignancy criteria (size, shape, border, homogeneity) and their connecting logical operators (AND/OR).
+* **Automated Criteria Optimization:** An integrated brute-force algorithm, running in a dedicated Web Worker, systematically identifies the mathematically optimal combination of T2w criteria for a user-selected diagnostic metric.
+* **Advanced Statistical Insights (`Insights` Tab):**
+    * **Power Analysis:** Post-hoc calculation of statistical power and a priori estimation of the required sample size for future studies.
+    * **Mismatch Analysis:** An interactive 2x2 matrix for the qualitative investigation of cases where diagnostic methods yield different results.
+    * **Feature Importance Analysis:** Visualization of the predictive power of individual T2 features using odds ratios.
+* **Comprehensive Statistical Analysis:** Automated calculation of all relevant diagnostic performance metrics (sensitivity, specificity, PPV, NPV, accuracy, AUC) including 95% confidence intervals and appropriate statistical comparison tests (e.g., DeLong, McNemar).
+* **Automated Publication Assistant:** A dedicated module that generates a complete, formatted, English-language manuscript draft (including text, tables, and figures) that precisely adheres to the scientific style guidelines of the journal *Radiology* and integrates the power analysis results context-sensitively into the discussion.
+* **Versatile Export Functionality:** Enables the export of the full manuscript, individual tables (Markdown), and all charts (SVG).
 
-## 2. Setup und Nutzung
+### 1.3. Disclaimer: For Research Use Only
+**This application is designed for research and educational purposes only.** The presented data, statistics, and generated texts are based on a static, pseudonymized research dataset. **The results must not be used for clinical diagnosis, direct treatment decisions, or other primary medical applications under any circumstances.** The scientific and clinical responsibility for the interpretation and use of the generated results lies solely with the user.
 
-### 2.1. Systemanforderungen
-*   Ein moderner Desktop-Webbrowser (z.B. die neuesten Versionen von Google Chrome, Mozilla Firefox, Microsoft Edge oder Safari).
-*   Web-Worker-Unterstützung ist für die Brute-Force-Optimierungsfunktion erforderlich.
+## 2. Setup and Usage
 
-### 2.2. Installation
-Es ist keine Installation oder serverseitige Einrichtung erforderlich. Die Anwendung ist ein in sich geschlossenes Projekt, das vollständig im Browser des Clients ausgeführt wird.
+### 2.1. Live Application
+The easiest way to use the application is to access it directly via the browser:
+**[https://avocadosign.pages.dev](https://avocadosign.pages.dev)**
 
-1.  Klonen oder laden Sie dieses Repository auf Ihren lokalen Rechner herunter.
-2.  Öffnen Sie die Datei `index.html` in einem kompatiblen Webbrowser.
-3.  Beim ersten Start ist eine Internetverbindung erforderlich, um externe Bibliotheken (z.B. Bootstrap, D3.js) von ihren jeweiligen Content Delivery Networks (CDNs) zu laden.
+### 2.2. Local Usage
+For development purposes or offline use, the repository can be run locally.
+1.  Clone or download this repository to your local machine.
+2.  Open the `index.html` file in a compatible web browser.
+3.  An internet connection is required on the first start to load external libraries (e.g., Bootstrap, D3.js) from their respective Content Delivery Networks (CDNs).
 
-## 3. Technische Architektur
+### 2.3. System Requirements
+* A modern desktop web browser (e.g., the latest versions of Google Chrome, Mozilla Firefox, Microsoft Edge, or Safari).
+* Web Worker support is required for the brute-force optimization feature.
 
-Die Anwendung wurde mit Vanilla JavaScript (ES2020+) erstellt und folgt einer modularen Architektur, die Datenlogik, Servicefunktionen und UI-Rendering voneinander trennt. Dies gewährleistet Wartbarkeit und Skalierbarkeit.
+## 3. Technical Architecture
 
-*   **App Controller (`js/app/main.js`):** Der zentrale Orchestrator, der den Lebenszyklus der Anwendung, den Datenfluss und die UI-Updates verwaltet.
-*   **State Manager (`js/app/state.js`):** Ein zentralisiertes Modul zur Verwaltung des globalen Anwendungszustands, einschließlich der aktiven Kohorte, der Sortierpräferenzen und des entscheidenden "Analyse-Kontexts" zur Gewährleistung methodisch fundierter Vergleiche.
-*   **Kernmodule (`js/core/`):** Behandeln die grundlegende Datenverarbeitung, die Verwaltung der benutzerdefinierten T2-Kriterien und die Verwaltung der vordefinierten, literaturbasierten Kriterien.
-*   **Service-Schicht (`js/services/`):** Enthält die komplexe Geschäftslogik für statistische Berechnungen, die Brute-Force-Optimierung (die die Berechnung an einen Web Worker auslagert) und den umfassenden Dienst zur Publikationserstellung.
-*   **UI-Schicht (`js/ui/`):** Verantwortlich für das Rendern aller UI-Komponenten und Tabs. Sie generiert dynamisch HTML-Inhalte basierend auf dem aktuellen Anwendungszustand und den Daten.
-*   **Web Worker (`workers/`):** Die Datei `brute_force_worker.js` führt den rechenintensiven Optimierungsprozess in einem separaten Thread aus, um die Haupt-UI reaktionsschnell zu halten.
+The application is built with Vanilla JavaScript (ES2020+) and follows a modular architecture that separates data logic, service functions, and UI rendering. This ensures maintainability and scalability.
 
-Für eine detaillierte Aufschlüsselung jeder Datei und Funktion konsultieren Sie bitte den **[Anwendungsleitfaden](./docs/Application_Guide.md)**.
+* **App Controller (`js/app/main.js`):** The central orchestrator that manages the application lifecycle, data flow, and UI updates.
+* **State Manager (`js/app/state.js`):** A centralized module for managing the global application state, including the active cohort, sorting preferences, and the crucial "Analysis Context".
+* **Core Modules (`js/core/`):** Handle the fundamental data processing and the management of the various criteria sets.
+* **Service Layer (`js/services/`):** Contains the complex business logic for statistical calculations, the brute-force optimization, and the publication service.
+* **UI Layer (`js/ui/`):** Responsible for rendering all UI components and tabs, including the new `insights_tab.js`.
+* **Web Worker (`workers/brute_force_worker.js`):** The `brute_force_worker.js` file runs the computationally intensive optimization process in a separate thread to keep the main UI responsive.
+
+For a detailed breakdown of each file and function, please consult the **[Application Guide](./docs/Application_Guide.md)**.

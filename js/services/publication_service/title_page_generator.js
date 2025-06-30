@@ -5,7 +5,7 @@ window.titlePageGenerator = (() => {
         const overallStats = stats?.[window.APP_CONFIG.COHORTS.OVERALL.id];
         const helpers = window.publicationHelpers;
 
-        const title = "Contrast-enhanced MRI versus T2-based Criteria for Nodal Staging in Rectal Cancer";
+        const title = "Contrast-enhanced versus T2-weighted MRI for Predicting Nodal Status in Rectal Cancer";
         const authors = "Markus Lurz, MD • Arnd-Oliver Schäfer, MD";
         const institution = "Department of Radiology and Nuclear Medicine, St. Georg Hospital, Leipzig, Germany";
         const correspondingAuthor = {
@@ -36,14 +36,14 @@ window.titlePageGenerator = (() => {
             const overallSens = overallStats?.performanceAS?.sens;
             const overallSpec = overallStats?.performanceAS?.spec;
 
-            summaryStatementHTML = `<p><strong>In a retrospective study of ${nOverall} patients with rectal cancer, a novel contrast-enhanced MRI feature for predicting nodal status yielded a greater area under the receiver operating characteristic curve than both an optimized T2-based benchmark and currently recommended T2 criteria from the literature.</strong></p>`;
+            summaryStatementHTML = `<p><strong>In a retrospective study of ${nOverall} patients with rectal cancer, a novel contrast-enhanced MRI feature for predicting nodal status yielded a greater area under the receiver operating characteristic curve than both an optimized T2-based benchmark and recommended T2 criteria from Key studies.</strong></p>`;
             
             keyResultsHTML = `
                 <h4 style="font-size: 1.1rem; font-weight: bold; margin-top: 1.5rem;">Key Results</h4>
                 <ul style="padding-left: 20px; margin-top: 0.5rem; list-style-position: inside; text-align: left;">
                     <li>In a retrospective analysis of ${nOverall} patients with rectal cancer, a contrast-enhanced MRI feature (the Avocado Sign) predicted patient-level mesorectal nodal status with a sensitivity of ${helpers.formatMetricForPublication(overallSens, 'sens', { includeCI: false, includeCount: true })} and a specificity of ${helpers.formatMetricForPublication(overallSpec, 'spec', { includeCI: false, includeCount: true })}.</li>
                     <li>The diagnostic performance of the Avocado Sign was superior to that of a computationally optimized, data-driven T2-based benchmark for the overall cohort (area under the receiver operating characteristic curve [AUC], ${helpers.formatValueForPublication(asOverallAUC, 2, false, true)} vs ${helpers.formatValueForPublication(bfT2OverallAUC, 2, false, true)}; ${helpers.formatPValueForPublication(bfComparisonPValue)}).</li>
-                    <li>The Avocado Sign also demonstrated a greater AUC than the currently recommended T2-based ESGAR criteria for the overall cohort (AUC, ${helpers.formatValueForPublication(asOverallAUC, 2, false, true)} vs ${helpers.formatValueForPublication(esgarHybridAUC, 2, false, true)}; ${helpers.formatPValueForPublication(esgarHybridComparisonPValue)}).</li>
+                    <li>The Avocado Sign also demonstrated a greater AUC than the recommended T2-based ESGAR criteria for the overall cohort (AUC, ${helpers.formatValueForPublication(asOverallAUC, 2, false, true)} vs ${helpers.formatValueForPublication(esgarHybridAUC, 2, false, true)}; ${helpers.formatPValueForPublication(esgarHybridComparisonPValue)}).</li>
                 </ul>
             `;
         }

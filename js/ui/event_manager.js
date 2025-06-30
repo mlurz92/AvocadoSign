@@ -17,6 +17,12 @@ window.eventManager = (() => {
         }
     }, 500);
 
+    const debouncedPowerAnalysisRender = debounce(() => {
+        if (window.insightsTab) {
+            window.insightsTab.renderPowerAnalysis(app.allPublicationStats);
+        }
+    }, 350);
+
     function init(appInstance) {
         app = appInstance;
         document.body.addEventListener('click', handleBodyClick);
@@ -53,6 +59,12 @@ window.eventManager = (() => {
         if (target.closest('.publication-section-link')) {
             event.preventDefault();
             app.handlePublicationSectionChange(target.closest('.publication-section-link').dataset.sectionId);
+            return;
+        }
+        
+        const mismatchCell = target.closest('.mismatch-cell[data-action="show-mismatch-details"]');
+        if (mismatchCell) {
+            app.showMismatchDetails(mismatchCell.dataset.mismatchKey);
             return;
         }
 
@@ -122,7 +134,11 @@ window.eventManager = (() => {
             'statistics-cohort-select-1': () => handleStatsCohortChange(target),
             'statistics-cohort-select-2': () => handleStatsCohortChange(target),
             'comp-study-select': () => handleComparisonStudyChange(target.value),
-            'publication-bf-metric-select': () => handlePublicationBfMetricChange(target.value)
+            'publication-bf-metric-select': () => handlePublicationBfMetricChange(target.value),
+            'power-analysis-study-select': () => handlePowerAnalysisStudyChange(target.value),
+            'mismatch-analysis-study-select': () => handleMismatchAnalysisStudyChange(target.value),
+            'power-mode-posthoc': () => window.insightsTab.renderPowerAnalysis(app.allPublicationStats),
+            'power-mode-samplesize': () => window.insightsTab.renderPowerAnalysis(app.allPublicationStats)
         };
         
         if (changeActions[target.id]) {
@@ -132,6 +148,10 @@ window.eventManager = (() => {
 
         if (target.name === 'comparisonView') {
             handleComparisonViewChange(target.value);
+            return;
+        }
+        if (target.name === 'insightsView') {
+            handleInsightsViewChange(target.value);
             return;
         }
     }
@@ -154,6 +174,8 @@ window.eventManager = (() => {
             debouncedUpdateSizeInput(newValue);
         } else if (target.id === 'publication-content-wrapper') {
             debouncedUpdateWordCount();
+        } else if (['power-alpha', 'power-target', 'power-effect-size'].includes(target.id)) {
+            debouncedPowerAnalysisRender();
         }
     }
 
@@ -209,6 +231,24 @@ window.eventManager = (() => {
     function handleComparisonStudyChange(studyId) {
         if (window.state.setComparisonStudyId(studyId)) {
             app.refreshCurrentTab();
+        }
+    }
+    
+    function handleInsightsViewChange(view) {
+        if (window.state.setInsightsView(view)) {
+            app.refreshCurrentTab();
+        }
+    }
+
+    function handlePowerAnalysisStudyChange(studyId) {
+        if (window.state.setInsightsPowerStudyId(studyId)) {
+            if(window.insightsTab) window.insightsTab.renderPowerAnalysis(app.allPublicationStats);
+        }
+    }
+    
+    function handleMismatchAnalysisStudyChange(studyId) {
+        if (window.state.setInsightsMismatchStudyId(studyId)) {
+            if(window.insightsTab) window.insightsTab.renderMismatchAnalysis(app.allPublicationStats, app.getProcessedData());
         }
     }
 

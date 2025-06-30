@@ -73,7 +73,7 @@ class App {
                 stardGenerator: window.stardGenerator, publicationService: window.publicationService, uiManager: window.uiManager, 
                 uiComponents: window.uiComponents, tableRenderer: window.tableRenderer, chartRenderer: window.chartRenderer, 
                 flowchartRenderer: window.flowchartRenderer, dataTab: window.dataTab, analysisTab: window.analysisTab, 
-                statisticsTab: window.statisticsTab, comparisonTab: window.comparisonTab, 
+                statisticsTab: window.statisticsTab, comparisonTab: window.comparisonTab, insightsTab: window.insightsTab,
                 eventManager: window.eventManager, APP_CONFIG: window.APP_CONFIG, 
                 PUBLICATION_CONFIG: window.PUBLICATION_CONFIG
             };
@@ -173,7 +173,7 @@ class App {
         const logic = window.t2CriteriaManager.getAppliedLogic();
         const bruteForceResults = window.bruteForceManager.getAllResults();
         this.allPublicationStats = window.statisticsService.calculateAllPublicationStats(this.processedData, criteria, logic, bruteForceResults);
-        this.preRenderedPublicationHTML = null; // Invalidate cache
+        this.preRenderedPublicationHTML = null;
     }
 
     _generatePublicationHTML() {
@@ -310,6 +310,7 @@ class App {
             case 'analysis': window.uiManager.renderTabContent('analysis', () => window.analysisTab.render(currentDataForTab, window.t2CriteriaManager.getCurrentCriteria(), window.t2CriteriaManager.getCurrentLogic(), window.state.getAnalysisTableSort(), activeCohort, window.bruteForceManager.isWorkerAvailable(), this.allPublicationStats[activeCohort], allBruteForceResults)); break;
             case 'statistics': window.uiManager.renderTabContent('statistics', () => window.statisticsTab.render(this.processedData, criteria, logic, window.state.getStatsLayout(), window.state.getStatsCohort1(), window.state.getStatsCohort2(), globalCohort)); break;
             case 'comparison': window.uiManager.renderTabContent('comparison', () => window.comparisonTab.render(window.state.getComparisonView(), currentComparisonData, window.state.getComparisonStudyId())); break;
+            case 'insights': window.uiManager.renderTabContent('insights', () => window.insightsTab.render(this.allPublicationStats, this.processedData)); break;
             case 'publication': window.uiManager.renderTabContent('publication', () => window.publicationTab.render(publicationData, window.state.getPublicationSection(), window.state.getPublicationEditMode(), window.state.getEditedManuscriptHTML())); break;
             case 'export': window.uiManager.renderTabContent('export', () => window.exportTab.render()); break;
         }
@@ -383,6 +384,51 @@ class App {
         const resultData = window.bruteForceManager.getResultsForCohortAndMetric(targetCohortId, metric);
         window.uiManager.updateElementHTML('brute-force-modal-body', window.uiComponents.createBruteForceModalContent(resultData));
         if (this.bruteForceModal) {
+            const modalTitleEl = document.getElementById('bruteForceModalLabel');
+            if (modalTitleEl) {
+                modalTitleEl.textContent = 'Brute-Force Optimization Results';
+            }
+            this.bruteForceModal.show();
+        }
+    }
+
+    showMismatchDetails(mismatchKey) {
+        const mismatchData = window.state.getMismatchData();
+        if (!mismatchData || !mismatchData[mismatchKey]) {
+            window.uiManager.showToast('Could not find data for this mismatch category.', 'warning');
+            return;
+        }
+    
+        const patientList = mismatchData[mismatchKey];
+        const texts = window.APP_CONFIG.UI_TEXTS.insightsTab.mismatchAnalysis;
+        
+        const keyToLabelMap = {
+            'concordantCorrect': texts.concordantCorrect,
+            'asSuperior': texts.asSuperior,
+            't2Superior': texts.t2Superior,
+            'concordantIncorrect': texts.concordantIncorrect
+        };
+
+        const title = `Patients in Category: ${keyToLabelMap[mismatchKey] || mismatchKey}`;
+    
+        let contentHTML = `<p>Found ${patientList.length} patients in this category.</p>`;
+        if (patientList.length > 0) {
+            contentHTML += '<ul class="list-group list-group-flush">';
+            patientList.forEach(p => {
+                contentHTML += `<li class="list-group-item d-flex justify-content-between align-items-center small">
+                    <span>ID: ${p.id} - ${p.lastName}, ${p.firstName}</span>
+                    <span class="badge bg-secondary rounded-pill">N: ${p.nStatus} | AS: ${p.asStatus} | T2: ${p.t2Status}</span>
+                </li>`;
+            });
+            contentHTML += '</ul>';
+        }
+    
+        const modalTitleEl = document.getElementById('bruteForceModalLabel');
+        if (modalTitleEl) {
+            modalTitleEl.textContent = title;
+        }
+        window.uiManager.updateElementHTML('brute-force-modal-body', contentHTML);
+        if (this.bruteForceModal) {
             this.bruteForceModal.show();
         }
     }
@@ -431,6 +477,13 @@ class App {
                 
                 const genderData = [{label: 'Male', value: desc.sex.m ?? 0}, {label: 'Female', value: desc.sex.f ?? 0}];
                 chartTasks.push(() => window.chartRenderer.renderPieChart(genderData, tempGenderId));
+                
+                if(stats.associationsApplied) {
+                    const tempFeatureId = `export-feature-${cohortId}`;
+                    hiddenContainer.innerHTML += `<div id="${tempFeatureId}" style="width: 450px; height: 350px;"></div>`;
+                    const dataForChart = Object.values(stats.associationsApplied).filter(item => item.or && isFinite(item.or.value));
+                    chartTasks.push(() => window.chartRenderer.renderFeatureImportanceChart(dataForChart, tempFeatureId));
+                }
             }
         });
 
@@ -465,7 +518,7 @@ class App {
         window.uiManager.showToast('Preparing charts for export...', 'info', 2000);
         await this._ensureChartsAreRenderedForExport();
 
-        const allChartContainerIds = Array.from(document.querySelectorAll('[id^="chart-"], [id*="-chart-"], [id$="-chart"]')).map(el => el.id);
+        const allChartContainerIds = Array.from(document.querySelectorAll('[id^="chart-"], [id*="-chart-"], [id$="-chart"], [id^="export-"]')).map(el => el.id);
         const uniqueChartIds = [...new Set(allChartContainerIds)];
 
         window.exportService.exportChartsAsSvg(uniqueChartIds);
