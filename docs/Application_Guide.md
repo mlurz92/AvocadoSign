@@ -1,149 +1,141 @@
-# Application Guide: Nodal Staging Analysis Tool (Version 5.2.0-radiology-final)
+# Anwendungsbeschreibung: Nodal Staging Analysis Tool
+**Version: 5.3.0-ajr-publication-final**
 
-## 1. Introduction
+## Teil 1: Einleitung und Grundkonzepte
 
-### 1.1. Purpose and Scope
-The **Nodal Staging: Avocado Sign vs. T2 Criteria** analysis tool is a specialized, client-side web application designed as a scientific research instrument for the radiological diagnostics of rectal cancer. It provides an interactive platform for the in-depth analysis and comparison of the diagnostic performance of various MRI-based criteria for assessing the mesorectal lymph node status (N-status).
+### 1.1. Wissenschaftlicher Auftrag der Anwendung
 
-The scientific focus of the application is the rigorous evaluation of the innovative, contrast-based **Avocado Sign (AS)** in direct comparison with a comprehensive spectrum of morphological criteria from T2-weighted (T2w) sequences. These comparison standards include:
-* **Established, Literature-Based Criteria:** Guidelines and criteria from influential studies and professional societies (e.g., ESGAR 2016, SAR Restaging).
-* **Data-Driven, Cohort-Specific Optimized Criteria:** Computationally determined "best-case" scenarios for T2w criteria, identified for each specific patient cohort via an integrated brute-force analysis.
+Das **Nodal Staging Analysis Tool** ist eine interaktive, webbasierte Forschungsumgebung, die speziell für die wissenschaftliche Untersuchung der MRT-basierten Diagnostik des Rektumkarzinoms entwickelt wurde. Ihr primäres Ziel ist die rigorose und reproduzierbare Analyse der diagnostischen Leistungsfähigkeit verschiedener Kriterien zur Bestimmung des mesorektalen Lymphknotenstatus (N-Status) auf Patientenebene.
 
-The application supports the entire scientific workflow—from initial data exploration to detailed statistical and advanced analysis, culminating in the creation of a complete, publication-ready manuscript draft formatted according to the style guidelines of the journal *Radiology*. The application is live at **[avocadosign.pages.dev](https://avocadosign.pages.dev)**.
+Der wissenschaftliche Kern der Anwendung ist die vergleichende Evaluation des neuartigen, kontrastmittelgestützten **Avocado Signs (AS)**. Um eine umfassende Validierung zu gewährleisten, wird die Performance des AS gegen ein mehrstufiges System von T2-gewichteten (T2w) Vergleichsstandards gemessen:
 
-### 1.2. Important Notice: For Research Use Only
-**Disclaimer:** This application is designed for **research and educational purposes only**. The presented data, statistics, and generated texts are based on a static, pseudonymized research dataset. **The results must not be used for clinical diagnosis, direct treatment decisions, or other primary medical applications under any circumstances.** The scientific and clinical responsibility for the interpretation and use of the generated results lies solely with the user.
+1.  **Etablierte Literatur-Kriterien:** Direkt in der Anwendung implementierte und validierte Kriterien aus einflussreichen Publikationen und Konsensus-Empfehlungen von Fachgesellschaften (z. B. ESGAR, SAR).
+2.  **Optimierter Daten-Benchmark:** Ein computergestützt ermitteltes "Best-Case-Szenario" für T2w-Kriterien. Mittels einer integrierten Brute-Force-Analyse identifiziert die Anwendung für jede Patientenkohorte die mathematisch leistungsstärkste Kombination aus morphologischen Merkmalen und logischen Verknüpfungen.
 
-## 2. Global UI Concepts and Operating Philosophy
+Die Anwendung unterstützt den gesamten wissenschaftlichen Prozess: von der explorativen Datenanalyse und interaktiven Kriteriendefinition über tiefgehende statistische Vergleiche bis hin zur automatisierten Generierung eines vollständigen, publikationsreifen Manuskriptentwurfs. Dieser Entwurf ist speziell auf die formalen und stilistischen Anforderungen des **American Journal of Roentgenology (AJR)** zugeschnitten.
 
-The user interface is designed to facilitate an intuitive and methodologically sound scientific workflow.
+### 1.2. Wichtiger Nutzungshinweis
 
-### 2.1. Application Layout
-* **Header:** A fixed header at the top contains the application title, a button for the "Quick Guide," and the controls for global cohort selection.
-* **Navigation Bar (Tabs):** Below the header, a horizontal navigation bar with tabs allows for quick switching between the seven main modules: `Data`, `Analysis`, `Statistics`, `Comparison`, `Insights`, `Publication`, and `Export`.
-* **Content Area:** The central workspace where the specific contents and tools of the currently active tab are displayed.
+**Haftungsausschluss:** Dieses Tool ist ausschließlich für wissenschaftliche Forschungs- und Lehrzwecke bestimmt. Die dargestellten Daten, Statistiken und generierten Texte basieren auf einem statischen, pseudonymisierten Forschungsdatensatz. **Die Ergebnisse und Funktionen dürfen unter keinen Umständen zur klinischen Diagnosestellung, zur direkten Behandlungsplanung oder für andere primärmedizinische Zwecke herangezogen werden.** Die wissenschaftliche, klinische und ethische Verantwortung für die Interpretation und Verwendung der Ergebnisse liegt vollumfänglich beim Anwender.
 
-### 2.2. Global Cohort Context vs. Analysis Context
-The application uses a crucial dual system to ensure both user flexibility and scientific rigor:
+### 1.3. Das fundamentale Bedienkonzept: Das Dual-Kontext-System
 
-* **Global Cohort Context:** Three buttons in the header (`Overall`, `Surgery alone`, `Neoadjuvant therapy`) filter the entire dataset for general exploration in the `Data`, `Analysis`, and `Statistics` (in "Single View") tabs. This selection represents the primary, user-defined view of the data.
+Für eine methodisch saubere Analyse ist das Verständnis des dualen Kontext-Systems der Anwendung essenziell. Es wurde entwickelt, um maximale Flexibilität bei der Datenexploration zu ermöglichen und gleichzeitig absolute wissenschaftliche Strenge bei statistischen Vergleichen zu garantieren.
 
-* **Analysis Context (Methodological Lock):** For specific, scientifically valid comparisons, the application automatically activates a temporary **Analysis Context**. This is a core feature of the `Comparison` and `Insights` tabs, as well as the "Comparison View" of the `Statistics` tab.
-    * **Activation:** When a literature-based T2 criterion is selected for comparison (e.g., ESGAR 2016), the application automatically sets the context to the methodologically correct patient cohort (e.g., "Surgery alone"). Similarly, selecting a data-driven "Best Case" criterion locks the context to the cohort on which it was optimized.
-    * **Effect:** While an Analysis Context is active, the global cohort selection buttons in the header are **disabled (locked)** to prevent invalid comparisons. All statistical calculations and charts within this context are performed exclusively on the locked cohort.
-    * **Transparency:** A highly visible banner within the active tab clearly indicates which context is active (e.g., "Analysis is locked to the 'Surgery alone' cohort (N=27)"), keeping the user informed about the exact patient group at all times.
-    * **Deactivation:** The context is automatically cleared when switching to a non-context-specific tab (like `Data` or `Publication`).
+*   **Globaler Kohorten-Kontext:**
+    *   **Steuerung:** Erfolgt über die drei Haupt-Buttons im Anwendungs-Header: `Overall`, `Surgery alone`, `Neoadjuvant therapy`.
+    *   **Zweck:** Dient der allgemeinen, explorativen Analyse. Eine hier getroffene Auswahl filtert den Datensatz, der in den Tabs `Data` und `Analysis` sowie in der "Single View" des `Statistics`-Tabs angezeigt wird. Dies ist der primäre, vom Nutzer frei wählbare Arbeitskontext.
 
-This system guarantees that direct statistical tests between diagnostic methods (like DeLong or McNemar) are always performed on the same, appropriate patient group, which is a critical prerequisite for a valid scientific publication.
+*   **Analyse-Kontext (Die methodische Sperre):**
+    *   **Aktivierung:** Dieser Kontext wird **automatisch** aktiviert, sobald der Nutzer eine Analyse durchführt, die einen methodisch sauberen Vergleich erfordert. Dies geschieht in folgenden Situationen:
+        *   Im `Comparison`-Tab, wenn ein T2-Kriterienset für den Vergleich mit dem AS ausgewählt wird.
+        *   Im `Insights`-Tab, wenn Module wie die "Power Analysis" aufgerufen werden, die auf einem spezifischen Vergleich basieren.
+        *   Im `Statistics`-Tab in der "Comparison View", die zwei Kohorten direkt gegenüberstellt.
+    *   **Zweck:** Der Analyse-Kontext stellt sicher, dass statistische Vergleichstests (z.B. DeLong-Test) ausschließlich auf der korrekten, für diese spezifische Fragestellung validen Patientenkohorte durchgeführt werden. Wählt man z.B. ein Literatur-Kriterium, das nur für primär operierte Patienten validiert wurde, sperrt die Anwendung den Datenkontext temporär auf die "Surgery alone"-Kohorte.
+    *   **Visuelles Feedback:** Während ein Analyse-Kontext aktiv ist, werden die globalen Kohorten-Buttons im Header **deaktiviert und ausgegraut**. Ein gut sichtbares, blaues Informationsbanner erscheint im aktiven Tab und informiert den Nutzer präzise über den aktiven Zustand, z.B.: `Analysis Context Active: Comparing against ESGAR 2016 (Surgery alone). Analysis is locked to the Surgery alone cohort (N=29) to ensure a methodologically valid comparison.`
+    *   **Deaktivierung:** Die Sperre wird automatisch aufgehoben, sobald der Nutzer zu einem Tab wechselt, der keinen spezifischen Vergleichskontext erfordert (z.B. zurück zu `Data` oder `Publication`).
 
-### 2.3. Interactive Help
-* **Tooltips:** Nearly all UI elements (buttons, table headers, metrics) are equipped with detailed tooltips that explain their function or provide a formal definition on mouse-over.
-* **Quick Guide:** The **?** button in the header opens a modal window with a comprehensive quick guide to all features.
+Dieses System ist das Herzstück der methodischen Integrität der Anwendung und verhindert fehlerhafte wissenschaftliche Schlussfolgerungen.
 
-## 3. The Application Modules in Detail (Tabs)
+### 1.4. Initialer Start und Setup
 
-### 3.1. Data Tab
-* **Purpose:** To view, sort, and explore the underlying patient dataset based on the **global cohort selection**.
-* **Components & Workflow:**
-    * **Patient Table:** An interactive, sortable table lists all patients of the selected global cohort. Columns include ID, Name, Sex, Age, Therapy, a combined N/AS/T2 status, and notes.
-    * **Sorting:** Clicking on the column headers sorts the table. The "N/AS/T2" column offers special sub-sorting by clicking the "N", "AS", or "T2" labels in the column header.
-    * **Detail View (Lymph Nodes):** Rows of patients with T2 lymph node data are expandable (by clicking the row or the arrow icon) to display a detailed list of the morphological properties of each node (size, shape, border, homogeneity, signal).
-    * **"Expand/Collapse All Details" Button:** Toggles the detail view for all patients in the table simultaneously.
+Beim ersten Start der Anwendung oder wenn keine zwischengespeicherten Analyseergebnisse vorhanden sind, wird ein Dialogfenster angezeigt:
 
-### 3.2. Analysis Tab
-* **Purpose:** To interactively define T2 criteria, perform optimization analyses, and examine the effects of the criteria at the patient level. This tab always operates based on the **global cohort selection**.
-* **Components & Workflow:**
-    * **Dashboard:** Provides a graphical overview of age, sex, therapy, and status marker distributions for the current global cohort.
-    * **"Define T2 Malignancy Criteria" Card:** The interactive tool for defining T2 criteria.
-        * **Criteria Configuration:** Features (size, shape, border, homogeneity, signal) can be enabled/disabled via checkboxes. Their specific values (e.g., size threshold, shape value) can be adjusted using a slider or buttons.
-        * **Logic Switch:** A switch allows changing the logical operator connecting the active criteria between **AND** (all active criteria must be met) and **OR** (at least one active criterion must be met).
-        * **"Apply & Save" Button:** Applies the configured T2 criteria and logic globally to the entire application state and saves them to the browser's local storage for future sessions. An unsaved state is indicated by a dashed card border.
-    * **"Diagnostic Performance (Current T2)" Card:** Shows the diagnostic performance (sensitivity, specificity, PPV, NPV, accuracy, AUC) of the currently defined T2 settings in real-time, providing immediate feedback on criteria changes.
-    * **Brute-Force Optimization:**
-        1.  **"Criteria Optimization (Brute-Force)" Card (Runner):** This is where a new optimization analysis can be started. The user selects a target metric (e.g., "Balanced Accuracy") and starts the process. A progress bar shows the status. Upon completion, the best found criteria can be directly applied ("Apply Best") or the top results can be viewed in a detail window ("Top 10").
-        2.  **"Brute-Force Optima (Saved Results)" Card (Overview):** This table provides a persistent overview of the **best saved results** for each cohort and each target metric that has already been run. Each result can be loaded into the "Define T2 Malignancy Criteria" panel by clicking the associated "Apply" button.
-        3. **Intelligent Cohort Switching:** When you click "Apply" for a saved result, the application not only loads the criteria but also **automatically switches the global cohort** to match the cohort on which the optimization was originally performed. This ensures that the user immediately views the criteria in their most relevant context.
+*   **Initial Analysis Setup:** Dieses Modal informiert den Nutzer darüber, dass für die Erstellung eines vollständigen Publikationsentwurfs eine einmalige, rechenintensive "Brute-Force-Analyse" für jede Patientenkohorte erforderlich ist.
+    *   **Aktion `Yes, start the analysis`:** Startet die automatische, sequenzielle Analyse aller drei Kohorten. Ein Fortschrittsmodal wird angezeigt, das den genauen Verlauf visualisiert.
+    *   **Aktion `No, I'll do it manually later`:** Schließt das Modal. Der Nutzer kann die Analyse später manuell im `Analysis`-Tab für jede Kohorte einzeln starten.
 
-### 3.3. Statistics Tab
-* **Purpose:** Provides a formal and comprehensive statistical evaluation of the diagnostic performance.
-* **Components & Workflow:**
-    * **View Switcher ("Single View" / "Comparison View"):** Toggles between the analysis of a single cohort (based on the **global cohort selection**) and the direct statistical comparison of two user-selectable cohorts.
-    * **Statistics Cards (in both views):** Present detailed results on:
-        * **Descriptive Statistics:** Demographics, status distributions, and lymph node counts for the selected cohort(s).
-        * **Diagnostic Performance:** Detailed metrics (Sens, Spec, PPV, NPV, Acc, AUC, F1) with 95% confidence intervals for both the Avocado Sign and the applied T2 criteria.
-        * **Statistical Comparison:** McNemar and DeLong tests for comparing AS vs. applied T2 criteria.
-        * **Association Analysis:** Odds Ratios and Risk Differences for individual features.
-        * **Added Diagnostic Value:** A special analysis card (for the 'Surgery alone' cohort) that shows how well the Avocado Sign performs in cases where the standard ESGAR 2016 T2 criteria failed.
-    * **Criteria Comparison Table (in "Single View" only):** This table compares the performance of the Avocado Sign with the applied T2 criteria and predefined criteria sets from the literature. For literature-based criteria, the application automatically retrieves the performance data calculated on the **methodologically correct cohort** and transparently labels this in the table (e.g., "ESGAR 2016 (Surgery alone, n=27)"), even if it differs from the currently selected global cohort.
+---
 
-### 3.4. Comparison Tab
-* **Purpose:** Visually formats selected analysis results for presentations and direct comparisons, while enforcing methodological correctness via the **Analysis Context**.
-* **Components & Workflow:**
-    * **View Selection:** Radio buttons allow focusing on either the standalone performance of AS across all cohorts ("AS Performance") or the direct comparison with T2 criteria ("AS vs. T2 Comparison").
-    * **Selection of T2 Comparison Basis:** In "AS vs. T2" mode, the user can select the T2 criteria set for comparison from a dropdown menu. This list includes all literature-based criteria and the data-driven "Best Case" criteria for each cohort.
-    * **Automatic Context Switching:** When a T2 criteria set is selected for comparison, the application automatically establishes an **Analysis Context**. It locks the cohort to the one most appropriate for that criterion (e.g., "Surgery alone" for ESGAR criteria) to ensure a methodologically sound comparison.
-    * **Dynamic Content:** Automatically generates:
-        * A **Comparison Chart (Bar Chart)** that visualizes five key performance metrics (Sensitivity, Specificity, PPV, NPV, AUC) for both AS and the selected T2 criteria.
-        * A **Performance Metrics Table** with detailed values, 95% confidence intervals, and a dedicated p-value column for the direct statistical comparison of each metric.
-        * An **Info Card on the Comparison Basis**, which details the source and definition of the selected T2 criteria set.
+## Teil 2: Die Anwendungsmodule im Detail (Tab-Struktur)
 
-### 3.5. Insights Tab
-* **Purpose:** Provides advanced statistical analyses for deeper interpretation of study results and for planning future research. This tab also uses the **Analysis Context**.
-* **Components & Workflow:**
-    * **View Selection:** Switches between the three analysis modules: "Power Analysis", "Mismatch Analysis", and "Feature Importance".
-    * **Power Analysis:**
-        * **Purpose:** Assesses the statistical power of the performed comparisons.
-        * **Functions:** Offers a "Post-hoc" mode to calculate the achieved power of the study (important for non-significant results) and a "Sample Size" mode to estimate the required sample size for future studies.
-        * **Controls:** The user selects a T2 criteria set; the analysis is automatically performed on the correct cohort.
-    * **Mismatch Analysis:**
-        * **Purpose:** Enables the qualitative investigation of cases where the Avocado Sign and T2 criteria make different predictions.
-        * **Display:** An interactive 2x2 matrix shows the number of patients in four categories (both correct, both incorrect, only AS correct, only T2 correct). Clicking on a cell lists the corresponding patient IDs for further investigation.
-    * **Feature Importance:**
-        * **Purpose:** Visualizes the relative influence of each individual T2 feature (e.g., size, border characteristics) on the prediction of the nodal status.
-        * **Display:** A bar chart shows the odds ratios for each feature, allowing a quick assessment of predictive strength.
+Die Anwendung ist in sieben spezialisierte Module (Tabs) gegliedert.
 
-### 3.6. Publication Tab
-* **Purpose:** An integrated assistant for creating a complete scientific manuscript draft according to the style guidelines of the journal *Radiology*.
-* **Components & Workflow:**
-    * **Title Page & Outline:** The view is structured like a manuscript, starting with a *Radiology*-compliant title page (including Key Results and an automatically generated list of abbreviations) and is clearly divided into main sections (Abstract, Introduction, Materials and Methods, etc.), navigable via a fixed sidebar.
-    * **Dynamic Text Generation:** The application generates professionally formulated, English-language text for each section. It dynamically integrates the **most current analysis results** (from comparisons with literature-based and data-driven criteria) and correctly formats all values, statistical tests, and citations according to the journal style (e.g., *P* < .001). The results of the power analysis are context-sensitively inserted into the discussion where appropriate.
-    * **Embedded Content:** Tables and figures (including a STARD-compliant flowchart) are generated and embedded directly into the text flow at the appropriate locations.
-    * **BF Metric Selection:** A dropdown menu allows the user to select which brute-force optimization result (e.g., optimized for Balanced Accuracy or F1-Score) should be cited in the text as the "data-driven benchmark".
-    * **Word Count Monitoring:** The navigation bar displays a live word/element count for each section with a defined limit, providing color-coded feedback (green/orange/red) to support adherence to the strict submission guidelines of *Radiology*.
-    * **Manual Editing:**
-        * **Edit Button:** Activates a `contenteditable` mode for the entire manuscript body, allowing for direct manual changes to the text.
-        * **Save Button:** Saves the manually edited version of the manuscript to the browser's local storage. This saved version will be loaded on subsequent visits.
-        * **Reset Button:** Discards all manual changes and reverts the manuscript to the original, auto-generated version.
+### 2.1. Data-Tab
 
-### 3.7. Export Tab
-* **Purpose:** Provides functionalities for exporting various components of the generated publication and analysis results for use in other applications.
-* **Components & Workflow:**
-    * **"Export Full Manuscript as Markdown" Button:** Initiates the download of the entire generated manuscript, including all text and formatted tables (figures are included as text descriptions), as a single Markdown file (`.md`). If the manuscript has been manually edited and saved, the edited version will be exported.
-    * **"Export Tables as Markdown" Button:** Extracts all tables embedded in the generated manuscript content, converts each to the Markdown table format, and downloads them as individual Markdown files (`.md`). Each file is named based on its table caption.
-    * **"Export Charts as SVG" Button:** Collects all dynamically rendered charts (histograms, pie charts, bar charts, ROC curves, flowcharts) from the entire application, extracts their underlying SVG (Scalable Vector Graphics) code, and downloads each as a separate, high-quality SVG file (`.svg`), ideal for use in publications and presentations.
+*   **Zweck:** Ansicht, Sortierung und Exploration des pseudonymisierten Patientendatensatzes. Arbeitet immer im **globalen Kohorten-Kontext**.
+*   **Komponenten und Funktionen:**
+    *   **Patiententabelle:** Eine voll interaktive Tabelle zeigt die Patienten der ausgewählten globalen Kohorte.
+        *   **Spalten:** ID, Nachname, Vorname, Geschlecht, Alter, Therapie, N/AS/T2-Status (kompakter Überblick über den Befund von Pathologie, Avocado Sign und T2-Kriterien) und klinische Notizen.
+        *   **Sortierung:** Ein Klick auf einen Spaltenkopf sortiert die Tabelle auf- oder absteigend. Ein visueller Indikator (Pfeil-Icon) zeigt die aktive Sortierung an.
+        *   **Spezial-Sortierung:** Die Spalte "N/AS/T2" ermöglicht eine Sub-Sortierung. Ein Klick auf die kleinen Labels `N`, `AS` oder `T2` im Spaltenkopf sortiert die Tabelle spezifisch nach dem jeweiligen Status.
+    *   **Detailansicht (Lymphknoten-Merkmale):** Bei Patienten mit erfassten T2-Lymphknoten ist die Tabellenzeile klickbar (erkennbar am `>`-Icon am Zeilenende). Ein Klick expandiert die Zeile und legt eine detaillierte Liste aller individuellen T2-Lymphknoten dieses Patienten frei. Für jeden Knoten werden seine morphologischen Eigenschaften (Größe, Form, Rand, Homogenität, Signalintensität) mit entsprechenden Icons und Werten angezeigt.
+    *   **"Expand/Collapse All Details"-Button:** Ein globaler Schalter oberhalb der Tabelle, um die Detailansicht für alle Patienten in der aktuellen Ansicht gleichzeitig zu öffnen oder zu schließen.
 
-## 4. Technical Architecture Overview
+### 2.2. Analysis-Tab
 
-The application is built with Vanilla JavaScript (ES2020+), HTML5, and CSS3, and utilizes the D3.js library for data visualization. It follows a modular architecture that separates data logic, service functions, and UI rendering.
+*   **Zweck:** Das interaktive "Labor" der Anwendung. Hier werden T2-Kriterien live definiert, ihre Auswirkungen analysiert und computergestützte Optimierungen durchgeführt. Arbeitet im **globalen Kohorten-Kontext**.
+*   **Komponenten und Funktionen:**
+    *   **Dashboard:** Eine Reihe von Diagrammen am oberen Rand visualisiert die Verteilung von Alter, Geschlecht, Therapie und der drei Status-Marker (N, AS, T2) für die aktuell ausgewählte globale Kohorte.
+    *   **"Define T2 Criteria"-Karte:**
+        *   **Kriterien-Schalter:** Jedes der fünf T2-Merkmale (Size, Shape, Border, Homogeneity, Signal) kann per Checkbox aktiviert oder deaktiviert werden.
+        *   **Werte-Einstellung:** Für aktive Kriterien können die genauen Werte eingestellt werden (z.B. Größenschwellenwert per Schieberegler und Direkteingabe, Auswahl von "round" vs. "oval" per Button-Klick).
+        *   **Logik-Schalter:** Ein prominenter Schalter (`AND`/`OR`) oben rechts legt die logische Verknüpfung der aktiven Kriterien fest.
+        *   **Status-Indikator:** Die Karte zeigt durch einen gestrichelten Rahmen an, wenn die aktuellen Einstellungen noch nicht gespeichert wurden.
+        *   **Aktions-Buttons:**
+            *   `Reset to Default`: Setzt alle Kriterien auf den vordefinierten Standard zurück.
+            *   `Apply & Save`: Übernimmt die aktuellen Einstellungen global für die gesamte Anwendung, berechnet alle T2-Status neu und speichert die Konfiguration dauerhaft im Browser.
+    *   **"Diagnostic Performance"-Karte:** Zeigt in Echtzeit die diagnostische Güte (Sensitivität, Spezifität, PPV, NPV, Accuracy, AUC) der *aktuell im Definitions-Panel eingestellten T2-Kriterien*. Diese Karte reagiert sofort auf jede Änderung an den Kriterien und bietet so ein direktes Feedback.
+    *   **"Criteria Optimization (Brute-Force)"-Karte:**
+        *   **Start:** Der Nutzer wählt eine Zielmetrik (z.B. "Balanced Accuracy") und startet mit `Start` die Analyse. Ein Fortschrittsbalken informiert über den Verlauf.
+        *   **Ergebnis:** Nach Abschluss wird das beste Ergebnis (höchster Wert der Zielmetrik) angezeigt. Mit `Apply Best` können die gefundenen optimalen Kriterien direkt in das Definitions-Panel geladen und anschließend gespeichert werden. `Top 10` öffnet eine modale Detailansicht der besten Ergebnisse.
+    *   **"Brute-Force Optima (Saved Results)"-Karte:** Dient als persistenter Speicher. Sie zeigt eine Übersicht der besten Ergebnisse aller bisher durchgeführten Optimierungsläufe für jede Kohorte und Metrik. Ein Klick auf `Apply` lädt nicht nur die Kriterien, sondern schaltet auch den **globalen Kohorten-Kontext** automatisch auf die passende Kohorte um.
 
-* **App Controller (`js/app/main.js`):** The central orchestrator that manages the application lifecycle, data flow, and UI updates.
-* **State Manager (`js/app/state.js`):** A centralized module for managing the global application state and the critical "Analysis Context".
-* **Event Manager (`js/ui/event_manager.js`):** Captures all user interactions and delegates them to the App Controller.
-* **Core Modules (`js/core/`):**
-    * `data_processor.js`: Handles initial data cleaning, processing, and filtering, including deduplication of patient data.
-    * `t2_criteria_manager.js`: Manages the state and logic for the user-defined T2 criteria.
-    * `study_criteria_manager.js`: Manages the definitions and logic for all predefined, literature-based criteria, including the complex ESGAR logic.
-* **Service Layer (`js/services/`):**
-    * `statistics_service.js`: Contains all the statistical calculation logic (diagnostic metrics, confidence intervals, comparison tests, power analyses).
-    * `brute_force_manager.js`: Manages the Web Worker for the optimization process.
-    * `publication_service.js`: Orchestrates the generation of the manuscript by calling its various submodules (e.g., `abstract_generator.js`, `results_generator.js`).
-    * `export_service.js`: Provides robust HTML-to-Markdown and SVG extraction capabilities.
-* **UI Layer (`js/ui/`):**
-    * `ui_manager.js`: A central manager for all DOM manipulations and UI updates.
-    * `components/`: Modules for rendering reusable UI elements like tables and charts.
-    * `tabs/`: Modules responsible for rendering the specific content of each of the seven main tabs.
-* **Web Worker (`workers/brute_force_worker.js`):** Runs the computationally intensive optimization process in a separate thread to keep the main UI responsive.
+### 2.3. Statistics-Tab
 
-## 5. Setup & System Requirements
-* **System Requirements:** A modern desktop web browser (e.g., the latest versions of Google Chrome, Mozilla Firefox, Microsoft Edge, or Safari). **Web Worker** support is required for full functionality (especially the brute-force optimization).
-* **Setup:** No server-side component or installation is necessary. The application is available live at **[avocadosign.pages.dev](https://avocadosign.pages.dev)** or can be run locally by opening the `index.html` file directly in the browser. An internet connection is required for the initial loading of external libraries (e.g., Bootstrap, D3.js) from their respective Content Delivery Networks (CDNs).
+*   **Zweck:** Formale und tiefgehende statistische Auswertung und Gegenüberstellung.
+*   **Workflow & Komponenten:**
+    *   **Ansichts-Umschalter:**
+        *   `Single View`: Analysiert eine einzelne Kohorte, basierend auf der **globalen Kohortenauswahl**.
+        *   `Comparison View`: Erlaubt die Auswahl von zwei Kohorten aus Dropdown-Menüs für einen direkten statistischen Vergleich. Hierbei wird der **Analyse-Kontext** aktiviert.
+    *   **Statistik-Karten:** In beiden Ansichten werden dynamisch Karten generiert, die detaillierte Tabellen zu folgenden Aspekten enthalten:
+        *   **Descriptive Statistics:** Demografie, Statusverteilungen, Lymphknoten-Statistiken.
+        *   **Diagnostic Performance:** Tabellarische Auflistung aller Gütemetriken mit 95%-Konfidenzintervallen und Angabe der verwendeten statistischen Methode. Separate Karten für AS und die aktuell angewendeten T2-Kriterien.
+        *   **Statistical Comparison:** Zeigt die Ergebnisse des direkten Vergleichs von AS vs. T2 (DeLong-Test für AUC, McNemar-Test für Accuracy).
+        *   **Association Analysis:** Berechnet Odds Ratios (OR) und Risk Differences (RD) für einzelne Merkmale in Bezug auf den N-Status.
+    *   **Criteria Comparison Table (nur in "Single View"):** Eine umfassende Tabelle, die die Performance des AS mit der Performance der *angewendeten* T2-Kriterien sowie einer kuratierten Liste von *Literatur-Kriterien* vergleicht. Hierbei wird der **Analyse-Kontext** intern genutzt, um sicherzustellen, dass die Performance-Werte der Literatur-Kriterien immer aus der methodologisch korrekten Kohorte stammen, was transparent in der Tabelle vermerkt wird.
+
+### 2.4. Comparison-Tab
+
+*   **Zweck:** Visueller und tabellarischer Direktvergleich des AS mit einem frei wählbaren T2-Benchmark unter Einhaltung methodischer Korrektheit durch den **Analyse-Kontext**.
+*   **Workflow & Komponenten:**
+    *   **Vergleichsbasis-Auswahl:** Ein zentrales Dropdown-Menü erlaubt die Auswahl des T2-Vergleichsstandards. Die Liste enthält alle Literatur-Kriterien sowie die gespeicherten Brute-Force-Optima.
+    *   **Automatischer Analyse-Kontext:** Die Auswahl eines Kriteriums aktiviert sofort den **Analyse-Kontext** und sperrt die Kohorte auf die für diesen Vergleich passende Gruppe.
+    *   **Dynamische Ausgabe:** Basierend auf der Auswahl werden gerendert:
+        *   **Balkendiagramm:** Visualisiert die fünf Kernmetriken (Sens, Spez, PPV, NPV, AUC) für AS und den gewählten T2-Standard nebeneinander.
+        *   **Vergleichstabelle:** Listet die Metriken mit 95% CIs auf und enthält eine `p-Value`-Spalte, die das Ergebnis des direkten statistischen Vergleichs anzeigt.
+        *   **Info-Karte:** Beschreibt die Quelle, die Definition und die zugehörige Kohorte des ausgewählten T2-Vergleichsstandards.
+
+### 2.5. Insights-Tab
+
+*   **Zweck:** Bereitstellung von spezialisierten, weiterführenden Analysen.
+*   **Workflow & Komponenten:**
+    *   **Ansichts-Umschalter:** `Power Analysis` und `Aggregate Lymph Node Counts`.
+    *   **Power Analysis:**
+        *   **Funktion:** Ermöglicht Post-hoc-Poweranalysen und A-priori-Stichprobenkalkulationen für den Vergleich des AS mit einem auswählbaren T2-Literatur- oder Brute-Force-Kriterium.
+        *   **Kontext:** Nutzt den **Analyse-Kontext** für methodisch korrekte Berechnungen.
+    *   **Aggregate Lymph Node Counts:**
+        *   **Funktion:** Bietet eine detaillierte Aufschlüsselung der Lymphknotenzahlen.
+        *   **Kontextsensitive Anzeige:** Exklusiv in dieser Ansicht wird ein Banner mit der **Gesamtzahl aller evaluierten Lymphknoten** (Pathologie, T1-CE, T2w) der **globalen Kohorte** angezeigt. Zusätzlich kann ein Literatur-Kriterienset ausgewählt werden, um die resultierenden positiven vs. totalen Knoten für dieses spezifische Set und dessen zugehörige Kohorte zu sehen.
+
+### 2.6. Publication-Tab
+
+*   **Zweck:** Das finale Ausgabemodul. Es generiert einen vollständigen, wissenschaftlichen Manuskriptentwurf.
+*   **Workflow & Komponenten:**
+    *   **Struktur:** Die Ansicht ist in zwei Hauptbereiche geteilt: eine seitliche Navigationsleiste und den Hauptinhaltsbereich.
+    *   **Navigationsleiste:**
+        *   **Gesamtwortzahl:** Ganz oben wird die Gesamtzahl der Wörter des Manuskript-Hauptteils angezeigt.
+        *   **Sektions-Links:** Eine klickbare Gliederung aller Manuskript-Abschnitte (Title Page, Abstract, Introduction, etc.).
+        *   **Abschnittszähler:** Neben jedem relevanten Abschnitt wird die aktuelle Wort- bzw. Elementzahl angezeigt (z.B. `350` für Wörter im Abstract, `32` für Referenzen). Die Anzeige ist neutral gehalten und dient der Orientierung.
+    *   **Inhaltsbereich:**
+        *   **Dynamische Generierung:** Der Inhalt wird automatisch basierend auf den aktuellsten Analyseergebnissen generiert. Texte, Tabellen und Abbildungsplatzhalter werden in der korrekten Reihenfolge und Formatierung eingefügt.
+        *   **AJR-Konformität:** Alle Formatierungen, insbesondere die Darstellung statistischer Werte (z.B. `P < .001`), folgen den Richtlinien des AJR.
+        *   **Manuelle Bearbeitung:** Über einen `Edit`-Button kann der gesamte Inhalt manuell überarbeitet werden. Mit `Save` werden die Änderungen im Browser gespeichert, mit `Reset` wird der Text auf die letzte automatisch generierte Version zurückgesetzt.
+
+### 2.7. Export-Tab
+
+*   **Zweck:** Bereitstellung von Inhalten für die externe Weiterverwendung.
+*   **Komponenten und Funktionen:** Bietet drei Hauptfunktionen per Button-Klick:
+    *   `Export Full Manuscript as Markdown`: Erstellt eine `.md`-Datei des gesamten Manuskripts.
+    *   `Export Tables as Markdown`: Extrahiert alle Tabellen und speichert sie als einzelne `.md`-Dateien.
+    *   `Export Charts as SVG`: Extrahiert alle Diagramme als verlustfreie `.svg`-Vektorgrafiken.
